@@ -1,6 +1,6 @@
-import { ClienteNotFoundError } from '../../core/Exceptions/ClienteNotFoundError';
-import { ClienteRepository } from '../../core/Repository/ClienteRepository';
-import { ClienteId } from '../../core/ValueObjects/ClienteId';
+import { ClienteNotFoundError } from '../../../core/Exceptions/ClienteNotFoundError';
+import { ClienteRepository } from '../../../core/Repository/ClienteRepository';
+import { ClienteId } from '../../../core/ValueObjects/ClienteId';
 
 export class ClienteDelete {
   constructor(private readonly repo: ClienteRepository) {}

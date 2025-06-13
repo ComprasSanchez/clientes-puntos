@@ -1,7 +1,7 @@
-import { Cliente } from '../../core/Cliente';
-import { ClienteNotFoundError } from '../../core/Exceptions/ClienteNotFoundError';
-import { ClienteRepository } from '../../core/Repository/ClienteRepository';
-import { ClienteId } from '../../core/ValueObjects/ClienteId';
+import { Cliente } from '../../../core/Cliente';
+import { ClienteNotFoundError } from '../../../core/Exceptions/ClienteNotFoundError';
+import { ClienteRepository } from '../../../core/Repository/ClienteRepository';
+import { ClienteId } from '../../../core/ValueObjects/ClienteId';
 
 export class ClienteFindAll {
   constructor(private readonly repository: ClienteRepository) {}

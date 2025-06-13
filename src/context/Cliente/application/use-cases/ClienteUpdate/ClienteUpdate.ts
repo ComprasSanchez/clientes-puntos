@@ -1,22 +1,22 @@
-import { ClienteNotFoundError } from '../../core/Exceptions/ClienteNotFoundError';
-import { ClienteRepository } from '../../core/Repository/ClienteRepository';
-import { ClienteApellido } from '../../core/ValueObjects/ClienteApellido';
-import { ClienteCategoria } from '../../core/ValueObjects/ClienteCategoria';
-import { ClienteCodigoPostal } from '../../core/ValueObjects/ClienteCodPostal';
-import { ClienteDireccion } from '../../core/ValueObjects/ClienteDireccion';
-import { ClienteDni } from '../../core/ValueObjects/ClienteDni';
-import { ClienteEmail } from '../../core/ValueObjects/ClienteEmail';
-import { ClienteFechaBaja } from '../../core/ValueObjects/ClienteFechaBaja';
-import { ClienteFechaNacimiento } from '../../core/ValueObjects/ClienteFechaNacimiento';
-import { ClienteId } from '../../core/ValueObjects/ClienteId';
-import { ClienteIdFidely } from '../../core/ValueObjects/ClienteIdFidely';
-import { ClienteLocalidad } from '../../core/ValueObjects/ClienteLocalidad';
-import { ClienteNombre } from '../../core/ValueObjects/ClienteNombre';
-import { ClienteProvincia } from '../../core/ValueObjects/ClienteProvincia';
-import { ClienteSexo } from '../../core/ValueObjects/ClienteSexo';
-import { ClienteStatus } from '../../core/ValueObjects/ClienteStatus';
-import { ClienteTarjetaFidely } from '../../core/ValueObjects/ClienteTarjetaFidely';
-import { ClienteTelefono } from '../../core/ValueObjects/ClienteTelefono';
+import { ClienteNotFoundError } from '../../../core/Exceptions/ClienteNotFoundError';
+import { ClienteRepository } from '../../../core/Repository/ClienteRepository';
+import { ClienteApellido } from '../../../core/ValueObjects/ClienteApellido';
+import { ClienteCategoria } from '../../../core/ValueObjects/ClienteCategoria';
+import { ClienteCodigoPostal } from '../../../core/ValueObjects/ClienteCodPostal';
+import { ClienteDireccion } from '../../../core/ValueObjects/ClienteDireccion';
+import { ClienteDni } from '../../../core/ValueObjects/ClienteDni';
+import { ClienteEmail } from '../../../core/ValueObjects/ClienteEmail';
+import { ClienteFechaBaja } from '../../../core/ValueObjects/ClienteFechaBaja';
+import { ClienteFechaNacimiento } from '../../../core/ValueObjects/ClienteFechaNacimiento';
+import { ClienteId } from '../../../core/ValueObjects/ClienteId';
+import { ClienteIdFidely } from '../../../core/ValueObjects/ClienteIdFidely';
+import { ClienteLocalidad } from '../../../core/ValueObjects/ClienteLocalidad';
+import { ClienteNombre } from '../../../core/ValueObjects/ClienteNombre';
+import { ClienteProvincia } from '../../../core/ValueObjects/ClienteProvincia';
+import { ClienteSexo } from '../../../core/ValueObjects/ClienteSexo';
+import { ClienteStatus } from '../../../core/ValueObjects/ClienteStatus';
+import { ClienteTarjetaFidely } from '../../../core/ValueObjects/ClienteTarjetaFidely';
+import { ClienteTelefono } from '../../../core/ValueObjects/ClienteTelefono';
 
 interface ClienteUpdateInput {
   id: string; // siempre obligatorio

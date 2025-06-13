@@ -90,6 +90,50 @@ export class Cliente {
     this._fechaBaja = fechaBaja ?? new ClienteFechaBaja(null);
   }
 
+  get id(): ClienteId {
+    return this._id;
+  }
+
+  /** Retorna el VO ClienteDni */
+  get dni(): ClienteDni {
+    return this._dni;
+  }
+
+  /** Retorna el VO ClienteNombre */
+  get nombre(): ClienteNombre {
+    return this._nombre;
+  }
+
+  /** Retorna el VO ClienteApellido */
+  get apellido(): ClienteApellido {
+    return this._apellido;
+  }
+
+  /** Retorna el VO ClienteSexo */
+  get sexo(): ClienteSexo {
+    return this._sexo;
+  }
+
+  /** Retorna el VO ClienteFechaNacimiento */
+  get fechaNacimiento(): ClienteFechaNacimiento {
+    return this._fechaNacimiento;
+  }
+
+  /** Retorna el VO ClienteStatus */
+  get status(): ClienteStatus {
+    return this._status;
+  }
+
+  /** Retorna el VO ClienteEmail (nullable) */
+  get email(): ClienteEmail {
+    return this._email;
+  }
+
+  /** Retorna el VO ClienteTelefono (nullable) */
+  get telefono(): ClienteTelefono {
+    return this._telefono;
+  }
+
   editarDni(nuevoDni: ClienteDni): void {
     this._dni = nuevoDni;
   }
