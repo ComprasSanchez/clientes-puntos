@@ -23,7 +23,7 @@ import { ClienteTelefono } from './ValueObjects/ClienteTelefono';
  */
 export class Cliente {
   private readonly _id: ClienteId;
-  private readonly _dni: ClienteDni;
+  private _dni: ClienteDni;
   private _nombre: ClienteNombre;
   private _apellido: ClienteApellido;
   private _sexo: ClienteSexo;
@@ -44,6 +44,7 @@ export class Cliente {
   private _idFidely: ClienteIdFidely;
   private _tarjetaFidely: ClienteTarjetaFidely;
   private _fechaBaja: ClienteFechaBaja;
+  private _updatedAt: Date;
 
   constructor(
     id: ClienteId,
@@ -75,6 +76,7 @@ export class Cliente {
     // Auto-inicializados
     this._categoria = new ClienteCategoria('General');
     this._fechaAlta = new ClienteFechaAlta(new Date());
+    this._updatedAt = new Date();
 
     // Campos opcionales (nullable VOs)
     this._email = email ?? new ClienteEmail(null);
@@ -86,5 +88,80 @@ export class Cliente {
     this._idFidely = idFidely ?? new ClienteIdFidely(null);
     this._tarjetaFidely = tarjetaFidely ?? new ClienteTarjetaFidely(null);
     this._fechaBaja = fechaBaja ?? new ClienteFechaBaja(null);
+  }
+
+  editarDni(nuevoDni: ClienteDni): void {
+    this._dni = nuevoDni;
+  }
+
+  editarNombre(nuevoNombre: ClienteNombre): void {
+    this._nombre = nuevoNombre;
+  }
+
+  editarApellido(nuevoApellido: ClienteApellido): void {
+    this._apellido = nuevoApellido;
+  }
+
+  editarSexo(nuevoSexo: ClienteSexo): void {
+    this._sexo = nuevoSexo;
+  }
+
+  editarFechaNacimiento(nuevaFecha: ClienteFechaNacimiento): void {
+    this._fechaNacimiento = nuevaFecha;
+  }
+
+  editarStatus(nuevoStatus: ClienteStatus): void {
+    this._status = nuevoStatus;
+  }
+
+  editarCategoria(nuevaCategoria: ClienteCategoria): void {
+    this._categoria = nuevaCategoria;
+  }
+
+  // Campos opcionales / nulos
+  editarEmail(nuevoEmail: ClienteEmail): void {
+    this._email = nuevoEmail;
+  }
+
+  editarTelefono(nuevoTelefono: ClienteTelefono): void {
+    this._telefono = nuevoTelefono;
+  }
+
+  editarDireccion(nuevaDireccion: ClienteDireccion): void {
+    this._direccion = nuevaDireccion;
+  }
+
+  editarCodigoPostal(nuevoCodPostal: ClienteCodigoPostal): void {
+    this._codPostal = nuevoCodPostal;
+  }
+
+  editarLocalidad(nuevaLocalidad: ClienteLocalidad): void {
+    this._localidad = nuevaLocalidad;
+  }
+
+  editarProvincia(nuevaProvincia: ClienteProvincia): void {
+    this._provincia = nuevaProvincia;
+  }
+
+  editarIdFidely(nuevoIdFidely: ClienteIdFidely): void {
+    this._idFidely = nuevoIdFidely;
+  }
+
+  editarTarjetaFidely(nuevaTarjeta: ClienteTarjetaFidely): void {
+    this._tarjetaFidely = nuevaTarjeta;
+  }
+
+  editarFechaBaja(nuevaFechaBaja: ClienteFechaBaja): void {
+    this._fechaBaja = nuevaFechaBaja;
+  }
+
+  private touch(): void {
+    this._updatedAt = new Date();
+  }
+
+  softDelete(): void {
+    this.editarFechaBaja(new ClienteFechaBaja(new Date()));
+    this.editarStatus(new ClienteStatus('Inactivo'));
+    this.touch();
   }
 }
