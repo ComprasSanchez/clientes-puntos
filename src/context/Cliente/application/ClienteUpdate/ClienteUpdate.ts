@@ -86,6 +86,8 @@ export class ClienteUpdate {
     if (input.fechaBaja !== undefined)
       cliente.editarFechaBaja(new ClienteFechaBaja(input.fechaBaja));
 
+    cliente.touch();
+
     // 3) Persisto
     await this.repository.update(cliente);
   }

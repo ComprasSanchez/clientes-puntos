@@ -13,7 +13,7 @@ import { ClienteLocalidad } from './ValueObjects/ClienteLocalidad';
 import { ClienteNombre } from './ValueObjects/ClienteNombre';
 import { ClienteProvincia } from './ValueObjects/ClienteProvincia';
 import { ClienteSexo } from './ValueObjects/ClienteSexo';
-import { ClienteStatus } from './ValueObjects/ClienteStatus';
+import { ClienteStatus, StatusCliente } from './ValueObjects/ClienteStatus';
 import { ClienteTarjetaFidely } from './ValueObjects/ClienteTarjetaFidely';
 import { ClienteTelefono } from './ValueObjects/ClienteTelefono';
 
@@ -155,13 +155,13 @@ export class Cliente {
     this._fechaBaja = nuevaFechaBaja;
   }
 
-  private touch(): void {
+  touch(): void {
     this._updatedAt = new Date();
   }
 
   softDelete(): void {
     this.editarFechaBaja(new ClienteFechaBaja(new Date()));
-    this.editarStatus(new ClienteStatus('Inactivo'));
+    this.editarStatus(new ClienteStatus(StatusCliente.Inactivo));
     this.touch();
   }
 }

@@ -20,7 +20,7 @@ export class ClienteApellido {
 
     // Validar que el nombre no contenga números ni caracteres especiales
     const nombreApellidoRegex =
-      /^(?![A-ZÁÉÍÓÚÑÜ\s]+$)[A-ZÁÉÍÓÚÑÜ][a-záéíóúñü]+(?: [A-ZÁÉÍÓÚÑÜ][a-záéíóúñü]+)*$/;
+      /^[A-ZÁÉÍÓÚÑÜ][a-záéíóúñü]+(?: (?:[A-ZÁÉÍÓÚÑÜ][a-záéíóúñü]+|[a-záéíóúñü]+))*$/;
 
     if (!nombreApellidoRegex.test(this.value)) {
       throw new Error(

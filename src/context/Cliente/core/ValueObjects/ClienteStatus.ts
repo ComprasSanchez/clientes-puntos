@@ -14,7 +14,7 @@ export class ClienteStatus {
     const v = value.toLowerCase() as StatusCliente;
     if (!Object.values(StatusCliente).includes(v)) {
       throw new Error(
-        `Status inválido: "${value}" no es uno de los valores permitidos (${Object.values(StatusCliente).join(', ')}).`,
+        `Status inválido: "${value}" no es un valor permitido (${Object.values(StatusCliente).join(', ')}).`,
       );
     }
     this.value = v;
