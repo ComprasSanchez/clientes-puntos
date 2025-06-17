@@ -14,7 +14,6 @@ describe('ClienteCreate Use Case', () => {
       findAll: jest.fn(),
       findById: jest.fn(),
       findByDni: jest.fn(),
-      findByEmail: jest.fn(),
       create: jest.fn(),
       update: jest.fn(),
     };

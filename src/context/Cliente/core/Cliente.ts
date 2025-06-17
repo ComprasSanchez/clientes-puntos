@@ -134,6 +134,25 @@ export class Cliente {
     return this._telefono;
   }
 
+  get fullAdress() {
+    return {
+      direccion: this._direccion.value,
+      codPostal: this._codPostal.value,
+      localidad: this._localidad.value,
+      provincia: this._provincia.value,
+    };
+  }
+
+  get fidelyStatus() {
+    return {
+      idFidely: this._idFidely.value,
+      tarjetaFidely: this._tarjetaFidely.value,
+      categoria: this._categoria.value,
+      fechaAlta: this._fechaAlta.value,
+      fechaBaja: this._fechaBaja.value,
+    };
+  }
+
   editarDni(nuevoDni: ClienteDni): void {
     this._dni = nuevoDni;
   }
