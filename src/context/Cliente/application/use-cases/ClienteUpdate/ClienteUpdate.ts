@@ -1,7 +1,7 @@
+import { CategoriaId } from 'src/context/Cliente/core/value-objects/CategoriaId';
 import { ClienteNotFoundError } from '../../../core/exceptions/ClienteNotFoundError';
 import { ClienteRepository } from '../../../core/repository/ClienteRepository';
 import { ClienteApellido } from '../../../core/value-objects/ClienteApellido';
-import { ClienteCategoria } from '../../../core/value-objects/ClienteCategoria';
 import { ClienteCodigoPostal } from '../../../core/value-objects/ClienteCodPostal';
 import { ClienteDireccion } from '../../../core/value-objects/ClienteDireccion';
 import { ClienteDni } from '../../../core/value-objects/ClienteDni';
@@ -17,6 +17,7 @@ import { ClienteSexo } from '../../../core/value-objects/ClienteSexo';
 import { ClienteStatus } from '../../../core/value-objects/ClienteStatus';
 import { ClienteTarjetaFidely } from '../../../core/value-objects/ClienteTarjetaFidely';
 import { ClienteTelefono } from '../../../core/value-objects/ClienteTelefono';
+import { CategoriaRepository } from 'src/context/Cliente/core/repository/CategoriaRepository';
 
 interface ClienteUpdateInput {
   id: string; // siempre obligatorio
@@ -26,7 +27,7 @@ interface ClienteUpdateInput {
   sexo?: string;
   fechaNacimiento?: Date;
   status?: string;
-  categoria?: string;
+  categoriaId?: string;
   email?: string | null;
   telefono?: string | null;
   direccion?: string | null;
@@ -39,7 +40,10 @@ interface ClienteUpdateInput {
 }
 
 export class ClienteUpdate {
-  constructor(private readonly repository: ClienteRepository) {}
+  constructor(
+    private readonly repository: ClienteRepository,
+    private readonly categoriaRepo: CategoriaRepository,
+  ) {}
 
   async run(input: ClienteUpdateInput): Promise<void> {
     // 1) Recupero el Cliente existente
@@ -61,8 +65,15 @@ export class ClienteUpdate {
     if (input.status !== undefined)
       cliente.editarStatus(new ClienteStatus(input.status));
 
-    if (input.categoria !== undefined)
-      cliente.editarCategoria(new ClienteCategoria(input.categoria));
+    if (input.categoriaId !== undefined) {
+      const catIdVo = new CategoriaId(input.categoriaId);
+      const categoria = await this.categoriaRepo.findById(catIdVo);
+      if (!categoria) {
+        throw new Error(`Categoría no encontrada`);
+      }
+
+      cliente.cambiarCategoria(categoria);
+    }
 
     // y lo mismo para los opcionales / nulos
     if (input.email !== undefined)

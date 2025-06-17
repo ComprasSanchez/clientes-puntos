@@ -1,4 +1,4 @@
-import { Cliente } from '../Cliente';
+import { Cliente } from '../entities/Cliente';
 import { ClienteDni } from '../value-objects/ClienteDni';
 import { ClienteId } from '../value-objects/ClienteId';
 

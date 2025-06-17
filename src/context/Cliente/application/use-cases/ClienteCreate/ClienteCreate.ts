@@ -1,4 +1,5 @@
-import { Cliente } from '../../../core/Cliente';
+import { Categoria } from 'src/context/Cliente/core/entities/Categoria';
+import { Cliente } from '../../../core/entities/Cliente';
 import { ClienteRepository } from '../../../core/repository/ClienteRepository';
 import { ClienteApellido } from '../../../core/value-objects/ClienteApellido';
 import { ClienteCodigoPostal } from '../../../core/value-objects/ClienteCodPostal';
@@ -28,6 +29,7 @@ export class ClienteCreate {
     sexo: string,
     fechaNacimiento: Date,
     status: string,
+    categoria: Categoria,
     email?: string,
     telefono?: string,
     direccion?: string,
@@ -45,6 +47,7 @@ export class ClienteCreate {
       new ClienteSexo(sexo),
       new ClienteFechaNacimiento(fechaNacimiento),
       new ClienteStatus(status),
+      new Categoria(categoria.id, categoria.nombre, categoria.descripcion),
       new ClienteEmail(email || null),
       new ClienteTelefono(telefono || null),
       new ClienteDireccion(direccion || null),

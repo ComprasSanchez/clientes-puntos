@@ -1,6 +1,6 @@
 // src/context/Cliente/application/use-cases/ClienteFindByDni.ts
 
-import { Cliente } from 'src/context/Cliente/core/Cliente';
+import { Cliente } from 'src/context/Cliente/core/entities/Cliente';
 import { ClienteNotFoundError } from 'src/context/Cliente/core/exceptions/ClienteNotFoundError';
 import { ClienteRepository } from 'src/context/Cliente/core/repository/ClienteRepository';
 import { ClienteDni } from 'src/context/Cliente/core/value-objects/ClienteDni';

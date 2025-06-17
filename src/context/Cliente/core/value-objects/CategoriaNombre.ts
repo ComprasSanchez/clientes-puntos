@@ -1,4 +1,4 @@
-export class ClienteApellido {
+export class CategoriaNombre {
   value: string;
 
   constructor(value: string) {
@@ -8,7 +8,7 @@ export class ClienteApellido {
 
   private validate() {
     if (!this.value) {
-      throw new Error('El nombre del cliente no puede ser vacío.');
+      throw new Error('El nombre de la categoria no puede ser vacío.');
     }
 
     // Validar que el nombre tenga al menos 2 caracteres
@@ -18,11 +18,15 @@ export class ClienteApellido {
       );
     }
 
-    // Validar que el nombre no contenga números ni caracteres especiales
-    const nombreApellidoRegex =
-      /^[A-ZÁÉÍÓÚÑÜ][a-záéíóúñü]+(?: (?:[A-ZÁÉÍÓÚÑÜ][a-záéíóúñü]+|[a-záéíóúñü]+))*$/;
+    if (this.value.length > 20) {
+      throw new Error(
+        `Nombre inválido: "${this.value}" no puede tener más de 20 caracteres.`,
+      );
+    }
 
-    if (!nombreApellidoRegex.test(this.value)) {
+    // Sólo letras (incluyendo acentos y ñ) y espacios
+    const nombreRegex = /^[A-Za-zÁÉÍÓÚáéíóúÑñÜü ]+$/;
+    if (!nombreRegex.test(this.value)) {
       throw new Error(
         `Nombre inválido: "${this.value}" contiene caracteres no permitidos.`,
       );

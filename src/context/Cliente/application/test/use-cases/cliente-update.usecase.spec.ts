@@ -3,7 +3,7 @@
 import { ClienteRepository } from 'src/context/Cliente/core/repository/ClienteRepository';
 import { ClienteUpdate } from '../../use-cases/ClienteUpdate/ClienteUpdate';
 import { ClienteNotFoundError } from 'src/context/Cliente/core/exceptions/ClienteNotFoundError';
-import { Cliente } from 'src/context/Cliente/core/Cliente';
+import { Cliente } from 'src/context/Cliente/core/entities/Cliente';
 import { ClienteId } from 'src/context/Cliente/core/value-objects/ClienteId';
 import { ClienteDni } from 'src/context/Cliente/core/value-objects/ClienteDni';
 import { ClienteNombre } from 'src/context/Cliente/core/value-objects/ClienteNombre';

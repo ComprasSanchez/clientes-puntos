@@ -1,4 +1,4 @@
-import { Cliente } from '../../../core/Cliente';
+import { Cliente } from '../../../core/entities/Cliente';
 import { ClienteNotFoundError } from '../../../core/exceptions/ClienteNotFoundError';
 import { ClienteRepository } from '../../../core/repository/ClienteRepository';
 import { ClienteId } from '../../../core/value-objects/ClienteId';

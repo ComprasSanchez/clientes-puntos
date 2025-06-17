@@ -1,21 +1,21 @@
-import { ClienteApellido } from './value-objects/ClienteApellido';
-import { ClienteCategoria } from './value-objects/ClienteCategoria';
-import { ClienteCodigoPostal } from './value-objects/ClienteCodPostal';
-import { ClienteDireccion } from './value-objects/ClienteDireccion';
-import { ClienteDni } from './value-objects/ClienteDni';
-import { ClienteEmail } from './value-objects/ClienteEmail';
-import { ClienteFechaAlta } from './value-objects/ClienteFechaAlta';
-import { ClienteFechaBaja } from './value-objects/ClienteFechaBaja';
-import { ClienteFechaNacimiento } from './value-objects/ClienteFechaNacimiento';
-import { ClienteId } from './value-objects/ClienteId';
-import { ClienteIdFidely } from './value-objects/ClienteIdFidely';
-import { ClienteLocalidad } from './value-objects/ClienteLocalidad';
-import { ClienteNombre } from './value-objects/ClienteNombre';
-import { ClienteProvincia } from './value-objects/ClienteProvincia';
-import { ClienteSexo } from './value-objects/ClienteSexo';
-import { ClienteStatus, StatusCliente } from './value-objects/ClienteStatus';
-import { ClienteTarjetaFidely } from './value-objects/ClienteTarjetaFidely';
-import { ClienteTelefono } from './value-objects/ClienteTelefono';
+import { ClienteApellido } from '../value-objects/ClienteApellido';
+import { Categoria } from './Categoria';
+import { ClienteCodigoPostal } from '../value-objects/ClienteCodPostal';
+import { ClienteDireccion } from '../value-objects/ClienteDireccion';
+import { ClienteDni } from '../value-objects/ClienteDni';
+import { ClienteEmail } from '../value-objects/ClienteEmail';
+import { ClienteFechaAlta } from '../value-objects/ClienteFechaAlta';
+import { ClienteFechaBaja } from '../value-objects/ClienteFechaBaja';
+import { ClienteFechaNacimiento } from '../value-objects/ClienteFechaNacimiento';
+import { ClienteId } from '../value-objects/ClienteId';
+import { ClienteIdFidely } from '../value-objects/ClienteIdFidely';
+import { ClienteLocalidad } from '../value-objects/ClienteLocalidad';
+import { ClienteNombre } from '../value-objects/ClienteNombre';
+import { ClienteProvincia } from '../value-objects/ClienteProvincia';
+import { ClienteSexo } from '../value-objects/ClienteSexo';
+import { ClienteStatus, StatusCliente } from '../value-objects/ClienteStatus';
+import { ClienteTarjetaFidely } from '../value-objects/ClienteTarjetaFidely';
+import { ClienteTelefono } from '../value-objects/ClienteTelefono';
 
 /**
  * Representa la entidad de dominio Cliente.
@@ -31,7 +31,7 @@ export class Cliente {
   private _status: ClienteStatus;
 
   // Se auto-inicializan
-  private _categoria: ClienteCategoria;
+  private _categoria: Categoria;
   private _fechaAlta: ClienteFechaAlta;
 
   // Opcionales (nulos por defecto)
@@ -54,6 +54,7 @@ export class Cliente {
     sexo: ClienteSexo,
     fechaNacimiento: ClienteFechaNacimiento,
     status: ClienteStatus,
+    categoria: Categoria,
     email?: ClienteEmail,
     telefono?: ClienteTelefono,
     direccion?: ClienteDireccion,
@@ -74,7 +75,7 @@ export class Cliente {
     this._status = status;
 
     // Auto-inicializados
-    this._categoria = new ClienteCategoria('General');
+    this._categoria = categoria;
     this._fechaAlta = new ClienteFechaAlta(new Date());
     this._updatedAt = new Date();
 
@@ -134,7 +135,16 @@ export class Cliente {
     return this._telefono;
   }
 
-  get fullAdress() {
+  get categoria(): Categoria {
+    return this._categoria;
+  }
+
+  get fullAdress(): {
+    direccion: ClienteDireccion;
+    codPostal: ClienteCodigoPostal;
+    localidad: ClienteLocalidad;
+    provincia: ClienteProvincia;
+  } {
     return {
       direccion: this._direccion,
       codPostal: this._codPostal,
@@ -143,7 +153,13 @@ export class Cliente {
     };
   }
 
-  get fidelyStatus() {
+  get fidelyStatus(): {
+    idFidely: ClienteIdFidely;
+    tarjetaFidely: ClienteTarjetaFidely;
+    categoria: Categoria;
+    fechaAlta: ClienteFechaAlta;
+    fechaBaja: ClienteFechaBaja;
+  } {
     return {
       idFidely: this._idFidely,
       tarjetaFidely: this._tarjetaFidely,
@@ -155,67 +171,83 @@ export class Cliente {
 
   editarDni(nuevoDni: ClienteDni): void {
     this._dni = nuevoDni;
+    this.touch();
   }
 
   editarNombre(nuevoNombre: ClienteNombre): void {
     this._nombre = nuevoNombre;
+    this.touch();
   }
 
   editarApellido(nuevoApellido: ClienteApellido): void {
     this._apellido = nuevoApellido;
+    this.touch();
   }
 
   editarSexo(nuevoSexo: ClienteSexo): void {
     this._sexo = nuevoSexo;
+    this.touch();
   }
 
   editarFechaNacimiento(nuevaFecha: ClienteFechaNacimiento): void {
     this._fechaNacimiento = nuevaFecha;
+    this.touch();
   }
 
   editarStatus(nuevoStatus: ClienteStatus): void {
     this._status = nuevoStatus;
+    this.touch();
   }
 
-  editarCategoria(nuevaCategoria: ClienteCategoria): void {
-    this._categoria = nuevaCategoria;
+  cambiarCategoria(nueva: Categoria): void {
+    this._categoria = nueva;
+    this.touch();
   }
 
   // Campos opcionales / nulos
   editarEmail(nuevoEmail: ClienteEmail): void {
     this._email = nuevoEmail;
+    this.touch();
   }
 
   editarTelefono(nuevoTelefono: ClienteTelefono): void {
     this._telefono = nuevoTelefono;
+    this.touch();
   }
 
   editarDireccion(nuevaDireccion: ClienteDireccion): void {
     this._direccion = nuevaDireccion;
+    this.touch();
   }
 
   editarCodigoPostal(nuevoCodPostal: ClienteCodigoPostal): void {
     this._codPostal = nuevoCodPostal;
+    this.touch();
   }
 
   editarLocalidad(nuevaLocalidad: ClienteLocalidad): void {
     this._localidad = nuevaLocalidad;
+    this.touch();
   }
 
   editarProvincia(nuevaProvincia: ClienteProvincia): void {
     this._provincia = nuevaProvincia;
+    this.touch();
   }
 
   editarIdFidely(nuevoIdFidely: ClienteIdFidely): void {
     this._idFidely = nuevoIdFidely;
+    this.touch();
   }
 
   editarTarjetaFidely(nuevaTarjeta: ClienteTarjetaFidely): void {
     this._tarjetaFidely = nuevaTarjeta;
+    this.touch();
   }
 
   editarFechaBaja(nuevaFechaBaja: ClienteFechaBaja): void {
     this._fechaBaja = nuevaFechaBaja;
+    this.touch();
   }
 
   touch(): void {
