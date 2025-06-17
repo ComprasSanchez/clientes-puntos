@@ -1,4 +1,4 @@
-import { ClienteEmail } from '../../ValueObjects/ClienteEmail';
+import { ClienteEmail } from '../../value-objects/ClienteEmail';
 
 describe('ClienteEmail VO', () => {
   it('acepta email válido', () => {

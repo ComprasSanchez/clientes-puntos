@@ -1,4 +1,4 @@
-import { ClienteDni } from '../../ValueObjects/ClienteDni';
+import { ClienteDni } from '../../value-objects/ClienteDni';
 
 describe('ClienteDni VO', () => {
   it('acepta DNI válido', () => {

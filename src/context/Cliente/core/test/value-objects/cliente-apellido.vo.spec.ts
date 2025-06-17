@@ -1,4 +1,4 @@
-import { ClienteApellido } from '../../ValueObjects/ClienteApellido';
+import { ClienteApellido } from '../../value-objects/ClienteApellido';
 
 describe('ClienteApellido VO', () => {
   it('acepta apellido válido', () => {

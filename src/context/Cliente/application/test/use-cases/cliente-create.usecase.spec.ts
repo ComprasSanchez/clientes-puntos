@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 // test/application/use-cases/cliente-create.usecase.spec.ts
 
-import { ClienteRepository } from 'src/context/Cliente/core/Repository/ClienteRepository';
+import { ClienteRepository } from 'src/context/Cliente/core/repository/ClienteRepository';
 import { ClienteCreate } from '../../use-cases/ClienteCreate/ClienteCreate';
 
 describe('ClienteCreate Use Case', () => {

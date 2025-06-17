@@ -1,4 +1,4 @@
-import { ClienteTelefono } from '../../ValueObjects/ClienteTelefono';
+import { ClienteTelefono } from '../../value-objects/ClienteTelefono';
 
 describe('ClienteTelefono VO', () => {
   it('acepta 7–15 dígitos opcional +', () => {

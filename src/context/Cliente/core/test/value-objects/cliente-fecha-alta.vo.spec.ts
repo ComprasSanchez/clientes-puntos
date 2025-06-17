@@ -1,4 +1,4 @@
-import { ClienteFechaAlta } from '../../ValueObjects/ClienteFechaAlta';
+import { ClienteFechaAlta } from '../../value-objects/ClienteFechaAlta';
 
 describe('ClienteFechaAlta VO', () => {
   it('acepta fecha válida no futura', () => {

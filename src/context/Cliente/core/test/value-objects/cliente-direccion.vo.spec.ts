@@ -1,4 +1,4 @@
-import { ClienteDireccion } from '../../ValueObjects/ClienteDireccion';
+import { ClienteDireccion } from '../../value-objects/ClienteDireccion';
 
 describe('ClienteDireccion VO', () => {
   it('acepta direcciones de al menos 5 caracteres', () => {

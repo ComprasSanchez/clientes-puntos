@@ -1,4 +1,4 @@
-import { ClienteId } from '../../ValueObjects/ClienteId';
+import { ClienteId } from '../../value-objects/ClienteId';
 
 describe('ClienteId VO', () => {
   it('acepta un valor no vacío', () => {

@@ -1,4 +1,4 @@
-import { ClienteLocalidad } from '../../ValueObjects/ClienteLocalidad';
+import { ClienteLocalidad } from '../../value-objects/ClienteLocalidad';
 
 describe('ClienteLocalidad VO', () => {
   it('acepta nombres válidos con mayúscula inicial', () => {

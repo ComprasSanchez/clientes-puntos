@@ -1,4 +1,4 @@
-import { ClienteFechaBaja } from '../../ValueObjects/ClienteFechaBaja';
+import { ClienteFechaBaja } from '../../value-objects/ClienteFechaBaja';
 
 describe('ClienteFechaBaja VO', () => {
   it('acepta null (nullable)', () => {

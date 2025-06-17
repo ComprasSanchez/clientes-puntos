@@ -1,4 +1,4 @@
-import { ClienteCategoria } from '../../ValueObjects/ClienteCategoria';
+import { ClienteCategoria } from '../../value-objects/ClienteCategoria';
 
 describe('ClienteCategoria VO', () => {
   it('acepta categorías de letras entre 2 y 20 caracteres', () => {

@@ -1,5 +1,5 @@
 import { Cliente } from 'src/context/Cliente/core/Cliente';
-import { ClienteRepository } from 'src/context/Cliente/core/Repository/ClienteRepository';
+import { ClienteRepository } from 'src/context/Cliente/core/repository/ClienteRepository';
 
 export class ClienteFindAll {
   constructor(private readonly repository: ClienteRepository) {}

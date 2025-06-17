@@ -1,4 +1,4 @@
-import { ClienteSexo } from '../../ValueObjects/ClienteSexo';
+import { ClienteSexo } from '../../value-objects/ClienteSexo';
 
 describe('ClienteSexo VO', () => {
   it('normaliza y acepta "m", "f" y "x"', () => {

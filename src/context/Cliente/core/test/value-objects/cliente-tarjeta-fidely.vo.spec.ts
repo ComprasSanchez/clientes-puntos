@@ -1,4 +1,4 @@
-import { ClienteTarjetaFidely } from '../../ValueObjects/ClienteTarjetaFidely';
+import { ClienteTarjetaFidely } from '../../value-objects/ClienteTarjetaFidely';
 
 describe('ClienteTarjetaFidely VO', () => {
   it('acepta hasta 16 dígitos', () => {

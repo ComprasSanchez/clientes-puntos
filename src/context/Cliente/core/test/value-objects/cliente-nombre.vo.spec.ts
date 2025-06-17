@@ -1,4 +1,4 @@
-import { ClienteNombre } from '../../ValueObjects/ClienteNombre';
+import { ClienteNombre } from '../../value-objects/ClienteNombre';
 
 describe('ClienteNombre VO', () => {
   it('acepta nombre simple con mayúscula inicial', () => {

@@ -1,4 +1,4 @@
-import { ClienteCodigoPostal } from '../../ValueObjects/ClienteCodPostal';
+import { ClienteCodigoPostal } from '../../value-objects/ClienteCodPostal';
 
 describe('ClienteCodigoPostal VO', () => {
   it('acepta códigos de 4 a 6 dígitos', () => {

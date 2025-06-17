@@ -1,4 +1,4 @@
-import { ClienteStatus, StatusCliente } from '../../ValueObjects/ClienteStatus';
+import { ClienteStatus, StatusCliente } from '../../value-objects/ClienteStatus';
 
 describe('ClienteStatus VO', () => {
   it('acepta los tres estados válidos', () => {

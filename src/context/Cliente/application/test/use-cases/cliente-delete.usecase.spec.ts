@@ -1,19 +1,19 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { ClienteDelete } from '../../use-cases/ClienteDelete/ClienteDelete';
-import { ClienteRepository } from 'src/context/Cliente/core/Repository/ClienteRepository';
-import { ClienteNotFoundError } from 'src/context/Cliente/core/Exceptions/ClienteNotFoundError';
+import { ClienteRepository } from 'src/context/Cliente/core/repository/ClienteRepository';
+import { ClienteNotFoundError } from 'src/context/Cliente/core/exceptions/ClienteNotFoundError';
 import { Cliente } from 'src/context/Cliente/core/Cliente';
-import { ClienteId } from 'src/context/Cliente/core/ValueObjects/ClienteId';
-import { ClienteDni } from 'src/context/Cliente/core/ValueObjects/ClienteDni';
-import { ClienteNombre } from 'src/context/Cliente/core/ValueObjects/ClienteNombre';
-import { ClienteApellido } from 'src/context/Cliente/core/ValueObjects/ClienteApellido';
-import { ClienteSexo } from 'src/context/Cliente/core/ValueObjects/ClienteSexo';
-import { ClienteFechaNacimiento } from 'src/context/Cliente/core/ValueObjects/ClienteFechaNacimiento';
+import { ClienteId } from 'src/context/Cliente/core/value-objects/ClienteId';
+import { ClienteDni } from 'src/context/Cliente/core/value-objects/ClienteDni';
+import { ClienteNombre } from 'src/context/Cliente/core/value-objects/ClienteNombre';
+import { ClienteApellido } from 'src/context/Cliente/core/value-objects/ClienteApellido';
+import { ClienteSexo } from 'src/context/Cliente/core/value-objects/ClienteSexo';
+import { ClienteFechaNacimiento } from 'src/context/Cliente/core/value-objects/ClienteFechaNacimiento';
 import {
   ClienteStatus,
   StatusCliente,
-} from 'src/context/Cliente/core/ValueObjects/ClienteStatus';
+} from 'src/context/Cliente/core/value-objects/ClienteStatus';
 
 describe('ClienteDelete (soft delete) Use Case', () => {
   let repo: jest.Mocked<ClienteRepository>;

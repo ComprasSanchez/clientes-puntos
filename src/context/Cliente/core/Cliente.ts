@@ -1,21 +1,21 @@
-import { ClienteApellido } from './ValueObjects/ClienteApellido';
-import { ClienteCategoria } from './ValueObjects/ClienteCategoria';
-import { ClienteCodigoPostal } from './ValueObjects/ClienteCodPostal';
-import { ClienteDireccion } from './ValueObjects/ClienteDireccion';
-import { ClienteDni } from './ValueObjects/ClienteDni';
-import { ClienteEmail } from './ValueObjects/ClienteEmail';
-import { ClienteFechaAlta } from './ValueObjects/ClienteFechaAlta';
-import { ClienteFechaBaja } from './ValueObjects/ClienteFechaBaja';
-import { ClienteFechaNacimiento } from './ValueObjects/ClienteFechaNacimiento';
-import { ClienteId } from './ValueObjects/ClienteId';
-import { ClienteIdFidely } from './ValueObjects/ClienteIdFidely';
-import { ClienteLocalidad } from './ValueObjects/ClienteLocalidad';
-import { ClienteNombre } from './ValueObjects/ClienteNombre';
-import { ClienteProvincia } from './ValueObjects/ClienteProvincia';
-import { ClienteSexo } from './ValueObjects/ClienteSexo';
-import { ClienteStatus, StatusCliente } from './ValueObjects/ClienteStatus';
-import { ClienteTarjetaFidely } from './ValueObjects/ClienteTarjetaFidely';
-import { ClienteTelefono } from './ValueObjects/ClienteTelefono';
+import { ClienteApellido } from './value-objects/ClienteApellido';
+import { ClienteCategoria } from './value-objects/ClienteCategoria';
+import { ClienteCodigoPostal } from './value-objects/ClienteCodPostal';
+import { ClienteDireccion } from './value-objects/ClienteDireccion';
+import { ClienteDni } from './value-objects/ClienteDni';
+import { ClienteEmail } from './value-objects/ClienteEmail';
+import { ClienteFechaAlta } from './value-objects/ClienteFechaAlta';
+import { ClienteFechaBaja } from './value-objects/ClienteFechaBaja';
+import { ClienteFechaNacimiento } from './value-objects/ClienteFechaNacimiento';
+import { ClienteId } from './value-objects/ClienteId';
+import { ClienteIdFidely } from './value-objects/ClienteIdFidely';
+import { ClienteLocalidad } from './value-objects/ClienteLocalidad';
+import { ClienteNombre } from './value-objects/ClienteNombre';
+import { ClienteProvincia } from './value-objects/ClienteProvincia';
+import { ClienteSexo } from './value-objects/ClienteSexo';
+import { ClienteStatus, StatusCliente } from './value-objects/ClienteStatus';
+import { ClienteTarjetaFidely } from './value-objects/ClienteTarjetaFidely';
+import { ClienteTelefono } from './value-objects/ClienteTelefono';
 
 /**
  * Representa la entidad de dominio Cliente.
@@ -136,20 +136,20 @@ export class Cliente {
 
   get fullAdress() {
     return {
-      direccion: this._direccion.value,
-      codPostal: this._codPostal.value,
-      localidad: this._localidad.value,
-      provincia: this._provincia.value,
+      direccion: this._direccion,
+      codPostal: this._codPostal,
+      localidad: this._localidad,
+      provincia: this._provincia,
     };
   }
 
   get fidelyStatus() {
     return {
-      idFidely: this._idFidely.value,
-      tarjetaFidely: this._tarjetaFidely.value,
-      categoria: this._categoria.value,
-      fechaAlta: this._fechaAlta.value,
-      fechaBaja: this._fechaBaja.value,
+      idFidely: this._idFidely,
+      tarjetaFidely: this._tarjetaFidely,
+      categoria: this._categoria,
+      fechaAlta: this._fechaAlta,
+      fechaBaja: this._fechaBaja,
     };
   }
 

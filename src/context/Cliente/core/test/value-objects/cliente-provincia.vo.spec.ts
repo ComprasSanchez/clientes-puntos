@@ -1,4 +1,4 @@
-import { ClienteProvincia } from '../../ValueObjects/ClienteProvincia';
+import { ClienteProvincia } from '../../value-objects/ClienteProvincia';
 
 describe('ClienteProvincia VO', () => {
   it('acepta nombres válidos', () => {

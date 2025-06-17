@@ -1,4 +1,4 @@
-import { ClienteFechaNacimiento } from '../../ValueObjects/ClienteFechaNacimiento';
+import { ClienteFechaNacimiento } from '../../value-objects/ClienteFechaNacimiento';
 
 describe('ClienteFechaNacimiento VO', () => {
   it('acepta fecha pasada válida', () => {

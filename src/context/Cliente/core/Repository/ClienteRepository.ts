@@ -1,6 +1,6 @@
 import { Cliente } from '../Cliente';
-import { ClienteDni } from '../ValueObjects/ClienteDni';
-import { ClienteId } from '../ValueObjects/ClienteId';
+import { ClienteDni } from '../value-objects/ClienteDni';
+import { ClienteId } from '../value-objects/ClienteId';
 
 export interface ClienteRepository {
   findAll(): Promise<Cliente[]>;
