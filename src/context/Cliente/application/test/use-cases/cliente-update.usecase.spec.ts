@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { ClienteRepository } from 'src/context/Cliente/core/repository/ClienteRepository';
+import { CategoriaRepository } from 'src/context/Cliente/core/repository/CategoriaRepository';
 import { ClienteUpdate } from '../../use-cases/ClienteUpdate/ClienteUpdate';
 import { ClienteNotFoundError } from 'src/context/Cliente/core/exceptions/ClienteNotFoundError';
 import { Cliente } from 'src/context/Cliente/core/entities/Cliente';
@@ -11,11 +12,23 @@ import { ClienteApellido } from 'src/context/Cliente/core/value-objects/ClienteA
 import { ClienteSexo } from 'src/context/Cliente/core/value-objects/ClienteSexo';
 import { ClienteFechaNacimiento } from 'src/context/Cliente/core/value-objects/ClienteFechaNacimiento';
 import { ClienteStatus } from 'src/context/Cliente/core/value-objects/ClienteStatus';
+import { Categoria } from 'src/context/Cliente/core/entities/Categoria';
+import { CategoriaId } from 'src/context/Cliente/core/value-objects/CategoriaId';
+import { CategoriaNombre } from 'src/context/Cliente/core/value-objects/CategoriaNombre';
+import { CategoriaDescripcion } from 'src/context/Cliente/core/value-objects/CategoriaDescripcion';
 
 describe('ClienteUpdate Use Case', () => {
   let repo: jest.Mocked<ClienteRepository>;
+  let categoriaRepo: jest.Mocked<CategoriaRepository>;
   let useCase: ClienteUpdate;
   let existing: Cliente;
+
+  // Creamos una categoría por defecto para el fixture
+  const defaultCategoria = new Categoria(
+    new CategoriaId('11111111-1111-4111-8111-111111111111'),
+    new CategoriaNombre('General'),
+    new CategoriaDescripcion(null),
+  );
 
   beforeEach(() => {
     repo = {
@@ -25,9 +38,22 @@ describe('ClienteUpdate Use Case', () => {
       create: jest.fn(),
       update: jest.fn(),
     };
-    useCase = new ClienteUpdate(repo);
 
-    // Creamos un Cliente “fixture” rápido
+    categoriaRepo = {
+      findAll: jest.fn(),
+      findById: jest.fn(),
+      create: jest.fn(),
+      update: jest.fn(),
+      delete: jest.fn(),
+    };
+
+    // El handler de actualizar ahora recibe ambos repos
+    useCase = new ClienteUpdate(repo, categoriaRepo);
+
+    // Mockeamos que cualquier búsqueda de categoría devuelve la default
+    categoriaRepo.findById.mockResolvedValue(defaultCategoria);
+
+    // Creamos un Cliente “fixture” completo
     existing = new Cliente(
       new ClienteId('00000000-0000-4000-8000-000000000000'),
       new ClienteDni('11111111'),
@@ -36,11 +62,14 @@ describe('ClienteUpdate Use Case', () => {
       new ClienteSexo('M'),
       new ClienteFechaNacimiento(new Date('1992-02-02')),
       new ClienteStatus('activo'),
+      defaultCategoria,
+      // Saldo inicial a cero
     );
   });
 
   it('lanza ClienteNotFoundError si no existe', async () => {
     repo.findById.mockResolvedValue(null);
+
     await expect(useCase.run({ id: 'no-existe' })).rejects.toBeInstanceOf(
       ClienteNotFoundError,
     );
@@ -70,6 +99,6 @@ describe('ClienteUpdate Use Case', () => {
     expect((existing as any)._dni.value).toBe('22222222');
     expect((existing as any)._nombre.value).toBe('Pedro');
     expect((existing as any)._telefono.value).toBe('+54111234567');
-    expect(repo.update).toHaveBeenCalled();
+    expect(repo.update).toHaveBeenCalledWith(existing);
   });
 });

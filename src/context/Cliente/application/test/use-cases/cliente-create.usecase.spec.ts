@@ -4,10 +4,20 @@
 
 import { ClienteRepository } from 'src/context/Cliente/core/repository/ClienteRepository';
 import { ClienteCreate } from '../../use-cases/ClienteCreate/ClienteCreate';
+import { Categoria } from 'src/context/Cliente/core/entities/Categoria';
+import { CategoriaId } from 'src/context/Cliente/core/value-objects/CategoriaId';
+import { CategoriaNombre } from 'src/context/Cliente/core/value-objects/CategoriaNombre';
+import { CategoriaDescripcion } from 'src/context/Cliente/core/value-objects/CategoriaDescripcion';
 
 describe('ClienteCreate Use Case', () => {
   let repo: jest.Mocked<ClienteRepository>;
   let useCase: ClienteCreate;
+
+  const defaultCategoria = new Categoria(
+    new CategoriaId('11111111-1111-4111-8111-111111111111'),
+    new CategoriaNombre('General'),
+    new CategoriaDescripcion('Categoría general de clientes'),
+  );
 
   beforeEach(() => {
     repo = {
@@ -29,6 +39,7 @@ describe('ClienteCreate Use Case', () => {
       'M',
       new Date('1990-01-01'),
       'activo',
+      defaultCategoria,
       'juan@dominio.com',
       '+541234567890',
       'Calle Falsa 123',
@@ -57,6 +68,7 @@ describe('ClienteCreate Use Case', () => {
       'F',
       new Date('1985-05-05'),
       'activo',
+      defaultCategoria,
       // resto undefined
     );
 
@@ -64,6 +76,11 @@ describe('ClienteCreate Use Case', () => {
     const clienteArg = repo.create.mock.calls[0][0];
     expect((clienteArg as any)._email.value).toBeNull();
     expect((clienteArg as any)._direccion.value).toBeNull();
-    expect((clienteArg as any)._categoria.value).toBe('General');
+    // En lugar de comparar toda la entidad, comparamos sus VOs internos
+    const cat = (clienteArg as any)._categoria as Categoria;
+    expect(cat.id.value).toBe(defaultCategoria.id.value);
+    expect(cat.nombre.value).toBe(defaultCategoria.nombre.value);
+    // si tienes VO para descripción:
+    expect(cat.descripcion.value).toBe(defaultCategoria.descripcion.value);
   });
 });

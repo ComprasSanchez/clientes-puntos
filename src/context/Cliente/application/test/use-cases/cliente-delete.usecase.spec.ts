@@ -14,11 +14,20 @@ import {
   ClienteStatus,
   StatusCliente,
 } from 'src/context/Cliente/core/value-objects/ClienteStatus';
+import { Categoria } from 'src/context/Cliente/core/entities/Categoria';
+import { CategoriaId } from 'src/context/Cliente/core/value-objects/CategoriaId';
+import { CategoriaNombre } from 'src/context/Cliente/core/value-objects/CategoriaNombre';
+import { CategoriaDescripcion } from 'src/context/Cliente/core/value-objects/CategoriaDescripcion';
 
 describe('ClienteDelete (soft delete) Use Case', () => {
   let repo: jest.Mocked<ClienteRepository>;
   let useCase: ClienteDelete;
   let existing: Cliente;
+  const defaultCategoria = new Categoria(
+    new CategoriaId('11111111-1111-4111-8111-111111111111'),
+    new CategoriaNombre('General'),
+    new CategoriaDescripcion(null),
+  );
 
   beforeEach(() => {
     repo = {
@@ -38,6 +47,7 @@ describe('ClienteDelete (soft delete) Use Case', () => {
       new ClienteSexo('F'),
       new ClienteFechaNacimiento(new Date('1995-03-03')),
       new ClienteStatus('activo'),
+      defaultCategoria,
     );
   });
 
