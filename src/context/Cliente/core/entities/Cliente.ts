@@ -16,6 +16,7 @@ import { ClienteSexo } from '../value-objects/ClienteSexo';
 import { ClienteStatus, StatusCliente } from '../value-objects/ClienteStatus';
 import { ClienteTarjetaFidely } from '../value-objects/ClienteTarjetaFidely';
 import { ClienteTelefono } from '../value-objects/ClienteTelefono';
+import { Saldo } from './Saldo';
 
 /**
  * Representa la entidad de dominio Cliente.
@@ -29,6 +30,7 @@ export class Cliente {
   private _sexo: ClienteSexo;
   private _fechaNacimiento: ClienteFechaNacimiento;
   private _status: ClienteStatus;
+  private _saldo: Saldo;
 
   // Se auto-inicializan
   private _categoria: Categoria;
@@ -54,6 +56,7 @@ export class Cliente {
     sexo: ClienteSexo,
     fechaNacimiento: ClienteFechaNacimiento,
     status: ClienteStatus,
+    saldo: Saldo,
     categoria: Categoria,
     email?: ClienteEmail,
     telefono?: ClienteTelefono,
@@ -73,6 +76,7 @@ export class Cliente {
     this._sexo = sexo;
     this._fechaNacimiento = fechaNacimiento;
     this._status = status;
+    this._saldo = saldo;
 
     // Auto-inicializados
     this._categoria = categoria;
@@ -123,6 +127,10 @@ export class Cliente {
   /** Retorna el VO ClienteStatus */
   get status(): ClienteStatus {
     return this._status;
+  }
+
+  get saldo(): Saldo {
+    return this._saldo;
   }
 
   /** Retorna el VO ClienteEmail (nullable) */

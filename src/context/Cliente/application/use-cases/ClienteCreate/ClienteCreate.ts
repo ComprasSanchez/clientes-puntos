@@ -17,6 +17,8 @@ import { ClienteSexo } from '../../../core/value-objects/ClienteSexo';
 import { ClienteStatus } from '../../../core/value-objects/ClienteStatus';
 import { ClienteTarjetaFidely } from '../../../core/value-objects/ClienteTarjetaFidely';
 import { ClienteTelefono } from '../../../core/value-objects/ClienteTelefono';
+import { Saldo } from 'src/context/Cliente/core/entities/Saldo';
+import { SaldoActual } from 'src/context/Cliente/core/value-objects/SaldoActual';
 
 export class ClienteCreate {
   constructor(private repository: ClienteRepository) {}
@@ -29,6 +31,7 @@ export class ClienteCreate {
     sexo: string,
     fechaNacimiento: Date,
     status: string,
+    saldo: Saldo,
     categoria: Categoria,
     email?: string,
     telefono?: string,
@@ -47,6 +50,7 @@ export class ClienteCreate {
       new ClienteSexo(sexo),
       new ClienteFechaNacimiento(fechaNacimiento),
       new ClienteStatus(status),
+      new Saldo(new ClienteId(id), new SaldoActual(0), new Date()),
       new Categoria(categoria.id, categoria.nombre, categoria.descripcion),
       new ClienteEmail(email || null),
       new ClienteTelefono(telefono || null),
