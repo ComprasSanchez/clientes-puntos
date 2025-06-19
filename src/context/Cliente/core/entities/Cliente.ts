@@ -16,7 +16,7 @@ import { ClienteSexo } from '../value-objects/ClienteSexo';
 import { ClienteStatus, StatusCliente } from '../value-objects/ClienteStatus';
 import { ClienteTarjetaFidely } from '../value-objects/ClienteTarjetaFidely';
 import { ClienteTelefono } from '../value-objects/ClienteTelefono';
-import { Saldo } from './Saldo';
+import { SaldoActual } from '../value-objects/SaldoActual';
 
 /**
  * Representa la entidad de dominio Cliente.
@@ -30,7 +30,7 @@ export class Cliente {
   private _sexo: ClienteSexo;
   private _fechaNacimiento: ClienteFechaNacimiento;
   private _status: ClienteStatus;
-  private _saldo: Saldo;
+  private readonly _saldo: SaldoActual;
 
   // Se auto-inicializan
   private _categoria: Categoria;
@@ -46,6 +46,7 @@ export class Cliente {
   private _idFidely: ClienteIdFidely;
   private _tarjetaFidely: ClienteTarjetaFidely;
   private _fechaBaja: ClienteFechaBaja;
+  private _createdAt: Date;
   private _updatedAt: Date;
 
   constructor(
@@ -56,7 +57,7 @@ export class Cliente {
     sexo: ClienteSexo,
     fechaNacimiento: ClienteFechaNacimiento,
     status: ClienteStatus,
-    saldo: Saldo,
+    saldo: SaldoActual,
     categoria: Categoria,
     email?: ClienteEmail,
     telefono?: ClienteTelefono,
@@ -81,6 +82,7 @@ export class Cliente {
     // Auto-inicializados
     this._categoria = categoria;
     this._fechaAlta = new ClienteFechaAlta(new Date());
+    this._createdAt = new Date();
     this._updatedAt = new Date();
 
     // Campos opcionales (nullable VOs)
@@ -129,7 +131,7 @@ export class Cliente {
     return this._status;
   }
 
-  get saldo(): Saldo {
+  get saldo(): SaldoActual {
     return this._saldo;
   }
 
@@ -174,6 +176,13 @@ export class Cliente {
       categoria: this._categoria,
       fechaAlta: this._fechaAlta,
       fechaBaja: this._fechaBaja,
+    };
+  }
+
+  get timestamp(): { createdAt: Date; updatedAt: Date } {
+    return {
+      createdAt: this._createdAt,
+      updatedAt: this._updatedAt,
     };
   }
 
