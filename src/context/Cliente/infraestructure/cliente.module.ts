@@ -1,9 +1,9 @@
 // src/context/cliente/infrastructure/cliente.module.ts
 import { Module } from '@nestjs/common';
 import { ClienteRepositoryImpl } from './persistence/ClienteRepositoryImpl';
-import { SaldoService } from 'src/context/puntos/domain/services/SaldoService';
 import { PuntosServiceInMemory } from './adapters/PuntosServiceInMemory';
 import { ClienteGetProfile } from '../application/use-cases/ClienteGetProfile/ClienteGetProfile';
+import { SaldoService } from 'src/context/Puntos/core/services/SaldoService';
 
 @Module({
   providers: [

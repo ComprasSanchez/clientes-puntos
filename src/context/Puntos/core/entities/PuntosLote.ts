@@ -1,9 +1,9 @@
 import { ClienteId } from 'src/context/Cliente/core/value-objects/ClienteId';
 import { LoteId } from '../value-objects/LoteId';
-import { CantidadPuntos } from '../value-objects/LoteCantidadPuntos';
-import { FechaExpiracion } from '../value-objects/LoteFechaExpiracion';
-import { OrigenOperacion } from '../value-objects/LoteOrigenOperacion';
-import { ReferenciaMovimiento } from '../value-objects/LoteReferenciaMovimiento';
+import { CantidadPuntos } from '../value-objects/CantidadPuntos';
+import { FechaExpiracion } from '../value-objects/FechaExpiracion';
+import { OrigenOperacion } from '../value-objects/OrigenOperacion';
+import { ReferenciaMovimiento } from '../value-objects/ReferenciaMovimiento';
 import { BatchEstado } from '../enums/BatchEstado';
 
 export class Lote {

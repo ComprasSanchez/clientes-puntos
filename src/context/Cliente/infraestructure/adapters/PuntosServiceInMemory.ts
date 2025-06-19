@@ -1,3 +1,4 @@
+import { SaldoService } from 'src/context/Puntos/core/services/SaldoService';
 import { IPuntosService } from '../../application/ports/IPuntosService';
 
 export class PuntosServiceInMemory implements IPuntosService {
@@ -5,6 +6,6 @@ export class PuntosServiceInMemory implements IPuntosService {
 
   async obtenerSaldoActual(clienteId: string): Promise<number> {
     // Llama directamente al dominio de Puntos
-    return this.saldoService.obtenerSaldo(clienteId);
+    return this.saldoService.obtenerSaldoActual(clienteId);
   }
 }
