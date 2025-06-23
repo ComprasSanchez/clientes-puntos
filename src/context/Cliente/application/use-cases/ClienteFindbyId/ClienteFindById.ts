@@ -10,7 +10,7 @@ export class ClienteFindAll {
     const cliente = await this.repository.findById(new ClienteId(id));
 
     if (!cliente) {
-      throw new ClienteNotFoundError('Cliente no encontrado');
+      throw new ClienteNotFoundError(id);
     }
 
     return cliente;

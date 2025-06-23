@@ -17,12 +17,15 @@ import { ClienteSexo } from '../../../core/value-objects/ClienteSexo';
 import { ClienteStatus } from '../../../core/value-objects/ClienteStatus';
 import { ClienteTarjetaFidely } from '../../../core/value-objects/ClienteTarjetaFidely';
 import { ClienteTelefono } from '../../../core/value-objects/ClienteTelefono';
+import { UUIDGenerator } from 'src/shared/core/uuid/UuidGenerator';
 
 export class ClienteCreate {
-  constructor(private repository: ClienteRepository) {}
+  constructor(
+    private repository: ClienteRepository,
+    private readonly idGen: UUIDGenerator,
+  ) {}
 
   async run(
-    id: string,
     dni: string,
     nombre: string,
     apellido: string,
@@ -40,7 +43,7 @@ export class ClienteCreate {
     tarjetaFidely?: string,
   ): Promise<void> {
     const cliente = new Cliente(
-      new ClienteId(id),
+      new ClienteId(this.idGen.generate()),
       new ClienteDni(dni),
       new ClienteNombre(nombre),
       new ClienteApellido(apellido),

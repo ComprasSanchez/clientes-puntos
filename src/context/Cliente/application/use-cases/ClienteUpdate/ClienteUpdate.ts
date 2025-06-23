@@ -18,6 +18,7 @@ import { ClienteStatus } from '../../../core/value-objects/ClienteStatus';
 import { ClienteTarjetaFidely } from '../../../core/value-objects/ClienteTarjetaFidely';
 import { ClienteTelefono } from '../../../core/value-objects/ClienteTelefono';
 import { CategoriaRepository } from 'src/context/Cliente/core/repository/CategoriaRepository';
+import { CategoriaNotFoundError } from 'src/context/Cliente/core/exceptions/CategoriaNotFoundError';
 
 interface ClienteUpdateInput {
   id: string; // siempre obligatorio
@@ -48,7 +49,7 @@ export class ClienteUpdate {
   async run(input: ClienteUpdateInput): Promise<void> {
     // 1) Recupero el Cliente existente
     const cliente = await this.repository.findById(new ClienteId(input.id));
-    if (!cliente) throw new ClienteNotFoundError('Cliente no encontrado');
+    if (!cliente) throw new ClienteNotFoundError(input.id);
 
     // 2) Aplico sólo los campos que vienen
     if (input.dni !== undefined) cliente.editarDni(new ClienteDni(input.dni));
@@ -69,7 +70,7 @@ export class ClienteUpdate {
       const catIdVo = new CategoriaId(input.categoriaId);
       const categoria = await this.categoriaRepo.findById(catIdVo);
       if (!categoria) {
-        throw new Error(`Categoría no encontrada`);
+        throw new CategoriaNotFoundError(input.categoriaId);
       }
 
       cliente.cambiarCategoria(categoria);

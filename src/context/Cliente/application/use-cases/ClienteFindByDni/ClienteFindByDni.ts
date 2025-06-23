@@ -17,7 +17,7 @@ export class ClienteFindByDni {
     const cliente = await this.repository.findByDni(dniVo);
 
     if (!cliente) {
-      throw new ClienteNotFoundError(`Cliente con DNI "${dni}" no encontrado`);
+      throw new ClienteNotFoundError(dni);
     }
 
     return cliente;

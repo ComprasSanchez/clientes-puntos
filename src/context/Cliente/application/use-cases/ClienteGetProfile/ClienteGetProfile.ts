@@ -16,7 +16,7 @@ export class ClienteGetProfile {
   async run(id: string): Promise<ClienteProfileDto> {
     const cliente = await this.repository.findById(new ClienteId(id));
     if (!cliente) {
-      throw new ClienteNotFoundError(`Cliente ${id} no encontrado`);
+      throw new ClienteNotFoundError(id);
     }
 
     // Llamada al contexto Puntos para obtener el saldo actual

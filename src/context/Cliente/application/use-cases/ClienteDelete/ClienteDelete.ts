@@ -12,7 +12,7 @@ export class ClienteDelete {
     const idVo = new ClienteId(id);
     const cliente = await this.repo.findById(idVo);
     if (!cliente) {
-      throw new ClienteNotFoundError('Cliente no encontrado');
+      throw new ClienteNotFoundError(id);
     }
 
     cliente.softDelete();

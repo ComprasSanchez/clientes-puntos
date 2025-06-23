@@ -17,7 +17,7 @@ export class CategoriaUpdate {
   }): Promise<void> {
     const idVo = new CategoriaId(input.id);
     const categoria = await this.repo.findById(idVo);
-    if (!categoria) throw new CategoriaNotFoundError('Categoria no encontrada');
+    if (!categoria) throw new CategoriaNotFoundError(input.id);
 
     if (input.nombre !== undefined) {
       categoria.cambiarNombre(new CategoriaNombre(input.nombre));
