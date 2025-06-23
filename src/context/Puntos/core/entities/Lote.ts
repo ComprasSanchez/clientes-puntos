@@ -5,6 +5,8 @@ import { FechaExpiracion } from '../value-objects/FechaExpiracion';
 import { OrigenOperacion } from '../value-objects/OrigenOperacion';
 import { ReferenciaMovimiento } from '../value-objects/ReferenciaMovimiento';
 import { BatchEstado } from '../enums/BatchEstado';
+import { LoteNoDisponibleError } from '../exceptions/Lote/LoteNoDisponibleError';
+import { LoteSinPuntosError } from '../exceptions/Lote/LoteSinPuntosError';
 
 export class Lote {
   private _remaining: CantidadPuntos;
@@ -69,11 +71,12 @@ export class Lote {
 
   consumir(cantidad: CantidadPuntos): void {
     if (this._estado !== BatchEstado.DISPONIBLE) {
-      throw new Error(`Lote ${this._id.value} no disponible`);
+      throw new LoteNoDisponibleError(this._id.value);
     }
     if (cantidad.value > this._remaining.value) {
-      throw new Error(
-        `No quedan ${cantidad.value} pts en lote ${this._id.value}`,
+      throw new LoteSinPuntosError(
+        this._id.value,
+        this._cantidadOriginal.value,
       );
     }
     this._remaining = new CantidadPuntos(

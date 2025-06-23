@@ -1,5 +1,4 @@
 // src/context/puntos/domain/repositories/TransaccionRepository.ts
-import { ClienteId } from 'src/context/Cliente/core/value-objects/ClienteId';
 import { Transaccion } from '../entities/Transaccion';
 import { LoteId } from '../value-objects/LoteId';
 import { TransaccionId } from '../value-objects/TransaccionId';
@@ -30,7 +29,7 @@ export interface TransaccionRepository {
    * Obtiene todas las transacciones de un cliente, a partir de sus lotes.
    * @param clienteId Identificador del cliente
    */
-  findByCliente(clienteId: ClienteId): Promise<Transaccion[]>;
+  findByCliente(clienteId: string): Promise<Transaccion[]>;
 
   /**
    * Persiste una nueva transacción en el ledger.

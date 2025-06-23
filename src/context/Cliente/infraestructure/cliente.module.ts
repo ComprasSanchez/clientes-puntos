@@ -3,7 +3,7 @@ import { Module } from '@nestjs/common';
 import { ClienteRepositoryImpl } from './persistence/ClienteRepositoryImpl';
 import { PuntosServiceInMemory } from './adapters/PuntosServiceInMemory';
 import { ClienteGetProfile } from '../application/use-cases/ClienteGetProfile/ClienteGetProfile';
-import { SaldoService } from 'src/context/Puntos/core/services/SaldoService';
+import { SaldoService } from 'src/context/Puntos/application/use-cases/ObtenerSaldo/ObtenerSaldo';
 
 @Module({
   providers: [

@@ -1,7 +1,6 @@
 import { LoteId } from '../value-objects/LoteId';
 import { BatchEstado } from '../enums/BatchEstado';
-import { Lote } from '../entities/PuntosLote';
-import { ClienteId } from 'src/context/Cliente/core/value-objects/ClienteId';
+import { Lote } from '../entities/Lote';
 
 /**
  * Puerto de repositorio para la entidad Lote (batch de puntos).
@@ -27,7 +26,7 @@ export interface LoteRepository {
    * @param estado     Opcional: filtrar por estado de lote (PENDIENTE, DISPONIBLE, EXPIRADO)
    * @returns Lista de lotes
    */
-  findByCliente(clienteId: ClienteId, estado?: BatchEstado): Promise<Lote[]>;
+  findByCliente(clienteId: string, estado?: BatchEstado): Promise<Lote[]>;
 
   /**
    * Persiste un lote nuevo en el repositorio.
