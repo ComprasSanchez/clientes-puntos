@@ -50,6 +50,7 @@ export class Saldo {
       const take = Math.min(lote.remaining.value, pendiente);
       lote.consumir(new CantidadPuntos(take));
       pendiente -= take;
+      this.consumos.push({ loteId: lote.id.value, cantidad: take });
     }
 
     if (pendiente > 0) {

@@ -8,7 +8,7 @@ import { Categoria } from 'src/context/Cliente/core/entities/Categoria';
 import { CategoriaId } from 'src/context/Cliente/core/value-objects/CategoriaId';
 import { CategoriaNombre } from 'src/context/Cliente/core/value-objects/CategoriaNombre';
 import { CategoriaDescripcion } from 'src/context/Cliente/core/value-objects/CategoriaDescripcion';
-import { FakeUUIDGen } from '../../stubs/FakeUUIDGenerator';
+import { FakeUUIDGen } from '../../../../../../shared/core/uuid/test/stubs/FakeUUIDGenerator';
 
 describe('ClienteCreate Use Case', () => {
   let idGen: FakeUUIDGen;
