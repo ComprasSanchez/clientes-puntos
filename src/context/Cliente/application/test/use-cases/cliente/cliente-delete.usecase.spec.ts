@@ -10,14 +10,12 @@ import { ClienteNombre } from 'src/context/Cliente/core/value-objects/ClienteNom
 import { ClienteApellido } from 'src/context/Cliente/core/value-objects/ClienteApellido';
 import { ClienteSexo } from 'src/context/Cliente/core/value-objects/ClienteSexo';
 import { ClienteFechaNacimiento } from 'src/context/Cliente/core/value-objects/ClienteFechaNacimiento';
-import {
-  ClienteStatus,
-  StatusCliente,
-} from 'src/context/Cliente/core/value-objects/ClienteStatus';
+import { ClienteStatus } from 'src/context/Cliente/core/value-objects/ClienteStatus';
 import { Categoria } from 'src/context/Cliente/core/entities/Categoria';
 import { CategoriaId } from 'src/context/Cliente/core/value-objects/CategoriaId';
 import { CategoriaNombre } from 'src/context/Cliente/core/value-objects/CategoriaNombre';
 import { CategoriaDescripcion } from 'src/context/Cliente/core/value-objects/CategoriaDescripcion';
+import { StatusCliente } from 'src/context/Cliente/core/enums/StatusCliente';
 
 describe('ClienteDelete (soft delete) Use Case', () => {
   let repo: jest.Mocked<ClienteRepository>;

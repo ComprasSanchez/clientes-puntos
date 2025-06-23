@@ -1,4 +1,5 @@
-import { ClienteStatus, StatusCliente } from '../../value-objects/ClienteStatus';
+import { StatusCliente } from '../../enums/StatusCliente';
+import { ClienteStatus } from '../../value-objects/ClienteStatus';
 
 describe('ClienteStatus VO', () => {
   it('acepta los tres estados válidos', () => {

@@ -15,10 +15,7 @@ import { ClienteNombre } from 'src/context/Cliente/core/value-objects/ClienteNom
 import { ClienteApellido } from 'src/context/Cliente/core/value-objects/ClienteApellido';
 import { ClienteSexo } from 'src/context/Cliente/core/value-objects/ClienteSexo';
 import { ClienteFechaNacimiento } from 'src/context/Cliente/core/value-objects/ClienteFechaNacimiento';
-import {
-  ClienteStatus,
-  StatusCliente,
-} from 'src/context/Cliente/core/value-objects/ClienteStatus';
+import { ClienteStatus } from 'src/context/Cliente/core/value-objects/ClienteStatus';
 import { ClienteEmail } from 'src/context/Cliente/core/value-objects/ClienteEmail';
 import { ClienteTelefono } from 'src/context/Cliente/core/value-objects/ClienteTelefono';
 import { ClienteDireccion } from 'src/context/Cliente/core/value-objects/ClienteDireccion';
@@ -28,6 +25,7 @@ import { ClienteProvincia } from 'src/context/Cliente/core/value-objects/Cliente
 import { ClienteIdFidely } from 'src/context/Cliente/core/value-objects/ClienteIdFidely';
 import { ClienteTarjetaFidely } from 'src/context/Cliente/core/value-objects/ClienteTarjetaFidely';
 import { ClienteFechaBaja } from 'src/context/Cliente/core/value-objects/ClienteFechaBaja';
+import { StatusCliente } from 'src/context/Cliente/core/enums/StatusCliente';
 
 describe('ClienteGetProfile', () => {
   let repoMock: jest.Mocked<ClienteRepository>;
