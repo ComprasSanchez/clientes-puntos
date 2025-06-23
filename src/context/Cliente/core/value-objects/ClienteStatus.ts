@@ -1,8 +1,4 @@
-export enum StatusCliente {
-  Activo = 'activo',
-  Bloqueado = 'bloqueado',
-  Inactivo = 'inactivo',
-}
+import { StatusCliente } from '../enums/StatusCliente';
 
 export class ClienteStatus {
   value: StatusCliente;

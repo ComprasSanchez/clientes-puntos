@@ -13,9 +13,10 @@ import { ClienteLocalidad } from '../value-objects/ClienteLocalidad';
 import { ClienteNombre } from '../value-objects/ClienteNombre';
 import { ClienteProvincia } from '../value-objects/ClienteProvincia';
 import { ClienteSexo } from '../value-objects/ClienteSexo';
-import { ClienteStatus, StatusCliente } from '../value-objects/ClienteStatus';
+import { ClienteStatus } from '../value-objects/ClienteStatus';
 import { ClienteTarjetaFidely } from '../value-objects/ClienteTarjetaFidely';
 import { ClienteTelefono } from '../value-objects/ClienteTelefono';
+import { StatusCliente } from '../enums/StatusCliente';
 
 /**
  * Representa la entidad de dominio Cliente.

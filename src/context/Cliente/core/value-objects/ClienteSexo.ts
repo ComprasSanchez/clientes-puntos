@@ -1,11 +1,4 @@
-// domain/value-objects/cliente-sexo.vo.ts
-
-/** Valores permitidos para el sexo de un Cliente */
-export enum Sexo {
-  M = 'M',
-  F = 'F',
-  X = 'X',
-}
+import { Sexo } from '../enums/SexoCliente';
 
 export class ClienteSexo {
   value: string;
