@@ -3,13 +3,15 @@
 // test/application/use-cases/cliente-create.usecase.spec.ts
 
 import { ClienteRepository } from 'src/context/Cliente/core/repository/ClienteRepository';
-import { ClienteCreate } from '../../use-cases/ClienteCreate/ClienteCreate';
+import { ClienteCreate } from '../../../use-cases/ClienteCreate/ClienteCreate';
 import { Categoria } from 'src/context/Cliente/core/entities/Categoria';
 import { CategoriaId } from 'src/context/Cliente/core/value-objects/CategoriaId';
 import { CategoriaNombre } from 'src/context/Cliente/core/value-objects/CategoriaNombre';
 import { CategoriaDescripcion } from 'src/context/Cliente/core/value-objects/CategoriaDescripcion';
+import { FakeUUIDGen } from '../../stubs/FakeUUIDGenerator';
 
 describe('ClienteCreate Use Case', () => {
+  let idGen: FakeUUIDGen;
   let repo: jest.Mocked<ClienteRepository>;
   let useCase: ClienteCreate;
 
@@ -20,6 +22,7 @@ describe('ClienteCreate Use Case', () => {
   );
 
   beforeEach(() => {
+    idGen = new FakeUUIDGen();
     repo = {
       findAll: jest.fn(),
       findById: jest.fn(),
@@ -27,12 +30,11 @@ describe('ClienteCreate Use Case', () => {
       create: jest.fn(),
       update: jest.fn(),
     };
-    useCase = new ClienteCreate(repo);
+    useCase = new ClienteCreate(repo, idGen);
   });
 
   it('debe invocar repository.create con un Cliente válido', async () => {
     await useCase.run(
-      '00000000-0000-4000-8000-000000000000',
       '12345678',
       'Juan',
       'Pérez',
@@ -54,6 +56,9 @@ describe('ClienteCreate Use Case', () => {
     const clienteArg = repo.create.mock.calls[0][0];
     expect(clienteArg).toBeInstanceOf(Object);
     // comprueba algunos campos internos:
+    expect((clienteArg as any)._id.value).toBe(
+      '00000000-0000-4000-8000-000000000000',
+    );
     expect((clienteArg as any)._dni.value).toBe('12345678');
     expect((clienteArg as any)._email.value).toBe('juan@dominio.com');
     expect((clienteArg as any)._tarjetaFidely.value).toBe('4567');
@@ -61,7 +66,6 @@ describe('ClienteCreate Use Case', () => {
 
   it('debe permitir campos opcionales omitidos', async () => {
     await useCase.run(
-      '00000000-0000-4000-8000-000000000000',
       '12345678',
       'Ana',
       'Gómez',

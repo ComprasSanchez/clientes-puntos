@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { ClienteRepository } from 'src/context/Cliente/core/repository/ClienteRepository';
 import { CategoriaRepository } from 'src/context/Cliente/core/repository/CategoriaRepository';
-import { ClienteUpdate } from '../../use-cases/ClienteUpdate/ClienteUpdate';
+import { ClienteUpdate } from '../../../use-cases/ClienteUpdate/ClienteUpdate';
 import { ClienteNotFoundError } from 'src/context/Cliente/core/exceptions/ClienteNotFoundError';
 import { Cliente } from 'src/context/Cliente/core/entities/Cliente';
 import { ClienteId } from 'src/context/Cliente/core/value-objects/ClienteId';

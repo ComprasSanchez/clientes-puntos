@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-import { ClienteDelete } from '../../use-cases/ClienteDelete/ClienteDelete';
+import { ClienteDelete } from '../../../use-cases/ClienteDelete/ClienteDelete';
 import { ClienteRepository } from 'src/context/Cliente/core/repository/ClienteRepository';
 import { ClienteNotFoundError } from 'src/context/Cliente/core/exceptions/ClienteNotFoundError';
 import { Cliente } from 'src/context/Cliente/core/entities/Cliente';
