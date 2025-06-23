@@ -1,5 +1,4 @@
 import { TxTipo } from '../enums/TxTipo';
-import { TransaccionNoPersistidaError } from '../exceptions/Transaccion/TransaccionNoPersistidaError';
 import { CantidadPuntos } from '../value-objects/CantidadPuntos';
 import { LoteId } from '../value-objects/LoteId';
 import { ReferenciaMovimiento } from '../value-objects/ReferenciaMovimiento';
@@ -10,7 +9,7 @@ export class Transaccion {
   private _updatedAt: Date;
 
   constructor(
-    private readonly _id: TransaccionId | null,
+    private readonly _id: TransaccionId,
     private readonly _publicId: TimestampId,
     private readonly _loteId: LoteId,
     private readonly _tipo: TxTipo,
@@ -25,28 +24,6 @@ export class Transaccion {
    * Crea una transacción sin ID; el repositorio le asignará la PK
    */
   static createOrphan(args: {
-    publicId: TimestampId;
-    loteId: LoteId;
-    tipo: TxTipo;
-    cantidad: CantidadPuntos;
-    createdAt: Date;
-    referenciaId?: ReferenciaMovimiento;
-  }): Transaccion {
-    return new Transaccion(
-      null,
-      args.publicId,
-      args.loteId,
-      args.tipo,
-      args.cantidad,
-      args.createdAt,
-      args.referenciaId,
-    );
-  }
-
-  /**
-   * Sólo para reconstrucción desde BD (con ID)
-   */
-  static rehydrate(args: {
     id: TransaccionId;
     publicId: TimestampId;
     loteId: LoteId;
@@ -67,7 +44,6 @@ export class Transaccion {
   }
 
   get id(): TransaccionId {
-    if (!this._id) throw new TransaccionNoPersistidaError();
     return this._id;
   }
 
