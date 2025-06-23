@@ -1,9 +1,9 @@
 // src/context/cliente/infrastructure/cliente.module.ts
 import { Module } from '@nestjs/common';
 import { ClienteRepositoryImpl } from './persistence/ClienteRepositoryImpl';
-import { PuntosServiceInMemory } from './adapters/PuntosServiceInMemory';
+import { PuntosServiceInMemory } from './adapters/PuntosServiceInMemory/PuntosServiceInMemory';
 import { ClienteGetProfile } from '../application/use-cases/ClienteGetProfile/ClienteGetProfile';
-import { SaldoService } from 'src/context/Puntos/application/use-cases/ObtenerSaldo/ObtenerSaldo';
+import { ObtenerSaldo } from 'src/context/Puntos/application/use-cases/ObtenerSaldo/ObtenerSaldo';
 
 @Module({
   providers: [
@@ -14,12 +14,12 @@ import { SaldoService } from 'src/context/Puntos/application/use-cases/ObtenerSa
     { provide: 'ClienteRepository', useClass: ClienteRepositoryImpl },
 
     // Servicio de puntos
-    SaldoService,
+    ObtenerSaldo,
     {
       provide: 'IPuntosService',
-      useFactory: (saldoSvc: SaldoService) =>
+      useFactory: (saldoSvc: ObtenerSaldo) =>
         new PuntosServiceInMemory(saldoSvc),
-      inject: [SaldoService],
+      inject: [ObtenerSaldo],
     },
   ],
   exports: [ClienteGetProfile],

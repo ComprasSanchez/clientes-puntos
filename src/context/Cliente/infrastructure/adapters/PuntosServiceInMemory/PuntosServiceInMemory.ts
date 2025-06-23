@@ -1,5 +1,5 @@
 import { ObtenerSaldo } from 'src/context/Puntos/application/use-cases/ObtenerSaldo/ObtenerSaldo';
-import { IPuntosService } from '../../application/ports/IPuntosService';
+import { IPuntosService } from '../../../application/ports/IPuntosService';
 
 export class PuntosServiceInMemory implements IPuntosService {
   constructor(private readonly saldoService: ObtenerSaldo) {}

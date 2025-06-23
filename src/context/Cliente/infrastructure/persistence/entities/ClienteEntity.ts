@@ -5,7 +5,10 @@ import {
   PrimaryColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
+import { CategoriaEntity } from './CategoriaEntity';
 
 /**
  * Mapeo ORM de la tabla cliente para TypeORM
@@ -15,7 +18,7 @@ export class ClienteEntity {
   @PrimaryColumn({ type: 'uuid' })
   id: string;
 
-  @Column({ type: 'varchar', length: 20, unique: true })
+  @Column({ type: 'varchar', length: 10, unique: true })
   dni: string;
 
   @Column({ type: 'varchar', length: 100 })
@@ -30,16 +33,16 @@ export class ClienteEntity {
   @Column({ name: 'fec_nacimiento', type: 'date' })
   fecNacimiento: Date;
 
-  @Column({ name: 'status_cliente', type: 'varchar', length: 20 })
+  @Column({ name: 'status_cliente', type: 'enum', length: 20 })
   status: string;
 
   @Column({ type: 'varchar', length: 50 })
-  categoria: string;
+  categoriaId: string;
 
   @Column({ type: 'varchar', length: 150, nullable: true })
   email: string | null;
 
-  @Column({ type: 'varchar', length: 20, nullable: true })
+  @Column({ type: 'varchar', length: 15, nullable: true })
   telefono: string | null;
 
   @Column({ type: 'varchar', length: 200, nullable: true })
@@ -60,7 +63,7 @@ export class ClienteEntity {
   @Column({
     name: 'tarjeta_fidely',
     type: 'varchar',
-    length: 50,
+    length: 20,
     nullable: true,
   })
   tarjetaFidely: string | null;
@@ -77,4 +80,8 @@ export class ClienteEntity {
 
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamp with time zone' })
   updatedAt: Date;
+
+  @ManyToOne(() => CategoriaEntity, (cat) => cat.clientes, { eager: true })
+  @JoinColumn({ name: 'categoria_id' })
+  categoria: CategoriaEntity;
 }

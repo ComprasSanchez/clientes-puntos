@@ -1,6 +1,5 @@
 // src/context/cliente/infrastructure/persistence/ClienteRepositoryImpl.ts
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 import { ClienteRepository } from '../../core/repository/ClienteRepository';
 import { Cliente } from '../../core/entities/Cliente';
@@ -22,6 +21,9 @@ import { ClienteIdFidely } from '../../core/value-objects/ClienteIdFidely';
 import { ClienteTarjetaFidely } from '../../core/value-objects/ClienteTarjetaFidely';
 import { ClienteFechaBaja } from '../../core/value-objects/ClienteFechaBaja';
 import { ClienteEntity } from './entities/ClienteEntity';
+import { CategoriaId } from '../../core/value-objects/CategoriaId';
+import { CategoriaNombre } from '../../core/value-objects/CategoriaNombre';
+import { CategoriaDescripcion } from '../../core/value-objects/CategoriaDescripcion';
 
 @Injectable()
 export class ClienteRepositoryImpl implements ClienteRepository {
@@ -57,6 +59,11 @@ export class ClienteRepositoryImpl implements ClienteRepository {
   }
 
   private toDomain(e: ClienteEntity): Cliente {
+    const catDom = new Categoria(
+      new CategoriaId(e.categoriaId),
+      new CategoriaNombre(e.categoria.nombre),
+      new CategoriaDescripcion(e.categoria.descripcion),
+    );
     return new Cliente(
       new ClienteId(e.id),
       new ClienteDni(e.dni),
@@ -65,7 +72,7 @@ export class ClienteRepositoryImpl implements ClienteRepository {
       new ClienteSexo(e.sexo),
       new ClienteFechaNacimiento(e.fecNacimiento),
       new ClienteStatus(e.status),
-      new Categoria(e.categoria),
+      catDom,
       new ClienteEmail(e.email),
       new ClienteTelefono(e.telefono),
       new ClienteDireccion(e.direccion),
@@ -87,7 +94,7 @@ export class ClienteRepositoryImpl implements ClienteRepository {
     e.sexo = c.sexo.value;
     e.fecNacimiento = c.fechaNacimiento.value;
     e.status = c.status.value;
-    e.categoria = c.categoria.value;
+    e.categoriaId = c.categoria.id.value;
     e.email = c.email.value;
     e.telefono = c.telefono.value;
     e.direccion = c.fullAdress.direccion.value;
