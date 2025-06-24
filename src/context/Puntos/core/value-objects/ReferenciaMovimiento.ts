@@ -1,24 +1,26 @@
+import { MaxLengthRequiredError } from 'src/shared/core/exceptions/MaxLengthRequiredError';
+
 export class ReferenciaMovimiento {
-  public readonly value: string;
+  public readonly value: string | null;
 
   constructor(value?: string | null) {
     const v = value != null && value.trim() !== '' ? value.trim() : null;
-    if (v === null) {
-      throw new Error('ReferenciaMovimiento no puede estar vacía.');
-    }
+
     this.value = v;
-    this.validate();
+    if (v) this.validate(v);
   }
 
-  private validate() {
-    if (this.value.length > 100) {
-      throw new Error(
-        `ReferenciaMovimiento inválida: "${this.value}" excede 100 caracteres.`,
+  private validate(v: string) {
+    if (v.length > 100) {
+      throw new MaxLengthRequiredError(
+        'Referencia de Movimiento',
+        100,
+        v.length,
       );
     }
   }
 
   toString(): string {
-    return this.value;
+    return this.value ?? '';
   }
 }

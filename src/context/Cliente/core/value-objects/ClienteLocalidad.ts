@@ -1,3 +1,5 @@
+import { InvalidFormatError } from 'src/shared/core/exceptions/InvalidFormatError';
+
 export class ClienteLocalidad {
   value: string | null;
 
@@ -14,9 +16,7 @@ export class ClienteLocalidad {
     const locRegex =
       /^[A-ZÁÉÍÓÚÑÜ][a-záéíóúñü]+(?: [A-ZÁÉÍÓÚÑÜ][a-záéíóúñü]+)*$/;
     if (!locRegex.test(this.value)) {
-      throw new Error(
-        `Localidad inválida: "${this.value}" contiene caracteres no permitidos.`,
-      );
+      throw new InvalidFormatError(this.value);
     }
   }
 

@@ -1,3 +1,6 @@
+import { InvalidDateError } from 'src/shared/core/exceptions/InvalidDateError';
+import { InvalidFormatError } from 'src/shared/core/exceptions/InvalidFormatError';
+
 export class ClienteFechaNacimiento {
   value: Date;
 
@@ -8,11 +11,11 @@ export class ClienteFechaNacimiento {
 
   private validate() {
     if (!(this.value instanceof Date) || isNaN(this.value.getTime())) {
-      throw new Error('La fecha de nacimiento no es una fecha válida.');
+      throw new InvalidFormatError(this.value.toISOString().split('T')[0]);
     }
     const hoy = new Date();
     if (this.value > hoy) {
-      throw new Error('La fecha de nacimiento no puede ser futura.');
+      throw new InvalidDateError(this.value.toISOString().split('T')[0]);
     }
   }
 

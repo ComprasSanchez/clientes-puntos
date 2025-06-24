@@ -1,3 +1,5 @@
+import { MaxLengthRequiredError } from 'src/shared/core/exceptions/MaxLengthRequiredError';
+
 export class CategoriaDescripcion {
   value: string | null;
 
@@ -18,9 +20,7 @@ export class CategoriaDescripcion {
     }
     // Máximo 200 caracteres
     if (this.value.length > 200) {
-      throw new Error(
-        `Descripción inválida: no puede superar 200 caracteres (recibidos ${this.value.length}).`,
-      );
+      throw new MaxLengthRequiredError('Descripción', 200, this.value.length);
     }
   }
 }

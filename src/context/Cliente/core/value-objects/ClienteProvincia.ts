@@ -1,3 +1,5 @@
+import { InvalidFormatError } from 'src/shared/core/exceptions/InvalidFormatError';
+
 export class ClienteProvincia {
   value: string | null;
 
@@ -14,9 +16,7 @@ export class ClienteProvincia {
     const provRegex =
       /^[A-ZÁÉÍÓÚÑÜ][a-záéíóúñü]+(?: [A-ZÁÉÍÓÚÑÜ][a-záéíóúñü]+)*$/;
     if (!provRegex.test(this.value)) {
-      throw new Error(
-        `Provincia inválida: "${this.value}" contiene caracteres no permitidos.`,
-      );
+      throw new InvalidFormatError(this.value);
     }
   }
 

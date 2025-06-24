@@ -1,9 +1,11 @@
+import { FieldRequiredError } from 'src/shared/core/exceptions/FieldRequiredError';
+
 export class TransaccionId {
   public readonly value: string;
 
   constructor(value: string) {
     if (!value) {
-      throw new Error('TransaccionId no puede estar vacío.');
+      throw new FieldRequiredError('ID');
     }
     this.value = value;
   }

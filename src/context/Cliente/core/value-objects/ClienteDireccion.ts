@@ -1,3 +1,6 @@
+import { MaxLengthRequiredError } from 'src/shared/core/exceptions/MaxLengthRequiredError';
+import { MinLengthRequiredError } from 'src/shared/core/exceptions/MinLengthRequiredError';
+
 export class ClienteDireccion {
   value: string | null;
 
@@ -15,9 +18,11 @@ export class ClienteDireccion {
     }
 
     if (this.value.length < 5) {
-      throw new Error(
-        `Dirección inválida: "${this.value}" debe tener al menos 5 caracteres.`,
-      );
+      throw new MinLengthRequiredError('Direccion', 5, this.value.length);
+    }
+
+    if (this.value.length > 200) {
+      throw new MaxLengthRequiredError('Direccion', 200, this.value.length);
     }
   }
 

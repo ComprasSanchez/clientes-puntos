@@ -1,9 +1,11 @@
+import { FieldRequiredError } from 'src/shared/core/exceptions/FieldRequiredError';
+
 export class LoteId {
   public readonly value: string;
 
   constructor(value: string) {
     if (!value) {
-      throw new Error('LoteId no puede estar vacío.');
+      throw new FieldRequiredError('ID de Lote');
     }
     this.value = value;
   }

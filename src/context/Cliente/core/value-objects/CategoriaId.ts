@@ -1,8 +1,10 @@
+import { FieldRequiredError } from 'src/shared/core/exceptions/FieldRequiredError';
+
 export class CategoriaId {
   private readonly _value: string;
 
   constructor(value: string) {
-    if (!value) throw new Error('El ID de la Categoria no puede ser vacío.');
+    if (!value) throw new FieldRequiredError('Id Categoria');
     this._value = value;
   }
 

@@ -21,10 +21,10 @@ export class ClienteEntity {
   @Column({ type: 'varchar', length: 10, unique: true })
   dni: string;
 
-  @Column({ type: 'varchar', length: 100 })
+  @Column({ type: 'varchar', length: 50 })
   nombre: string;
 
-  @Column({ type: 'varchar', length: 100 })
+  @Column({ type: 'varchar', length: 50 })
   apellido: string;
 
   @Column({ type: 'char', length: 1 })

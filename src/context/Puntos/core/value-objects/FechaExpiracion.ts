@@ -1,9 +1,12 @@
+import { FieldRequiredError } from 'src/shared/core/exceptions/FieldRequiredError';
+import { InvalidFormatError } from 'src/shared/core/exceptions/InvalidFormatError';
+
 export class FechaExpiracion {
   public readonly value: Date;
 
   constructor(value: Date | null) {
     if (value == null) {
-      throw new Error('FechaExpiracion no puede ser nula.');
+      throw new FieldRequiredError('Fecha de Expiracion');
     }
     this.value = new Date(value);
     this.validate();
@@ -11,7 +14,7 @@ export class FechaExpiracion {
 
   private validate() {
     if (isNaN(this.value.getTime())) {
-      throw new Error(`FechaExpiracion inválida: ${this.value.getDate()}`);
+      throw new InvalidFormatError(this.value.toISOString().split('T')[0]);
     }
   }
 

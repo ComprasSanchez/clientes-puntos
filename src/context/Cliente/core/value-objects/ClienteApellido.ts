@@ -1,3 +1,8 @@
+import { FieldRequiredError } from 'src/shared/core/exceptions/FieldRequiredError';
+import { InvalidFormatError } from 'src/shared/core/exceptions/InvalidFormatError';
+import { MaxLengthRequiredError } from 'src/shared/core/exceptions/MaxLengthRequiredError';
+import { MinLengthRequiredError } from 'src/shared/core/exceptions/MinLengthRequiredError';
+
 export class ClienteApellido {
   value: string;
 
@@ -8,14 +13,17 @@ export class ClienteApellido {
 
   private validate() {
     if (!this.value) {
-      throw new Error('El nombre del cliente no puede ser vacío.');
+      throw new FieldRequiredError('Apellido');
     }
 
     // Validar que el nombre tenga al menos 2 caracteres
     if (this.value.length < 2) {
-      throw new Error(
-        `Nombre inválido: "${this.value}" debe tener al menos 2 caracteres.`,
-      );
+      throw new MinLengthRequiredError('Apellido', 2, this.value.length);
+    }
+
+    // Validar que el nombre no supere los 50 caracteres
+    if (this.value.length > 50) {
+      throw new MaxLengthRequiredError('Apellido', 50, this.value.length);
     }
 
     // Validar que el nombre no contenga números ni caracteres especiales
@@ -23,9 +31,7 @@ export class ClienteApellido {
       /^[A-ZÁÉÍÓÚÑÜ][a-záéíóúñü]+(?: (?:[A-ZÁÉÍÓÚÑÜ][a-záéíóúñü]+|[a-záéíóúñü]+))*$/;
 
     if (!nombreApellidoRegex.test(this.value)) {
-      throw new Error(
-        `Nombre inválido: "${this.value}" contiene caracteres no permitidos.`,
-      );
+      throw new InvalidFormatError(this.value);
     }
   }
 }

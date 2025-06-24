@@ -1,3 +1,5 @@
+import { InvalidFormatError } from 'src/shared/core/exceptions/InvalidFormatError';
+
 export class ClienteCodigoPostal {
   value: string | null;
 
@@ -16,9 +18,7 @@ export class ClienteCodigoPostal {
 
     const cpRegex = /^[0-9]{4,6}$/;
     if (!cpRegex.test(this.value)) {
-      throw new Error(
-        `Código postal inválido: "${this.value}" debe tener entre 4 y 6 dígitos.`,
-      );
+      throw new InvalidFormatError(this.value);
     }
   }
 

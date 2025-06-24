@@ -1,3 +1,5 @@
+import { InvalidFormatError } from 'src/shared/core/exceptions/InvalidFormatError';
+
 export class ClienteTarjetaFidely {
   value: string | null;
 
@@ -13,9 +15,7 @@ export class ClienteTarjetaFidely {
     }
     const tarjetaRegex = /^[0-9]{1,16}$/;
     if (!tarjetaRegex.test(this.value)) {
-      throw new Error(
-        `Tarjeta inválida: "${this.value}" debe contener hasta 16 dígitos numéricos.`,
-      );
+      throw new InvalidFormatError(this.value);
     }
   }
 

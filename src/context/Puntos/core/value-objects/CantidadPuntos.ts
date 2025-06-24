@@ -1,9 +1,12 @@
+import { InvalidNumberFormatError } from 'src/shared/core/exceptions/InvalidNumberFormatError';
+import { ValueIntegrityError } from 'src/shared/core/exceptions/ValueIntegrityError';
+
 export class CantidadPuntos {
   public readonly value: number;
 
   constructor(value: number) {
     if (value == null || isNaN(value)) {
-      throw new Error('CantidadPuntos debe ser un número válido.');
+      throw new InvalidNumberFormatError(value);
     }
     this.value = Math.floor(value);
     this.validate();
@@ -11,7 +14,7 @@ export class CantidadPuntos {
 
   private validate() {
     if (this.value < 0) {
-      throw new Error(`CantidadPuntos inválida: ${this.value} debe ser >= 0.`);
+      throw new ValueIntegrityError(this.value);
     }
   }
 

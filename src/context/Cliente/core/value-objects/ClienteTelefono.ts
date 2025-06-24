@@ -1,3 +1,5 @@
+import { InvalidFormatError } from 'src/shared/core/exceptions/InvalidFormatError';
+
 export class ClienteTelefono {
   value: string | null;
 
@@ -17,9 +19,7 @@ export class ClienteTelefono {
     // Opcional “+” al inicio, seguido de entre 7 y 15 dígitos
     const telefonoRegex = /^\+?[0-9]{7,15}$/;
     if (!telefonoRegex.test(this.value)) {
-      throw new Error(
-        `Teléfono inválido: "${this.value}" no cumple con el formato esperado.`,
-      );
+      throw new InvalidFormatError(this.value);
     }
   }
 

@@ -1,17 +1,17 @@
+import { InvalidFormatError } from 'src/shared/core/exceptions/InvalidFormatError';
 import { StatusCliente } from '../enums/StatusCliente';
+import { FieldRequiredError } from 'src/shared/core/exceptions/FieldRequiredError';
 
 export class ClienteStatus {
   value: StatusCliente;
 
   constructor(value: string) {
     if (!value) {
-      throw new Error('El status del cliente no puede ser vacío.');
+      throw new FieldRequiredError('Status');
     }
     const v = value.toLowerCase() as StatusCliente;
     if (!Object.values(StatusCliente).includes(v)) {
-      throw new Error(
-        `Status inválido: "${value}" no es un valor permitido (${Object.values(StatusCliente).join(', ')}).`,
-      );
+      throw new InvalidFormatError(value);
     }
     this.value = v;
   }

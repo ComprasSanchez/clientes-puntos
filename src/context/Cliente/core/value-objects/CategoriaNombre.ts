@@ -1,3 +1,8 @@
+import { FieldRequiredError } from 'src/shared/core/exceptions/FieldRequiredError';
+import { InvalidFormatError } from 'src/shared/core/exceptions/InvalidFormatError';
+import { MaxLengthRequiredError } from 'src/shared/core/exceptions/MaxLengthRequiredError';
+import { MinLengthRequiredError } from 'src/shared/core/exceptions/MinLengthRequiredError';
+
 export class CategoriaNombre {
   value: string;
 
@@ -8,28 +13,30 @@ export class CategoriaNombre {
 
   private validate() {
     if (!this.value) {
-      throw new Error('El nombre de la categoria no puede ser vacío.');
+      throw new FieldRequiredError('Nombre Categoria');
     }
 
     // Validar que el nombre tenga al menos 2 caracteres
     if (this.value.length < 2) {
-      throw new Error(
-        `Nombre inválido: "${this.value}" debe tener al menos 2 caracteres.`,
+      throw new MinLengthRequiredError(
+        'Nombre Categoria',
+        2,
+        this.value.length,
       );
     }
 
     if (this.value.length > 20) {
-      throw new Error(
-        `Nombre inválido: "${this.value}" no puede tener más de 20 caracteres.`,
+      throw new MaxLengthRequiredError(
+        'Nombre Categoria',
+        20,
+        this.value.length,
       );
     }
 
     // Sólo letras (incluyendo acentos y ñ) y espacios
     const nombreRegex = /^[A-Za-zÁÉÍÓÚáéíóúÑñÜü ]+$/;
     if (!nombreRegex.test(this.value)) {
-      throw new Error(
-        `Nombre inválido: "${this.value}" contiene caracteres no permitidos.`,
-      );
+      throw new InvalidFormatError(this.value);
     }
   }
 }

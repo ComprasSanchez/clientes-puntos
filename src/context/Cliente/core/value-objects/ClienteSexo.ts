@@ -1,4 +1,6 @@
+import { FieldRequiredError } from 'src/shared/core/exceptions/FieldRequiredError';
 import { Sexo } from '../enums/SexoCliente';
+import { InvalidFormatError } from 'src/shared/core/exceptions/InvalidFormatError';
 
 export class ClienteSexo {
   value: string;
@@ -10,7 +12,7 @@ export class ClienteSexo {
 
   private validate() {
     if (!this.value) {
-      throw new Error('El sexo del cliente no puede ser vacío.');
+      throw new FieldRequiredError('Sexo');
     }
 
     // Forzar mayúscula por si el caller pasa 'm', 'f' o 'x'
@@ -18,9 +20,7 @@ export class ClienteSexo {
 
     // Validar membresía en el enum Sexo
     if (!Object.values(Sexo).includes(v as Sexo)) {
-      throw new Error(
-        `Sexo inválido: "${this.value}" no es uno de los valores permitidos (${Object.values(Sexo).join(', ')}).`,
-      );
+      throw new InvalidFormatError(v);
     }
 
     // Finalmente, asignamos la versión normalizada

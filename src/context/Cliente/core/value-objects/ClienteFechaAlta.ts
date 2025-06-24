@@ -1,3 +1,6 @@
+import { InvalidDateError } from 'src/shared/core/exceptions/InvalidDateError';
+import { InvalidFormatError } from 'src/shared/core/exceptions/InvalidFormatError';
+
 export class ClienteFechaAlta {
   value: Date;
 
@@ -8,13 +11,11 @@ export class ClienteFechaAlta {
 
   private validate() {
     if (!(this.value instanceof Date) || isNaN(this.value.getTime())) {
-      throw new Error('Fecha de alta inválida: no es una fecha válida.');
+      throw new InvalidFormatError(this.value.toISOString().split('T')[0]);
     }
     const ahora = new Date();
     if (this.value > ahora) {
-      throw new Error(
-        `Fecha de alta inválida: "${this.value.toISOString().split('T')[0]}" no puede ser en el futuro.`,
-      );
+      throw new InvalidDateError(this.value.toISOString().split('T')[0]);
     }
   }
 
