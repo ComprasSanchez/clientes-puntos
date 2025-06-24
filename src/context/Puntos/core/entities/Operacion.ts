@@ -13,6 +13,8 @@ import {
 } from '../interfaces/IReglaEngine';
 import { Saldo } from './Saldo';
 import { TxTipo } from '../enums/TxTipo';
+import { OrigenOperacion } from '../value-objects/OrigenOperacion';
+import { FechaExpiracion } from '../value-objects/FechaExpiracion';
 
 /**
  * Instrucción de débito: lote y cantidad a consumir
@@ -27,8 +29,8 @@ export interface DebitoInstruction {
  */
 export interface CreditoInstruction {
   cantidad: CantidadPuntos;
-  expiraEn: FechaOperacion;
-  origen: OpTipo;
+  origen: OrigenOperacion;
+  expiraEn?: FechaExpiracion;
   referencia?: ReferenciaMovimiento;
 }
 
@@ -57,6 +59,7 @@ export class Operacion {
     private readonly _clienteId: string,
     private readonly _tipo: OpTipo,
     private readonly _fecha: FechaOperacion = new FechaOperacion(new Date()),
+    private readonly _origenTipo: OrigenOperacion,
     private readonly _puntos?: CantidadPuntos,
     private readonly _monto?: MontoMoneda,
     private readonly _moneda?: Moneda,
@@ -101,8 +104,8 @@ export class Operacion {
       ? [
           {
             cantidad: new CantidadPuntos(result.credito.cantidad),
-            expiraEn: new FechaOperacion(result.credito.expiraEn),
-            origen: this._tipo,
+            origen: this._origenTipo,
+            expiraEn: new FechaExpiracion(result.credito.expiraEn),
             referencia: this._refOperacion,
           },
         ]

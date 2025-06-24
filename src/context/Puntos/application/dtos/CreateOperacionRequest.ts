@@ -1,0 +1,27 @@
+import { OpTipo } from 'src/context/Puntos/core/enums/OpTipo';
+import { OrigenOperacion } from '../../core/value-objects/OrigenOperacion';
+
+/**
+ * DTO para la petición de creación de una Operacion.
+ */
+export interface CreateOperacionRequest {
+  /** Identificador del cliente que realiza la operación */
+  clienteId: string;
+
+  /** Tipo de operación: COMPRA, DEVOLUCION, ANULACION, EXPIRACION */
+  tipo: OpTipo;
+
+  origenTipo: OrigenOperacion;
+
+  /** Cantidad de puntos (solo para operaciones de gasto) */
+  puntos?: number;
+
+  /** Monto en moneda (solo para operaciones de compra con moneda) */
+  montoMoneda?: number;
+
+  /** Código ISO de la moneda (p.e. 'ARS', 'USD') */
+  moneda?: string;
+
+  /** Referencia externa o de sistema (opcional) */
+  referencia?: string;
+}
