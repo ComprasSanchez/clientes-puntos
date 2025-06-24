@@ -1,5 +1,4 @@
 // src/domain/aggregates/Saldo.ts
-import { Transaccion } from '../entities/Transaccion';
 import { CantidadPuntos } from '../value-objects/CantidadPuntos';
 import { BatchEstado } from '../enums/BatchEstado';
 import { Lote } from './Lote';
@@ -9,17 +8,14 @@ import { SaldoInsuficienteError } from '../exceptions/Saldo/SaldoInsuficienteErr
 export class Saldo {
   private readonly clienteId: string;
   private readonly lotes: Lote[] = [];
-  private readonly transacciones: Transaccion[] = [];
 
   constructor(
     clienteId: string,
     lotes: Lote[] = [],
-    transacciones: Transaccion[] = [],
     private consumos: Array<{ loteId: string; cantidad: number }> = [],
   ) {
     this.clienteId = clienteId;
     this.lotes = lotes;
-    this.transacciones = transacciones;
   }
 
   getSaldoActual(): CantidadPuntos {
@@ -27,6 +23,16 @@ export class Saldo {
       .filter((l) => l.estado === BatchEstado.DISPONIBLE)
       .reduce((acc, lote) => acc + lote.remaining.value, 0);
     return new CantidadPuntos(total);
+  }
+
+  /** Retorna copia de todos los lotes del cliente */
+  getLotes(): Lote[] {
+    return [...this.lotes];
+  }
+
+  /** Busca y retorna un lote por su ID, o undefined si no existe */
+  obtenerLote(loteId: string): Lote | undefined {
+    return this.lotes.find((l) => l.id.value === loteId);
   }
 
   // 1️⃣ Comportamiento puro de crédito: añade el lote

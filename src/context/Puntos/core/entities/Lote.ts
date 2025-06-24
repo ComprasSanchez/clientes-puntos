@@ -1,4 +1,3 @@
-import { ClienteId } from 'src/context/Cliente/core/value-objects/ClienteId';
 import { LoteId } from '../value-objects/LoteId';
 import { CantidadPuntos } from '../value-objects/CantidadPuntos';
 import { FechaExpiracion } from '../value-objects/FechaExpiracion';
@@ -15,7 +14,7 @@ export class Lote {
 
   constructor(
     private readonly _id: LoteId,
-    private readonly _clienteId: ClienteId,
+    private readonly _clienteId: string,
     private readonly _cantidadOriginal: CantidadPuntos,
     remaining: CantidadPuntos,
     estado: BatchEstado,
@@ -33,7 +32,7 @@ export class Lote {
     return this._id;
   }
 
-  get clienteId(): ClienteId {
+  get clienteId(): string {
     return this._clienteId;
   }
 

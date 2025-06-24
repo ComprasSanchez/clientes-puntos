@@ -54,6 +54,7 @@ export class AcreditarPuntosUseCase {
     // 5️⃣ Crear y persistir la transacción de acreditación
     await this.createTx.run({
       loteId: nuevoLote.id,
+      operacionId: 1,
       tipo: TxTipo.ACREDITACION,
       cantidad: nuevoLote.remaining,
       referenciaId: referenciaVO,

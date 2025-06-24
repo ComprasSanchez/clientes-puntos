@@ -1,7 +1,6 @@
 import { UUIDGenerator } from 'src/shared/core/uuid/UuidGenerator';
 import { Transaccion } from '../../core/entities/Transaccion';
 import { TransaccionRepository } from '../../core/repository/TransaccionRepository';
-import { TimestampId } from '../../core/value-objects/TimestampId';
 import { CreateTransaccionDto } from '../dtos/CreateTransaccionDto';
 import { TransaccionId } from '../../core/value-objects/TransaccionId';
 
@@ -15,15 +14,14 @@ export class CreateTransaccionService {
     private readonly idGen: UUIDGenerator,
   ) {}
 
-  async run(params: CreateTransaccionDto): Promise<TimestampId> {
+  async run(params: CreateTransaccionDto): Promise<void> {
     // 1️⃣ Déjale al repositorio la generación de ID si usas DB-generated PK
     //    El constructor de Transaccion acepta un ID opcional o null
     const fecha = params.fechaCreacion ?? new Date();
     const id = new TransaccionId(this.idGen.generate());
-    const timestampId = TimestampId.create();
     const tx = Transaccion.createOrphan({
       id: id,
-      publicId: timestampId,
+      operationId: params.operacionId,
       loteId: params.loteId,
       tipo: params.tipo,
       cantidad: params.cantidad,
@@ -33,7 +31,5 @@ export class CreateTransaccionService {
 
     // 2️⃣ Persisto
     await this.txRepo.save(tx);
-
-    return tx.publicId;
   }
 }

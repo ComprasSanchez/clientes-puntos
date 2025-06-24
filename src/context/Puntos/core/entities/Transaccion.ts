@@ -2,15 +2,15 @@ import { TxTipo } from '../enums/TxTipo';
 import { CantidadPuntos } from '../value-objects/CantidadPuntos';
 import { LoteId } from '../value-objects/LoteId';
 import { ReferenciaMovimiento } from '../value-objects/ReferenciaMovimiento';
-import { TimestampId } from '../value-objects/TimestampId';
 import { TransaccionId } from '../value-objects/TransaccionId';
+import { OperacionId } from '../value-objects/OperacionId';
 
 export class Transaccion {
   private _updatedAt: Date;
 
   constructor(
     private readonly _id: TransaccionId,
-    private readonly _publicId: TimestampId,
+    private readonly _operationId: OperacionId,
     private readonly _loteId: LoteId,
     private readonly _tipo: TxTipo,
     private readonly _cantidad: CantidadPuntos,
@@ -21,11 +21,11 @@ export class Transaccion {
   }
 
   /**
-   * Crea una transacción sin ID; el repositorio le asignará la PK
+   * Crea una transacción
    */
   static createOrphan(args: {
     id: TransaccionId;
-    publicId: TimestampId;
+    operationId: OperacionId;
     loteId: LoteId;
     tipo: TxTipo;
     cantidad: CantidadPuntos;
@@ -34,7 +34,7 @@ export class Transaccion {
   }): Transaccion {
     return new Transaccion(
       args.id,
-      args.publicId,
+      args.operationId,
       args.loteId,
       args.tipo,
       args.cantidad,
@@ -47,8 +47,8 @@ export class Transaccion {
     return this._id;
   }
 
-  get publicId(): TimestampId {
-    return this._publicId;
+  get operationId(): OperacionId {
+    return this._operationId;
   }
 
   get loteId(): LoteId {
