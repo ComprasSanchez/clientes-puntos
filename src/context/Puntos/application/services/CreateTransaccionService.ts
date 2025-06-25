@@ -1,7 +1,7 @@
 // src/application/services/CreateTransaccionService.ts
 import { TransaccionRepository } from 'src/context/Puntos/core/repository/TransaccionRepository';
 import { CreateTransaccionDto } from '../dtos/CreateTransaccionDto';
-import { TransaccionFactory } from '../../core/factories/TransactionFactory';
+import { TransaccionFactory } from '../../core/factories/TransaccionFactory';
 
 export class CreateTransaccionService {
   constructor(
