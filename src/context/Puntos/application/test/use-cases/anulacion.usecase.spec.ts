@@ -1,0 +1,47 @@
+/* eslint-disable @typescript-eslint/unbound-method */
+// src/application/usecases/CompraUseCase.spec.ts
+import { OrigenOperacion } from 'src/context/Puntos/core/value-objects/OrigenOperacion';
+import { OpTipo } from 'src/context/Puntos/core/enums/OpTipo';
+import { CreateOperacionService } from '../../services/CreateOperacionService';
+import { OperacionDto } from '../../dtos/OperacionDto';
+import { CreateOperacionResponse } from '../../dtos/CreateOperacionResponse';
+import { OperacionId } from 'src/context/Puntos/core/value-objects/OperacionId';
+import { AnulacionUseCase } from '../../use-cases/Anulacion/Anulacion';
+
+describe('CompraUseCase', () => {
+  let service: jest.Mocked<CreateOperacionService>;
+  let useCase: AnulacionUseCase;
+
+  beforeEach(() => {
+    service = {
+      execute: jest.fn(),
+    } as unknown as jest.Mocked<CreateOperacionService>;
+    useCase = new AnulacionUseCase(service);
+  });
+
+  it('debe invocar service.execute con OpTipo.COMPRA y devolver su respuesta', async () => {
+    const origen = new OrigenOperacion('TEST');
+    const input: OperacionDto = {
+      clienteId: 'client-3',
+      origenTipo: origen,
+      puntos: 20,
+      montoMoneda: 200,
+      moneda: 'ARS',
+      referencia: 'ref-3',
+    };
+    const fakeResp: CreateOperacionResponse = {
+      operacionId: Number(OperacionId.create()),
+      lotesAfectados: ['I3'],
+      transacciones: [],
+    };
+    service.execute.mockResolvedValue(fakeResp);
+
+    const result = await useCase.run(input);
+
+    expect(service.execute).toHaveBeenCalledWith({
+      ...input,
+      tipo: OpTipo.ANULACION,
+    });
+    expect(result).toBe(fakeResp);
+  });
+});
