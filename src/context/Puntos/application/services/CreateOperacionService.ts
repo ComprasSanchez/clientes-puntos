@@ -5,20 +5,17 @@ import { OperacionId } from 'src/context/Puntos/core/value-objects/OperacionId';
 import { CantidadPuntos } from 'src/context/Puntos/core/value-objects/CantidadPuntos';
 import { MontoMoneda } from 'src/context/Puntos/core/value-objects/MontoMoneda';
 import { Moneda } from 'src/context/Puntos/core/value-objects/Moneda';
-import { ReferenciaMovimiento } from 'src/context/Puntos/core/value-objects/ReferenciaMovimiento';
+import { CreateOperacionRequest } from '../dtos/CreateOperacionRequest';
+import { CreateOperacionResponse } from '../dtos/CreateOperacionResponse';
+import { TransaccionFactory } from 'src/context/Puntos/core/factories/TransaccionFactory';
 import { LoteFactory } from 'src/context/Puntos/core/factories/LoteFactory';
 import { LoteRepository } from 'src/context/Puntos/core/repository/LoteRepository';
 import { TransaccionRepository } from 'src/context/Puntos/core/repository/TransaccionRepository';
 import { IReglaEngine } from 'src/context/Puntos/core/interfaces/IReglaEngine';
+import { OpTipo } from 'src/shared/core/enums/OpTipo';
 import { TxTipo } from 'src/context/Puntos/core/enums/TxTipo';
-import { TransaccionFactory } from '../../core/factories/TransaccionFactory';
-import { CreateTransaccionDto } from '../dtos/CreateTransaccionDto';
-import { CreateOperacionRequest } from '../dtos/CreateOperacionRequest';
-import { CreateOperacionResponse } from '../dtos/CreateOperacionResponse';
-import { Lote } from '../../core/entities/Lote';
 import { LoteId } from '../../core/value-objects/LoteId';
 import { Transaccion } from '../../core/entities/Transaccion';
-import { OpTipo } from '../../core/enums/OpTipo';
 
 export class CreateOperacionService {
   constructor(
@@ -29,100 +26,103 @@ export class CreateOperacionService {
     private readonly txFactory: TransaccionFactory,
   ) {}
 
-  /**
-   * Orquesta una operación y persiste los resultados:
-   * - consume y crea lotes
-   * - genera y guarda transacciones
-   */
   async execute(req: CreateOperacionRequest): Promise<CreateOperacionResponse> {
     // 1️⃣ Cargar lotes y construir Saldo
-    const lotesExistentes = await this.loteRepo.findByCliente(req.clienteId);
-    const saldo = new Saldo(req.clienteId, lotesExistentes);
+    const lotes = await this.loteRepo.findByCliente(req.clienteId);
+    const saldo = new Saldo(req.clienteId, lotes);
 
-    // 2️⃣ Instanciar Operacion pura
+    // 2️⃣ Instanciar Operacion
     const opId = OperacionId.create();
-    const puntosVO =
-      req.puntos !== undefined ? new CantidadPuntos(req.puntos) : undefined;
-    const montoVO =
-      req.montoMoneda !== undefined
-        ? new MontoMoneda(req.montoMoneda)
-        : undefined;
-    const monedaVO = req.moneda ? Moneda.create(req.moneda) : undefined;
-    const refVO = req.referencia
-      ? new ReferenciaMovimiento(req.referencia)
-      : undefined;
-
     const oper = new Operacion(
       opId,
       req.clienteId,
       req.tipo,
       undefined,
       req.origenTipo,
-      puntosVO,
-      montoVO,
-      monedaVO,
-      refVO,
+      req.puntos ? new CantidadPuntos(req.puntos) : undefined,
+      req.montoMoneda ? new MontoMoneda(req.montoMoneda) : undefined,
+      req.moneda ? Moneda.create(req.moneda) : undefined,
+      req.referencia ? req.referencia : undefined,
     );
 
-    // 3️⃣ Ejecutar dominio y obtener instrucciones
+    // 3️⃣ Obtener instrucciones de reglas (sin mutar Saldo)
     const cambio = await oper.ejecutarEn(saldo, this.reglaEngine);
 
-    // 4️⃣ Aplicar débitos (consumo de lotes existentes)
-    for (const inst of cambio.debitos) {
-      const lote = saldo.obtenerLote(inst.loteId)!;
-      if (req.tipo === OpTipo.DEVOLUCION || req.tipo === OpTipo.ANULACION) {
-        // En devoluciones o anulaciones, devolvemos puntos al lote
-        lote.revertir(inst.cantidad);
-      } else {
-        // En compras con puntos, consumimos
-        lote.consumir(inst.cantidad);
+    // 4️⃣ Aplicar DÉBITO: consumir puntos y persistir lotes
+    if (cambio.debitos.length > 0) {
+      // Asumimos un solo instruct. con cantidad total
+      const totalDebitar = cambio.debitos[0].cantidad;
+      saldo.consumirPuntos(totalDebitar);
+      for (const lote of saldo.getLotes()) {
+        await this.loteRepo.update(lote); //canbiar por batch update
       }
-      await this.loteRepo.update(lote);
     }
 
-    // 5️⃣ Aplicar créditos (crear nuevos lotes)
-    const nuevosLotes: Lote[] = [];
-    for (const inst of cambio.creditos) {
+    // 5️⃣ Aplicar CRÉDITO: crear y persistir nuevo lote
+    let nuevoLoteId: LoteId | undefined;
+    if (cambio.creditos.length > 0) {
+      const cred = cambio.creditos[0];
       const loteNuevo = this.loteFactory.crear({
         clienteId: req.clienteId,
-        cantidad: inst.cantidad,
-        origen: inst.origen,
-        referencia: inst.referencia,
-        expiraEn: inst.expiraEn,
+        cantidad: cred.cantidad,
+        origen: req.origenTipo,
+        referencia: req.referencia,
+        expiraEn: cred.expiraEn,
       });
       await this.loteRepo.save(loteNuevo);
-      nuevosLotes.push(loteNuevo);
+      nuevoLoteId = loteNuevo.id;
     }
 
-    // 6️⃣ Persistir transacciones
-    const txs: Transaccion[] = [];
-    let idxCred = 0;
-    for (const txInfo of cambio.transacciones) {
-      const loteId =
-        txInfo.tipo === TxTipo.ACREDITACION
-          ? nuevosLotes[idxCred++].id.value
-          : txInfo.loteId;
+    // 6️⃣ Registrar transacciones basadas en consumo y crédito
+    const registros: Array<{
+      loteId: LoteId;
+      tipo: TxTipo;
+      cantidad: CantidadPuntos;
+    }> = [];
 
-      const dto: CreateTransaccionDto = {
+    // Débitos por lote
+    const detalles = saldo.getDetalleConsumo();
+    for (const d of detalles) {
+      registros.push({
+        loteId: d.loteId,
+        tipo: req.tipo !== OpTipo.COMPRA ? TxTipo.DEVOLUCION : TxTipo.GASTO,
+        cantidad: d.cantidad,
+      });
+    }
+    // Crédito
+    if (nuevoLoteId) {
+      registros.push({
+        loteId: nuevoLoteId,
+        tipo: TxTipo.ACREDITACION,
+        cantidad: cambio.creditos[0].cantidad,
+      });
+    }
+
+    // Persistir transacciones
+    const txs: Transaccion[] = [];
+    for (const reg of registros) {
+      const dto = {
         operacionId: opId,
-        loteId: new LoteId(loteId),
-        tipo: txInfo.tipo,
-        cantidad: txInfo.cantidad,
-        fechaCreacion: txInfo.fecha.toDate(),
-        referenciaId: txInfo.referencia,
+        loteId: reg.loteId,
+        tipo: reg.tipo,
+        cantidad: reg.cantidad,
+        fechaCreacion: new Date(),
+        referenciaId: req.referencia,
       };
       const tx = this.txFactory.createFromDto(dto);
       await this.txRepo.save(tx);
       txs.push(tx);
     }
 
-    // 7️⃣ Devolver respuesta
+    // 7️⃣ Armar respuesta
+    const lotesAfectados = [
+      ...detalles.map((d) => d.loteId),
+      ...(nuevoLoteId ? [nuevoLoteId] : []),
+    ];
+
     return {
       operacionId: opId.value,
-      lotesAfectados: [
-        ...cambio.debitos.map((d) => d.loteId),
-        ...nuevosLotes.map((l) => l.id.value),
-      ],
+      lotesAfectados,
       transacciones: txs.map((t) => ({
         id: t.id.value,
         operacionId: t.operationId.value,

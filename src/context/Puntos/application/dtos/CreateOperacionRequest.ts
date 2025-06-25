@@ -1,5 +1,6 @@
-import { OpTipo } from 'src/context/Puntos/core/enums/OpTipo';
+import { OpTipo } from 'src/shared/core/enums/OpTipo';
 import { OrigenOperacion } from '../../core/value-objects/OrigenOperacion';
+import { ReferenciaMovimiento } from '../../core/value-objects/ReferenciaMovimiento';
 
 /**
  * DTO para la petición de creación de una Operacion.
@@ -23,5 +24,5 @@ export interface CreateOperacionRequest {
   moneda?: string;
 
   /** Referencia externa o de sistema (opcional) */
-  referencia?: string;
+  referencia?: ReferenciaMovimiento;
 }

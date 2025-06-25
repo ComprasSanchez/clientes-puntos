@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/unbound-method */
-import { OpTipo } from 'src/context/Puntos/core/enums/OpTipo';
+import { OpTipo } from 'src/shared/core/enums/OpTipo';
 import { TxTipo } from 'src/context/Puntos/core/enums/TxTipo';
 import { LoteRepository } from 'src/context/Puntos/core/repository/LoteRepository';
 import { TransaccionRepository } from 'src/context/Puntos/core/repository/TransaccionRepository';
@@ -79,7 +79,7 @@ describe('CreateOperacionService', () => {
     loteRepo.findByCliente.mockResolvedValue([]);
 
     const reglaResult: ReglaEngineResult = {
-      debitos: [],
+      debitAmount: 0,
       credito: { cantidad: 75, expiraEn: now },
     };
     reglaEngine.procesar.mockResolvedValue(reglaResult);
@@ -134,7 +134,7 @@ describe('CreateOperacionService', () => {
 
     // Response structure
     expect(result.operacionId).toEqual(expect.any(Number));
-    expect(result.lotesAfectados).toEqual(['lote-1']);
+    expect(result.lotesAfectados).toEqual([new LoteId('lote-1')]);
     expect(result.transacciones).toEqual([
       expect.objectContaining({
         id: 'tx-123',
@@ -170,7 +170,7 @@ describe('CreateOperacionService', () => {
     loteRepo.findByCliente.mockResolvedValue([loteEntity]);
 
     const reglaResult: ReglaEngineResult = {
-      debitos: [{ loteId: 'lote-1', cantidad: 100 }],
+      debitAmount: 100,
     };
     reglaEngine.procesar.mockResolvedValue(reglaResult);
 
@@ -203,7 +203,7 @@ describe('CreateOperacionService', () => {
 
     // Response structure
     expect(result.operacionId).toEqual(expect.any(Number));
-    expect(result.lotesAfectados).toEqual(['lote-1']);
+    expect(result.lotesAfectados).toEqual([new LoteId('lote-1')]);
     expect(result.transacciones).toEqual([
       expect.objectContaining({
         id: 'tx-124',
@@ -241,7 +241,7 @@ describe('CreateOperacionService', () => {
     };
 
     const reglaResult: ReglaEngineResult = {
-      debitos: [{ loteId: 'lote-1', cantidad: 100 }],
+      debitAmount: 100,
       credito: { cantidad: 30, expiraEn: now },
     };
     (reglaEngine.procesar as jest.Mock).mockResolvedValue(reglaResult);
@@ -320,7 +320,10 @@ describe('CreateOperacionService', () => {
     expect(txRepo.save).toHaveBeenCalledWith(txCredit);
 
     // Response structure
-    expect(result.lotesAfectados).toEqual(['lote-1', 'lote-2']);
+    expect(result.lotesAfectados).toEqual([
+      new LoteId('lote-1'),
+      new LoteId('lote-2'),
+    ]);
     expect(result.transacciones).toEqual([
       expect.objectContaining({
         id: 'tx-debit',
@@ -385,11 +388,7 @@ describe('CreateOperacionService', () => {
 
     // El motor de reglas devuelve tres débitos
     const reglaResult: ReglaEngineResult = {
-      debitos: [
-        { loteId: 'lote-1', cantidad: 150 },
-        { loteId: 'lote-2', cantidad: 250 },
-        { loteId: 'lote-3', cantidad: 100 },
-      ],
+      debitAmount: 500,
     };
     (reglaEngine.procesar as jest.Mock).mockResolvedValue(reglaResult);
 
@@ -466,7 +465,11 @@ describe('CreateOperacionService', () => {
     expect(txRepo.save).toHaveBeenCalledWith(tx3);
 
     // Response contiene los IDs de lotes gastados y transacciones
-    expect(result.lotesAfectados).toEqual(['lote-1', 'lote-2', 'lote-3']);
+    expect(result.lotesAfectados).toEqual([
+      new LoteId('lote-1'),
+      new LoteId('lote-2'),
+      new LoteId('lote-3'),
+    ]);
     expect(result.transacciones).toEqual([
       expect.objectContaining({
         id: 'tx-1',
@@ -515,7 +518,7 @@ describe('CreateOperacionService', () => {
     };
 
     const reglaResult: ReglaEngineResult = {
-      debitos: [{ loteId: 'lote-1', cantidad: 40 }],
+      debitAmount: 40,
     };
     (reglaEngine.procesar as jest.Mock).mockResolvedValue(reglaResult);
 
@@ -549,7 +552,7 @@ describe('CreateOperacionService', () => {
     expect(txRepo.save).toHaveBeenCalledWith(txEntity);
 
     // Assert: respuesta correcta
-    expect(result.lotesAfectados).toEqual(['lote-1']);
+    expect(result.lotesAfectados).toEqual([new LoteId('lote-1')]);
     expect(result.transacciones).toEqual([
       expect.objectContaining({
         id: 'tx-refund',

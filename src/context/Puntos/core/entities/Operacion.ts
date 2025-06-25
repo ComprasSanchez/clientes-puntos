@@ -1,5 +1,5 @@
 // src/context/Puntos/core/entities/Operacion.ts
-import { OpTipo } from '../enums/OpTipo';
+import { OpTipo } from '../../../../shared/core/enums/OpTipo';
 import { CantidadPuntos } from '../value-objects/CantidadPuntos';
 import { FechaOperacion } from '../value-objects/FechaOperacion';
 import { MontoMoneda } from '../value-objects/MontoMoneda';
@@ -12,45 +12,30 @@ import {
   ReglaEngineResult,
 } from '../interfaces/IReglaEngine';
 import { Saldo } from './Saldo';
-import { TxTipo } from '../enums/TxTipo';
 import { OrigenOperacion } from '../value-objects/OrigenOperacion';
 import { FechaExpiracion } from '../value-objects/FechaExpiracion';
 
 /**
- * Instrucción de débito: lote y cantidad a consumir
+ * Instrucción de débito: cantidad total de puntos a consumir.
  */
 export interface DebitoInstruction {
-  loteId: string;
   cantidad: CantidadPuntos;
 }
 
 /**
- * Instrucción de crédito: cantidad a generar y vencimiento
+ * Instrucción de crédito: cantidad de puntos a generar y expiración.
  */
 export interface CreditoInstruction {
   cantidad: CantidadPuntos;
-  origen: OrigenOperacion;
   expiraEn?: FechaExpiracion;
-  referencia?: ReferenciaMovimiento;
 }
 
 /**
- * Resultado de ejecutar la operación: instrucciones para debitar,
- * para acreditar y detalle de transacciones base a registrar.
- * Las entidades Lote y Transaccion se crearán fuera de este método.
+ * Resultado de ejecutar la operación: instrucciones de débito y crédito.
  */
 export interface CambioOperacion {
   debitos: DebitoInstruction[];
   creditos: CreditoInstruction[];
-  transacciones: Array<{
-    // para registrar la traza de transacciones
-    operacionId: OperacionId;
-    loteId: string;
-    tipo: TxTipo;
-    cantidad: CantidadPuntos;
-    fecha: FechaOperacion;
-    referencia?: ReferenciaMovimiento;
-  }>;
 }
 
 export class Operacion {
@@ -68,15 +53,13 @@ export class Operacion {
 
   /**
    * Orquesta la petición al motor de reglas y devuelve instrucciones
-   * para debitar puntos, acreditar puntos y registrar transacciones.
+   * de débito (cantidad total) y crédito (cantidad + expiración).
    */
   async ejecutarEn(
     saldo: Saldo,
     reglaEngine: IReglaEngine,
   ): Promise<CambioOperacion> {
-    // 1️⃣ Construir request para el motor de reglas
     const req: ReglaEngineRequest = {
-      operacionId: this._id.value,
       clienteId: this._clienteId,
       tipo: this._tipo,
       fecha: this._fecha.toDate(),
@@ -91,46 +74,21 @@ export class Operacion {
       })),
     };
 
-    // 2️⃣ Invocar el motor de reglas
     const result: ReglaEngineResult = await reglaEngine.procesar(req);
 
-    // 3️⃣ Crear instrucciones de débito y crédito y transacciones base
-    const debitos: DebitoInstruction[] = result.debitos.map((d) => ({
-      loteId: d.loteId,
-      cantidad: new CantidadPuntos(d.cantidad),
-    }));
+    const debitos: DebitoInstruction[] = [];
+    if (result.debitAmount !== undefined) {
+      debitos.push({ cantidad: new CantidadPuntos(result.debitAmount) });
+    }
 
-    const creditos: CreditoInstruction[] = result.credito
-      ? [
-          {
-            cantidad: new CantidadPuntos(result.credito.cantidad),
-            origen: this._origenTipo,
-            expiraEn: new FechaExpiracion(result.credito.expiraEn),
-            referencia: this._refOperacion,
-          },
-        ]
-      : [];
+    const creditos: CreditoInstruction[] = [];
+    if (result.credito) {
+      creditos.push({
+        cantidad: new CantidadPuntos(result.credito.cantidad),
+        expiraEn: new FechaExpiracion(result.credito.expiraEn),
+      });
+    }
 
-    // 4️⃣ Transacciones descriptivas (sin crear la entidad Transaccion)
-    const transacciones = [
-      ...debitos.map((d) => ({
-        operacionId: this._id,
-        loteId: d.loteId,
-        tipo: this._tipo !== OpTipo.COMPRA ? TxTipo.DEVOLUCION : TxTipo.GASTO,
-        cantidad: d.cantidad,
-        fecha: this._fecha,
-        referencia: this._refOperacion,
-      })),
-      ...creditos.map((c) => ({
-        operacionId: this._id,
-        loteId: '', // se asignará al crear el lote en el servicio
-        tipo: TxTipo.ACREDITACION,
-        cantidad: c.cantidad,
-        fecha: this._fecha,
-        referencia: this._refOperacion,
-      })),
-    ];
-
-    return { debitos, creditos, transacciones };
+    return { debitos, creditos };
   }
 }

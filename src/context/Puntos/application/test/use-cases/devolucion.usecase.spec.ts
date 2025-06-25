@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 // src/application/usecases/CompraUseCase.spec.ts
 import { OrigenOperacion } from 'src/context/Puntos/core/value-objects/OrigenOperacion';
-import { OpTipo } from 'src/context/Puntos/core/enums/OpTipo';
+import { OpTipo } from 'src/shared/core/enums/OpTipo';
 import { CreateOperacionService } from '../../services/CreateOperacionService';
 import { OperacionDto } from '../../dtos/OperacionDto';
 import { CreateOperacionResponse } from '../../dtos/CreateOperacionResponse';

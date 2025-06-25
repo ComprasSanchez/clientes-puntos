@@ -1,7 +1,6 @@
 // src/context/Puntos/core/interfaces/IReglaEngine.ts
 
 export interface ReglaEngineRequest {
-  operacionId: number;
   clienteId: string;
   tipo: string;
   fecha: Date;
@@ -18,7 +17,7 @@ export interface ReglaEngineRequest {
 }
 
 export interface ReglaEngineResult {
-  debitos: Array<{ loteId: string; cantidad: number }>;
+  debitAmount: number;
   credito?: { cantidad: number; expiraEn: Date };
 }
 

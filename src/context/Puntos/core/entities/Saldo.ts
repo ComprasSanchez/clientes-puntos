@@ -4,6 +4,7 @@ import { BatchEstado } from '../enums/BatchEstado';
 import { Lote } from './Lote';
 import { LoteNotFoundError } from '../exceptions/Lote/LoteNotFoundError';
 import { SaldoInsuficienteError } from '../exceptions/Saldo/SaldoInsuficienteError';
+import { LoteId } from '../value-objects/LoteId';
 
 export class Saldo {
   private readonly clienteId: string;
@@ -12,7 +13,7 @@ export class Saldo {
   constructor(
     clienteId: string,
     lotes: Lote[] = [],
-    private consumos: Array<{ loteId: string; cantidad: number }> = [],
+    private consumos: Array<{ loteId: LoteId; cantidad: CantidadPuntos }> = [],
   ) {
     this.clienteId = clienteId;
     this.lotes = lotes;
@@ -54,9 +55,12 @@ export class Saldo {
     for (const lote of disponibles) {
       if (pendiente <= 0) break;
       const take = Math.min(lote.remaining.value, pendiente);
-      lote.consumir(new CantidadPuntos(take));
       pendiente -= take;
-      this.consumos.push({ loteId: lote.id.value, cantidad: take });
+      lote.consumir(new CantidadPuntos(take));
+      this.consumos.push({
+        loteId: lote.id,
+        cantidad: new CantidadPuntos(take),
+      });
     }
 
     if (pendiente > 0) {
@@ -64,7 +68,7 @@ export class Saldo {
     }
   }
 
-  getDetalleConsumo(): Array<{ loteId: string; cantidad: number }> {
+  getDetalleConsumo(): Array<{ loteId: LoteId; cantidad: CantidadPuntos }> {
     return [...this.consumos];
   }
 
