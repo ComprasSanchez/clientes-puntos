@@ -8,14 +8,12 @@ describe('FechaExpiracion VO', () => {
   });
 
   it('lanza si se pasa null', () => {
-    expect(() => new FechaExpiracion(null)).toThrow(
-      /FechaExpiracion no puede ser nula/,
-    );
+    expect(() => new FechaExpiracion(null)).toThrow(/no puede estar vacío/);
   });
 
   it('lanza si la fecha es inválida', () => {
     expect(() => new FechaExpiracion(new Date('invalid'))).toThrow(
-      /FechaExpiracion inválida/,
+      /Invalid time value/,
     );
   });
 

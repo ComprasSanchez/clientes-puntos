@@ -15,7 +15,7 @@ describe('ClienteFechaNacimiento VO', () => {
     const mañana = new Date();
     mañana.setDate(mañana.getDate() + 1);
     expect(() => new ClienteFechaNacimiento(mañana)).toThrow(
-      /no puede ser futura/,
+      /no puede ser en el futuro/,
     );
   });
 });

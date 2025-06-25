@@ -20,7 +20,7 @@ describe('CategoriaDescripcion VO', () => {
   it('lanza si supera 200 caracteres', () => {
     const tooLong = 'A'.repeat(201);
     expect(() => new CategoriaDescripcion(tooLong)).toThrowError(
-      /no puede superar 200 caracteres/,
+      /Debe tener un máximo de 200 carácteres/,
     );
   });
 });

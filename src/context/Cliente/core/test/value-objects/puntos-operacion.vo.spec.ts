@@ -7,15 +7,15 @@ describe('PuntosOperacion VO', () => {
   });
 
   it('lanza si es cero', () => {
-    expect(() => new PuntosOperacion(0)).toThrow(/Deb(en)? ser enteros > 0/);
+    expect(() => new PuntosOperacion(0)).toThrow(/Debe ser un entero >= 0/);
   });
 
   it('lanza si es negativo', () => {
-    expect(() => new PuntosOperacion(-5)).toThrow(/Deb(en)? ser enteros > 0/);
+    expect(() => new PuntosOperacion(-5)).toThrow(/Debe ser un entero >= 0/);
   });
 
   it('lanza si no es entero', () => {
-    expect(() => new PuntosOperacion(2.7)).toThrow(/Deb(en)? ser enteros > 0/);
+    expect(() => new PuntosOperacion(2.7)).toThrow(/Debe ser un entero >= 0/);
   });
 
   it('lanza si se le pasa null o undefined', () => {

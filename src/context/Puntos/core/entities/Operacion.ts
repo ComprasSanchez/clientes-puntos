@@ -116,7 +116,7 @@ export class Operacion {
       ...debitos.map((d) => ({
         operacionId: this._id,
         loteId: d.loteId,
-        tipo: TxTipo.GASTO,
+        tipo: this._tipo !== OpTipo.COMPRA ? TxTipo.DEVOLUCION : TxTipo.GASTO,
         cantidad: d.cantidad,
         fecha: this._fecha,
         referencia: this._refOperacion,

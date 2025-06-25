@@ -15,6 +15,8 @@ describe('ClienteNombre VO', () => {
   });
 
   it('lanza si es muy corto', () => {
-    expect(() => new ClienteNombre('J')).toThrow(/al menos 2 caracteres/);
+    expect(() => new ClienteNombre('J')).toThrow(
+      /Debe tener un mínimo de 2 carácteres/,
+    );
   });
 });

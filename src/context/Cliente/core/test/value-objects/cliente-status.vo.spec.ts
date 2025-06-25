@@ -10,6 +10,8 @@ describe('ClienteStatus VO', () => {
   });
 
   it('lanza si el estado no es válido', () => {
-    expect(() => new ClienteStatus('otro')).toThrow(/no es un valor permitido/);
+    expect(() => new ClienteStatus('otro')).toThrow(
+      /tiene un formato inválido/,
+    );
   });
 });

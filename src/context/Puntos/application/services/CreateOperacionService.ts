@@ -18,6 +18,7 @@ import { CreateOperacionResponse } from '../dtos/CreateOperacionResponse';
 import { Lote } from '../../core/entities/Lote';
 import { LoteId } from '../../core/value-objects/LoteId';
 import { Transaccion } from '../../core/entities/Transaccion';
+import { OpTipo } from '../../core/enums/OpTipo';
 
 export class CreateOperacionService {
   constructor(
@@ -69,8 +70,14 @@ export class CreateOperacionService {
     // 4️⃣ Aplicar débitos (consumo de lotes existentes)
     for (const inst of cambio.debitos) {
       const lote = saldo.obtenerLote(inst.loteId)!;
-      lote.consumir(inst.cantidad);
-      await this.loteRepo.save(lote);
+      if (req.tipo === OpTipo.DEVOLUCION || req.tipo === OpTipo.ANULACION) {
+        // En devoluciones o anulaciones, devolvemos puntos al lote
+        lote.revertir(inst.cantidad);
+      } else {
+        // En compras con puntos, consumimos
+        lote.consumir(inst.cantidad);
+      }
+      await this.loteRepo.update(lote);
     }
 
     // 5️⃣ Aplicar créditos (crear nuevos lotes)

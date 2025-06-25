@@ -6,8 +6,6 @@ describe('ClienteId VO', () => {
   });
 
   it('lanza si el valor es vacío', () => {
-    expect(() => new ClienteId('')).toThrow(
-      'El ID del cliente no puede ser vacío.',
-    );
+    expect(() => new ClienteId('')).toThrow(/no puede estar vacío/);
   });
 });

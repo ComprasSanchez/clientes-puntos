@@ -14,18 +14,20 @@ describe('CategoriaNombre VO', () => {
   });
 
   it('lanza si es vacío o sólo espacios', () => {
-    expect(() => new CategoriaNombre('')).toThrow(/no puede ser vacío/);
-    expect(() => new CategoriaNombre('   ')).toThrow(/no puede ser vacío/);
+    expect(() => new CategoriaNombre('')).toThrow(/no puede estar vacío/);
+    expect(() => new CategoriaNombre('   ')).toThrow(/no puede estar vacío/);
   });
 
   it('lanza si es muy corto (<2 caracteres)', () => {
-    expect(() => new CategoriaNombre('A')).toThrow(/al menos 2 caracteres/);
+    expect(() => new CategoriaNombre('A')).toThrow(
+      /Debe tener un mínimo de 2 carácteres/,
+    );
   });
 
   it('lanza si supera longitud máxima (>20 caracteres)', () => {
     const longName = 'A'.repeat(21);
     expect(() => new CategoriaNombre(longName)).toThrow(
-      /no puede tener más de 20 caracteres/,
+      /Debe tener un máximo de 20 carácteres/,
     );
   });
 

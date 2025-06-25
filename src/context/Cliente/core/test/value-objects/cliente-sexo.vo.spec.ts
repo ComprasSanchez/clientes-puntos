@@ -8,8 +8,6 @@ describe('ClienteSexo VO', () => {
   });
 
   it('lanza si no es M, F o X', () => {
-    expect(() => new ClienteSexo('Z')).toThrow(
-      /no es uno de los valores permitidos/,
-    );
+    expect(() => new ClienteSexo('Z')).toThrow(/tiene un formato inválido/);
   });
 });

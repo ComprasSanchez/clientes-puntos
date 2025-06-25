@@ -16,17 +16,15 @@ describe('CantidadPuntos VO', () => {
   it('lanza si es null o NaN', () => {
     // @ts-expect-error prueba runtime
     expect(() => new CantidadPuntos(null)).toThrow(
-      /CantidadPuntos debe ser un número válido/,
+      /Debe ser un número entero válido/,
     );
     expect(() => new CantidadPuntos(NaN)).toThrow(
-      /CantidadPuntos debe ser un número válido/,
+      /Debe ser un número entero válido/,
     );
   });
 
   it('lanza si es negativo', () => {
-    expect(() => new CantidadPuntos(-1)).toThrow(
-      /CantidadPuntos inválida: -1 debe ser >= 0/,
-    );
+    expect(() => new CantidadPuntos(-1)).toThrow(/Debe ser un entero >= 0/);
   });
 
   it('toNumber devuelve el valor numérico', () => {

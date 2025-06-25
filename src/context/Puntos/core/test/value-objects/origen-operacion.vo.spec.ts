@@ -14,6 +14,8 @@ describe('OrigenOperacion VO', () => {
 
   it('lanza si excede 50 caracteres', () => {
     const long = 'a'.repeat(51);
-    expect(() => new OrigenOperacion(long)).toThrow(/excede 50 caracteres/);
+    expect(() => new OrigenOperacion(long)).toThrow(
+      /Debe tener un máximo de 50 carácteres/,
+    );
   });
 });
