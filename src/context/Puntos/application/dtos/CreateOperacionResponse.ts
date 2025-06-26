@@ -1,4 +1,5 @@
 import { TxTipo } from 'src/context/Puntos/core/enums/TxTipo';
+import { Lote } from '../../core/entities/Lote';
 import { LoteId } from '../../core/value-objects/LoteId';
 
 /**
@@ -27,7 +28,7 @@ export interface CreateOperacionResponse {
   operacionId: number;
 
   /** Lista de IDs de lotes que fueron modificados o creados */
-  lotesAfectados: LoteId[];
+  lotesAfectados: (Lote | LoteId)[];
 
   /** Detalle de todas las transacciones generadas */
   transacciones: CreateOperacionTransaccionDto[];

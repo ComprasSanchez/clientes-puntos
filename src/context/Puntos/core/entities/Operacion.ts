@@ -49,7 +49,48 @@ export class Operacion {
     private readonly _monto?: MontoMoneda,
     private readonly _moneda?: Moneda,
     private readonly _refOperacion?: ReferenciaMovimiento,
+    private readonly _refAnulacion?: OperacionId,
   ) {}
+
+  get id(): OperacionId {
+    return this._id;
+  }
+
+  get clienteId(): string {
+    return this._clienteId;
+  }
+
+  get tipo(): OpTipo {
+    return this._tipo;
+  }
+
+  get fecha(): FechaOperacion {
+    return this._fecha;
+  }
+
+  get origenTipo(): OrigenOperacion {
+    return this._origenTipo;
+  }
+
+  get puntos(): CantidadPuntos | undefined {
+    return this._puntos;
+  }
+
+  get monto(): MontoMoneda | undefined {
+    return this._monto;
+  }
+
+  get moneda(): Moneda | undefined {
+    return this._moneda;
+  }
+
+  get refOperacion(): ReferenciaMovimiento | undefined {
+    return this._refOperacion;
+  }
+
+  get refAnulacion(): OperacionId | undefined {
+    return this._refAnulacion;
+  }
 
   /**
    * Orquesta la petición al motor de reglas y devuelve instrucciones

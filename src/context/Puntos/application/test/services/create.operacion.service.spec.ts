@@ -20,6 +20,7 @@ import { FakeUUIDGen } from 'src/shared/core/uuid/test/stubs/FakeUUIDGenerator';
 import { BatchEstado } from 'src/context/Puntos/core/enums/BatchEstado';
 import { Transaccion } from 'src/context/Puntos/core/entities/Transaccion';
 import { TransaccionId } from 'src/context/Puntos/core/value-objects/TransaccionId';
+import { SaldoHandler } from 'src/context/Puntos/core/services/SaldoHandler';
 
 describe('CreateOperacionService', () => {
   let loteRepo: jest.Mocked<LoteRepository>;
@@ -27,6 +28,7 @@ describe('CreateOperacionService', () => {
   let reglaEngine: jest.Mocked<IReglaEngine>;
   let loteFactory: LoteFactory;
   let txFactory: TransaccionFactory;
+  let sHandler: SaldoHandler;
   let service: CreateOperacionService;
   let idGen: FakeUUIDGen;
 
@@ -35,6 +37,7 @@ describe('CreateOperacionService', () => {
 
     loteFactory = new LoteFactory(idGen);
     txFactory = new TransaccionFactory(idGen);
+    sHandler = new SaldoHandler(loteFactory);
 
     loteRepo = {
       findAll: jest.fn(),
@@ -50,6 +53,8 @@ describe('CreateOperacionService', () => {
       findById: jest.fn(),
       findByCliente: jest.fn(),
       findByLote: jest.fn(),
+      findByOperationId: jest.fn(),
+      findByReferencia: jest.fn(),
       save: jest.fn(),
       delete: jest.fn(),
     };
@@ -61,6 +66,7 @@ describe('CreateOperacionService', () => {
       reglaEngine,
       loteFactory,
       txFactory,
+      sHandler,
     );
   });
 
@@ -134,7 +140,7 @@ describe('CreateOperacionService', () => {
 
     // Response structure
     expect(result.operacionId).toEqual(expect.any(Number));
-    expect(result.lotesAfectados).toEqual([new LoteId('lote-1')]);
+    expect(result.lotesAfectados).toEqual([loteEntity]);
     expect(result.transacciones).toEqual([
       expect.objectContaining({
         id: 'tx-123',
@@ -320,10 +326,7 @@ describe('CreateOperacionService', () => {
     expect(txRepo.save).toHaveBeenCalledWith(txCredit);
 
     // Response structure
-    expect(result.lotesAfectados).toEqual([
-      new LoteId('lote-1'),
-      new LoteId('lote-2'),
-    ]);
+    expect(result.lotesAfectados).toEqual([initialLote.id, creditLote]);
     expect(result.transacciones).toEqual([
       expect.objectContaining({
         id: 'tx-debit',
@@ -496,7 +499,8 @@ describe('CreateOperacionService', () => {
     // Arrange
     const now = new Date('2025-06-27T09:00:00Z');
     const origen = new OrigenOperacion('PLEX');
-    // Lote inicial con remaining 60 de original 100
+
+    // 1️⃣ Lote inicial con remaining 60 de original 100
     const loteEntity = new Lote(
       new LoteId('lote-1'),
       'client-1',
@@ -510,19 +514,40 @@ describe('CreateOperacionService', () => {
     );
     loteRepo.findByCliente.mockResolvedValue([loteEntity]);
 
+    // 2️⃣ Simulo la operación de COMPRA previa
+    //    — El ID de esa operación…
+    const purchaseOpId = OperacionId.create();
+    //    — Y la transacción de GASTO que dejó el lote en remaining 60
+    const purchaseTx = Transaccion.createOrphan({
+      id: new TransaccionId('tx-purchase-1'),
+      operationId: purchaseOpId,
+      loteId: new LoteId('lote-1'),
+      tipo: TxTipo.GASTO,
+      cantidad: new CantidadPuntos(40),
+      createdAt: now,
+      referenciaId: undefined,
+    });
+    //    — El repo de transacciones debe devolvérmela
+    txRepo.findByOperationId.mockResolvedValue([purchaseTx]);
+
+    // 3️⃣ Petición de devolución, usando el mismo operationId
     const req: CreateOperacionRequest = {
       clienteId: 'client-1',
       tipo: OpTipo.DEVOLUCION,
       origenTipo: origen,
       puntos: 40,
+      operacionId: purchaseOpId,
+      // resto de campos (monto, referencia…) según tu dto
     };
 
-    const reglaResult: ReglaEngineResult = {
-      debitAmount: 40,
+    // 4️⃣ El engine de reglas nos dice que hay que debitar 40
+    const reglaResult = {
+      debitos: [{ cantidad: new CantidadPuntos(40) }],
+      creditos: [],
     };
     (reglaEngine.procesar as jest.Mock).mockResolvedValue(reglaResult);
 
-    // Stub transacción de devolución
+    // 5️⃣ Stub para la creación de la transacción de devolución
     const txEntity = Transaccion.createOrphan({
       id: new TransaccionId('tx-refund'),
       operationId: OperacionId.create(),
@@ -537,11 +562,11 @@ describe('CreateOperacionService', () => {
     // Act
     const result = await service.execute(req);
 
-    // Assert: lote actualizado y remaining ajustado a 100
+    // Assert: el lote vuelve a 100
     expect(loteRepo.update).toHaveBeenCalledWith(loteEntity);
     expect(loteEntity.remaining.value).toBe(100);
 
-    // Assert: transacción de devolución creada y guardada
+    // Assert: se crea y guarda la tx de devolución
     expect(txFactory.createFromDto).toHaveBeenCalledWith(
       expect.objectContaining({
         loteId: new LoteId('lote-1'),

@@ -1,6 +1,7 @@
 import { OpTipo } from 'src/shared/core/enums/OpTipo';
 import { OrigenOperacion } from '../../core/value-objects/OrigenOperacion';
 import { ReferenciaMovimiento } from '../../core/value-objects/ReferenciaMovimiento';
+import { OperacionId } from '../../core/value-objects/OperacionId';
 
 /**
  * DTO para la petición de creación de una Operacion.
@@ -25,4 +26,7 @@ export interface CreateOperacionRequest {
 
   /** Referencia externa o de sistema (opcional) */
   referencia?: ReferenciaMovimiento;
+
+  /** Id de la Operacion para acciones de devolucion y/o anulacion */
+  operacionId?: OperacionId;
 }

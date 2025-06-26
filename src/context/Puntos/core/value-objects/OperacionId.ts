@@ -2,8 +2,8 @@ import { TransactionTimestampFactory } from '../../core/factories/TransactionTim
 import { TimestampId } from './TimestampId';
 
 export class OperacionId extends TimestampId {
-  private constructor(value: number) {
-    super(value);
+  private constructor(_value: number) {
+    super(_value);
   }
 
   /**
@@ -11,5 +11,14 @@ export class OperacionId extends TimestampId {
    */
   static create(): OperacionId {
     return new OperacionId(TransactionTimestampFactory.now());
+  }
+
+  public static instance(_value: number): OperacionId {
+    return new OperacionId(_value);
+  }
+
+  /** Para leer su valor */
+  public get value(): number {
+    return super.value;
   }
 }

@@ -16,6 +16,8 @@ import { OpTipo } from 'src/shared/core/enums/OpTipo';
 import { TxTipo } from 'src/context/Puntos/core/enums/TxTipo';
 import { LoteId } from '../../core/value-objects/LoteId';
 import { Transaccion } from '../../core/entities/Transaccion';
+import { SaldoHandler } from '../../core/services/SaldoHandler';
+import { RefundError } from '../../core/exceptions/Operacion/RefundError';
 
 export class CreateOperacionService {
   constructor(
@@ -24,12 +26,30 @@ export class CreateOperacionService {
     private readonly reglaEngine: IReglaEngine,
     private readonly loteFactory: LoteFactory,
     private readonly txFactory: TransaccionFactory,
+    private readonly saldoHandler: SaldoHandler,
   ) {}
 
   async execute(req: CreateOperacionRequest): Promise<CreateOperacionResponse> {
-    // 1️⃣ Cargar lotes y construir Saldo
+    // 1️⃣ Cargar lotes, transacciones y construir Saldo
     const lotes = await this.loteRepo.findByCliente(req.clienteId);
     const saldo = new Saldo(req.clienteId, lotes);
+
+    let txsOriginal: Transaccion[] | undefined;
+
+    if (req.tipo != OpTipo.COMPRA) {
+      if (req.operacionId) {
+        // Caso anulación: tengo el ID de la operación a revertir
+        txsOriginal = await this.txRepo.findByOperationId(
+          req.operacionId.value,
+        );
+      } else if (req.referencia && req.referencia != null) {
+        // Caso devolución por referencia de movimiento
+        txsOriginal = await this.txRepo.findByReferencia(req.referencia.value!);
+      } else {
+        // Ni operacionId ni referencia → no sé qué debo revertir
+        throw new RefundError();
+      }
+    }
 
     // 2️⃣ Instanciar Operacion
     const opId = OperacionId.create();
@@ -43,34 +63,32 @@ export class CreateOperacionService {
       req.montoMoneda ? new MontoMoneda(req.montoMoneda) : undefined,
       req.moneda ? Moneda.create(req.moneda) : undefined,
       req.referencia ? req.referencia : undefined,
+      req.operacionId ? req.operacionId : undefined,
     );
 
     // 3️⃣ Obtener instrucciones de reglas (sin mutar Saldo)
     const cambio = await oper.ejecutarEn(saldo, this.reglaEngine);
 
-    // 4️⃣ Aplicar DÉBITO: consumir puntos y persistir lotes
-    if (cambio.debitos.length > 0) {
-      // Asumimos un solo instruct. con cantidad total
-      const totalDebitar = cambio.debitos[0].cantidad;
-      saldo.consumirPuntos(totalDebitar);
-      for (const lote of saldo.getLotes()) {
-        await this.loteRepo.update(lote); //canbiar por batch update
-      }
-    }
+    // 4️⃣ Aplicar débito y crédito vía handler
+    const { detallesDebito, nuevoLote } = this.saldoHandler.aplicarCambio(
+      saldo,
+      oper,
+      cambio.debitos[0]?.cantidad,
+      cambio.creditos[0]
+        ? {
+            cantidad: cambio.creditos[0].cantidad,
+            expiraEn: cambio.creditos[0].expiraEn,
+          }
+        : undefined,
+      txsOriginal,
+    );
 
-    // 5️⃣ Aplicar CRÉDITO: crear y persistir nuevo lote
-    let nuevoLoteId: LoteId | undefined;
-    if (cambio.creditos.length > 0) {
-      const cred = cambio.creditos[0];
-      const loteNuevo = this.loteFactory.crear({
-        clienteId: req.clienteId,
-        cantidad: cred.cantidad,
-        origen: req.origenTipo,
-        referencia: req.referencia,
-        expiraEn: cred.expiraEn,
-      });
-      await this.loteRepo.save(loteNuevo);
-      nuevoLoteId = loteNuevo.id;
+    // 5️⃣ Persistir cambios en lotes
+    for (const lote of saldo.getLotes()) {
+      await this.loteRepo.update(lote);
+    }
+    if (nuevoLote) {
+      await this.loteRepo.save(nuevoLote);
     }
 
     // 6️⃣ Registrar transacciones basadas en consumo y crédito
@@ -81,8 +99,7 @@ export class CreateOperacionService {
     }> = [];
 
     // Débitos por lote
-    const detalles = saldo.getDetalleConsumo();
-    for (const d of detalles) {
+    for (const d of detallesDebito) {
       registros.push({
         loteId: d.loteId,
         tipo: req.tipo !== OpTipo.COMPRA ? TxTipo.DEVOLUCION : TxTipo.GASTO,
@@ -90,9 +107,9 @@ export class CreateOperacionService {
       });
     }
     // Crédito
-    if (nuevoLoteId) {
+    if (nuevoLote) {
       registros.push({
-        loteId: nuevoLoteId,
+        loteId: nuevoLote.id,
         tipo: TxTipo.ACREDITACION,
         cantidad: cambio.creditos[0].cantidad,
       });
@@ -116,8 +133,8 @@ export class CreateOperacionService {
 
     // 7️⃣ Armar respuesta
     const lotesAfectados = [
-      ...detalles.map((d) => d.loteId),
-      ...(nuevoLoteId ? [nuevoLoteId] : []),
+      ...detallesDebito.map((d) => d.loteId),
+      ...(nuevoLote ? [nuevoLote] : []),
     ];
 
     return {

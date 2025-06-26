@@ -1,10 +1,9 @@
-import { OrigenOperacion } from '../../core/value-objects/OrigenOperacion';
-
 export interface OperacionDto {
   clienteId: string;
-  origenTipo: OrigenOperacion;
+  origenTipo: string;
   puntos?: number;
   montoMoneda?: number;
   moneda?: string;
   referencia?: string;
+  refOperacion?: number;
 }

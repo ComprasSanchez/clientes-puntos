@@ -32,6 +32,18 @@ export interface TransaccionRepository {
   findByCliente(clienteId: string): Promise<Transaccion[]>;
 
   /**
+   * Obtiene todas las transacciones de un cliente, a partir de una OperacionId.
+   * @param OpId Identificador de la Operacion..
+   */
+  findByOperationId(opId: number): Promise<Transaccion[]>;
+
+  /**
+   * Obtiene todas las transacciones de un cliente, a partir de una OperacionId.
+   * @param ref Identificador de la referencia.
+   */
+  findByReferencia(ref: string): Promise<Transaccion[]>;
+
+  /**
    * Persiste una nueva transacción en el ledger.
    * @param transaccion Transacción a guardar
    */

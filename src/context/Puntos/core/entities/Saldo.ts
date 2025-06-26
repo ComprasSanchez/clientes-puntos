@@ -5,6 +5,8 @@ import { Lote } from './Lote';
 import { LoteNotFoundError } from '../exceptions/Lote/LoteNotFoundError';
 import { SaldoInsuficienteError } from '../exceptions/Saldo/SaldoInsuficienteError';
 import { LoteId } from '../value-objects/LoteId';
+import { ConsumoNoRegistradoError } from '../exceptions/Saldo/ConsumoNoRegistradoError';
+import { ReversionExcedidaError } from '../exceptions/Lote/ReversionExcedidaError';
 
 export class Saldo {
   private readonly clienteId: string;
@@ -13,7 +15,10 @@ export class Saldo {
   constructor(
     clienteId: string,
     lotes: Lote[] = [],
-    private consumos: Array<{ loteId: LoteId; cantidad: CantidadPuntos }> = [],
+    private consumosPorOperacion = new Map<
+      number,
+      Array<{ loteId: LoteId; cantidad: CantidadPuntos }>
+    >(),
   ) {
     this.clienteId = clienteId;
     this.lotes = lotes;
@@ -42,9 +47,9 @@ export class Saldo {
   }
 
   // 2️⃣ Comportamiento puro de gasto: consume hasta agotar o lanzar excepción
-  consumirPuntos(cantidad: CantidadPuntos): void {
+  consumirPuntos(operacionId: number, cantidad: CantidadPuntos): void {
     let pendiente = cantidad.value;
-    this.consumos = [];
+    const detalle: Array<{ loteId: LoteId; cantidad: CantidadPuntos }> = [];
 
     const disponibles = this.lotes
       .filter(
@@ -55,28 +60,43 @@ export class Saldo {
     for (const lote of disponibles) {
       if (pendiente <= 0) break;
       const take = Math.min(lote.remaining.value, pendiente);
-      pendiente -= take;
       lote.consumir(new CantidadPuntos(take));
-      this.consumos.push({
-        loteId: lote.id,
-        cantidad: new CantidadPuntos(take),
-      });
+      pendiente -= take;
+      detalle.push({ loteId: lote.id, cantidad: new CantidadPuntos(take) });
     }
 
     if (pendiente > 0) {
       throw new SaldoInsuficienteError(pendiente);
     }
-  }
 
-  getDetalleConsumo(): Array<{ loteId: LoteId; cantidad: CantidadPuntos }> {
-    return [...this.consumos];
+    // Guardamos el detalle bajo este operacionId
+    this.consumosPorOperacion.set(operacionId, detalle);
   }
 
   // 3️⃣ Comportamiento puro de reversión
-  revertirPuntos(loteId: string, cantidad: CantidadPuntos): void {
-    const lote = this.lotes.find((l) => l.id.value === loteId);
+  /** Revierto X puntos directamente sobre el lote indicado */
+  public revertirLinea(loteId: string, cantidad: CantidadPuntos): void {
+    const lote = this.obtenerLote(loteId);
     if (!lote) throw new LoteNotFoundError(loteId);
+
+    // Protejo de exceder el original
+    const posible = lote.remaining.value + cantidad.value;
+    if (posible > lote.cantidadOriginal.value) {
+      throw new ReversionExcedidaError(loteId);
+    }
+
     lote.revertir(cantidad);
+  }
+
+  getDetalleConsumo(
+    operacionId: number,
+  ): Array<{ loteId: LoteId; cantidad: CantidadPuntos }> {
+    const detalle = this.consumosPorOperacion.get(operacionId);
+    if (!detalle) {
+      throw new ConsumoNoRegistradoError(operacionId);
+    }
+    // devolvemos una copia para proteger inmutabilidad
+    return [...detalle];
   }
 
   // 4️⃣ Expiraciones como lógica de dominio

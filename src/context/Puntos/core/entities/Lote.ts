@@ -6,6 +6,7 @@ import { ReferenciaMovimiento } from '../value-objects/ReferenciaMovimiento';
 import { BatchEstado } from '../enums/BatchEstado';
 import { LoteNoDisponibleError } from '../exceptions/Lote/LoteNoDisponibleError';
 import { LoteSinPuntosError } from '../exceptions/Lote/LoteSinPuntosError';
+import { ReversionExcedidaError } from '../exceptions/Lote/ReversionExcedidaError';
 
 export class Lote {
   private _remaining: CantidadPuntos;
@@ -85,6 +86,9 @@ export class Lote {
   }
 
   revertir(cantidad: CantidadPuntos): void {
+    if (this._remaining.value + cantidad.value > this._cantidadOriginal.value) {
+      throw new ReversionExcedidaError(this._id.value);
+    }
     this._remaining = new CantidadPuntos(
       this._remaining.value + cantidad.value,
     );
