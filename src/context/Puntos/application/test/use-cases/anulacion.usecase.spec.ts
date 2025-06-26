@@ -1,12 +1,14 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 // src/application/usecases/CompraUseCase.spec.ts
-import { OrigenOperacion } from 'src/context/Puntos/core/value-objects/OrigenOperacion';
 import { OpTipo } from 'src/shared/core/enums/OpTipo';
 import { CreateOperacionService } from '../../services/CreateOperacionService';
 import { OperacionDto } from '../../dtos/OperacionDto';
 import { CreateOperacionResponse } from '../../dtos/CreateOperacionResponse';
 import { OperacionId } from 'src/context/Puntos/core/value-objects/OperacionId';
 import { AnulacionUseCase } from '../../use-cases/Anulacion/Anulacion';
+import { LoteId } from 'src/context/Puntos/core/value-objects/LoteId';
+import { OrigenOperacion } from 'src/context/Puntos/core/value-objects/OrigenOperacion';
+import { ReferenciaMovimiento } from 'src/context/Puntos/core/value-objects/ReferenciaMovimiento';
 
 describe('CompraUseCase', () => {
   let service: jest.Mocked<CreateOperacionService>;
@@ -19,19 +21,21 @@ describe('CompraUseCase', () => {
     useCase = new AnulacionUseCase(service);
   });
 
-  it('debe invocar service.execute con OpTipo.COMPRA y devolver su respuesta', async () => {
-    const origen = new OrigenOperacion('TEST');
+  it('debe invocar service.execute con OpTipo.ANULACION y devolver su respuesta', async () => {
+    const origen = 'TEST';
+    const ref = 'ref-3';
     const input: OperacionDto = {
       clienteId: 'client-3',
       origenTipo: origen,
       puntos: 20,
       montoMoneda: 200,
       moneda: 'ARS',
-      referencia: 'ref-3',
+      referencia: ref,
+      refOperacion: 123456789,
     };
     const fakeResp: CreateOperacionResponse = {
       operacionId: Number(OperacionId.create()),
-      lotesAfectados: ['I3'],
+      lotesAfectados: [new LoteId('I3')],
       transacciones: [],
     };
     service.execute.mockResolvedValue(fakeResp);
@@ -39,8 +43,14 @@ describe('CompraUseCase', () => {
     const result = await useCase.run(input);
 
     expect(service.execute).toHaveBeenCalledWith({
-      ...input,
+      clienteId: 'client-3',
       tipo: OpTipo.ANULACION,
+      origenTipo: new OrigenOperacion(origen),
+      puntos: 20,
+      montoMoneda: 200,
+      moneda: 'ARS',
+      referencia: new ReferenciaMovimiento(ref),
+      operacionId: OperacionId.instance(123456789),
     });
     expect(result).toBe(fakeResp);
   });
