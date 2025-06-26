@@ -5,5 +5,6 @@ export class ReglaFlag {
     if (typeof value !== 'boolean') {
       throw new InvalidBooleanError(value);
     }
+    this.value = value;
   }
 }

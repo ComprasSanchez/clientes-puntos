@@ -6,5 +6,6 @@ export class RatioConversion {
     if (!value || value < 1) {
       throw new InvalidNumberFormatError(value);
     }
+    this.value = value;
   }
 }

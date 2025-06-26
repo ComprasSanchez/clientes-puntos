@@ -3,11 +3,12 @@ import { InvalidNumberFormatError } from 'src/shared/core/exceptions/InvalidNumb
 
 export class ReglaPrioridad {
   constructor(public readonly value: number) {
-    if (!value || value === null) {
+    if (value === null || value === undefined) {
       throw new FieldRequiredError('Prioridad');
     }
     if (!Number.isInteger(value) || value < 0) {
       throw new InvalidNumberFormatError(value);
     }
+    this.value = value;
   }
 }

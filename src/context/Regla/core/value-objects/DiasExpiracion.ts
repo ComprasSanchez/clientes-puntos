@@ -6,5 +6,6 @@ export class DiasExpiracion {
     if (!value || value < 0) {
       throw new InvalidNumberFormatError(value);
     }
+    this.value = value;
   }
 }

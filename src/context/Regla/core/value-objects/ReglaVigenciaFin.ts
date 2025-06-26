@@ -10,7 +10,7 @@ export class ReglaVigenciaFin {
 
   private validate() {
     if (!(this.value instanceof Date) || isNaN(this.value.getTime())) {
-      throw new InvalidFormatError(this.value.toISOString().split('T')[0]);
+      throw new InvalidFormatError(this.value.toString());
     }
   }
 

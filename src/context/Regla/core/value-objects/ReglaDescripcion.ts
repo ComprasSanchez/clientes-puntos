@@ -4,8 +4,11 @@ export class ReglaDescripcion {
   value: string;
 
   constructor(value?: string) {
-    // Normalizar: trim del string; null/undefined → null
-    if (value) this.validate();
+    if (value != null) {
+      const trimmed = value.trim();
+      this.value = trimmed;
+      this.validate();
+    }
   }
 
   private validate() {
