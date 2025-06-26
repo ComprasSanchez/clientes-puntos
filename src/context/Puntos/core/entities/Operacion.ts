@@ -108,11 +108,6 @@ export class Operacion {
       monto: this._monto?.value,
       moneda: this._moneda?.value,
       saldoActual: saldo.getSaldoActual().value,
-      lotesDisponibles: saldo.getLotes().map((l) => ({
-        loteId: l.id.value,
-        remaining: l.remaining.value,
-        expiraEn: l.expiraEn?.value,
-      })),
     };
 
     const result: ReglaEngineResult = await reglaEngine.procesar(req);
@@ -126,7 +121,9 @@ export class Operacion {
     if (result.credito) {
       creditos.push({
         cantidad: new CantidadPuntos(result.credito.cantidad),
-        expiraEn: new FechaExpiracion(result.credito.expiraEn),
+        expiraEn: result.credito.expiraEn
+          ? new FechaExpiracion(result.credito.expiraEn)
+          : undefined,
       });
     }
 

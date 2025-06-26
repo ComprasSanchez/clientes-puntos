@@ -1,35 +1,25 @@
-import { OpTipo } from 'src/shared/core/enums/OpTipo';
-
-/**
- * Resultado de la ejecución del motor de reglas.
- */
-export interface ReglaEngineResult {
-  debitos: Array<{ loteId: string; cantidad: number }>;
-  credito?: { cantidad: number; expiraEn: Date };
-}
-
-/**
- * Contexto que pasa el RuleEngine y las reglas individuales.
- */
-export interface ReglaContext {
-  clienteId: string;
-  tipoOperacion: OpTipo;
-  montoMoneda?: number;
-  porcentajeOperacion?: number;
-  lotes?: Array<{ id: string; cantidadDisponible: number }>;
-  fechaOperacion?: Date;
-}
+import {
+  ReglaEngineRequest,
+  ReglaEngineResult,
+} from '../interfaces/ReglaEngine';
+import { ReglaDescripcion } from '../value-objects/ReglaDescripcion';
+import { ReglaFlag } from '../value-objects/ReglaFlag';
+import { ReglaId } from '../value-objects/ReglaId';
+import { ReglaNombre } from '../value-objects/ReglaNombre';
+import { ReglaPrioridad } from '../value-objects/ReglaPrioridad';
+import { ReglaVigenciaFin } from '../value-objects/ReglaVigenciaFin';
+import { ReglaVigenciaInicio } from '../value-objects/ReglaVigenciaInicio';
 
 export abstract class Regla {
   constructor(
-    public readonly id: string,
-    public readonly nombre: string,
-    public readonly prioridad: number,
-    public readonly activa: boolean,
-    public readonly excluyente: boolean,
-    public readonly vigenciaInicio: Date,
-    public readonly vigenciaFin?: Date,
-    public readonly descripcion?: string,
+    public readonly id: ReglaId,
+    public readonly nombre: ReglaNombre,
+    public readonly prioridad: ReglaPrioridad,
+    public readonly activa: ReglaFlag,
+    public readonly excluyente: ReglaFlag,
+    public readonly vigenciaInicio: ReglaVigenciaInicio,
+    public readonly vigenciaFin?: ReglaVigenciaFin,
+    public readonly descripcion?: ReglaDescripcion,
   ) {}
 
   /**
@@ -39,10 +29,10 @@ export abstract class Regla {
     if (!this.activa) {
       return false;
     }
-    if (fecha < this.vigenciaInicio) {
+    if (fecha < this.vigenciaInicio.value) {
       return false;
     }
-    if (this.vigenciaFin && fecha > this.vigenciaFin) {
+    if (this.vigenciaFin && fecha > this.vigenciaFin.value) {
       return false;
     }
     return true;
@@ -51,5 +41,5 @@ export abstract class Regla {
   /**
    * Ejecuta la lógica de la regla y devuelve un resultado parcial.
    */
-  public abstract apply(context: ReglaContext): Promise<ReglaEngineResult>;
+  public abstract apply(context: ReglaEngineRequest): ReglaEngineResult;
 }

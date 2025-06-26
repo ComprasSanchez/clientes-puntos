@@ -7,18 +7,12 @@ export interface ReglaEngineRequest {
   puntosSolicitados?: number;
   monto?: number;
   moneda?: string;
-  // información adicional para reglas avanzadas:
   saldoActual: number;
-  lotesDisponibles: Array<{
-    loteId: string;
-    remaining: number;
-    expiraEn?: Date;
-  }>;
 }
 
 export interface ReglaEngineResult {
   debitAmount: number;
-  credito?: { cantidad: number; expiraEn: Date };
+  credito?: { cantidad: number; expiraEn?: Date };
 }
 
 export interface IReglaEngine {
