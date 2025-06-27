@@ -24,3 +24,7 @@ export interface ReglaEngineRequest {
   moneda?: Moneda;
   saldoActual: CantidadPuntos;
 }
+
+export abstract class ReglaEngine {
+  abstract procesar(request: ReglaEngineRequest): Promise<ReglaEngineResult>;
+}

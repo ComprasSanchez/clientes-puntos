@@ -8,7 +8,6 @@ import { Moneda } from 'src/context/Puntos/core/value-objects/Moneda';
 import { CreateOperacionRequest } from '../dtos/CreateOperacionRequest';
 import { CreateOperacionResponse } from '../dtos/CreateOperacionResponse';
 import { TransaccionFactory } from 'src/context/Puntos/core/factories/TransaccionFactory';
-import { LoteFactory } from 'src/context/Puntos/core/factories/LoteFactory';
 import { LoteRepository } from 'src/context/Puntos/core/repository/LoteRepository';
 import { TransaccionRepository } from 'src/context/Puntos/core/repository/TransaccionRepository';
 import { IReglaEngine } from 'src/context/Puntos/core/interfaces/IReglaEngine';
@@ -24,7 +23,6 @@ export class CreateOperacionService {
     private readonly loteRepo: LoteRepository,
     private readonly txRepo: TransaccionRepository,
     private readonly reglaEngine: IReglaEngine,
-    private readonly loteFactory: LoteFactory,
     private readonly txFactory: TransaccionFactory,
     private readonly saldoHandler: SaldoHandler,
   ) {}
