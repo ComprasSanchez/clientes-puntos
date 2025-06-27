@@ -17,7 +17,7 @@ export class RuleProcessor {
   ): ReglaEngineResult {
     // 1. Ordenar
     const sorted = [...rules].sort(
-      (a, b) => b.prioridad.value - a.prioridad.value,
+      (a, b) => a.prioridad.value - b.prioridad.value,
     );
 
     // 2. Aplicar y acumular

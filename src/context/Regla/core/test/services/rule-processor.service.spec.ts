@@ -74,7 +74,7 @@ describe('RuleProcessor', () => {
     processor.process(rules, context);
 
     // Deben ejecutarse en orden de prioridad descendente: 5, 3, 1
-    expect(executionOrder).toEqual([5, 3, 1]);
+    expect(executionOrder).toEqual([1, 3, 5]);
   });
 
   it('detiene la ejecución cuando encuentra una regla excluyente', () => {
