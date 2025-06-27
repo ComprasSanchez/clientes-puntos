@@ -1,3 +1,9 @@
+import { OpTipo } from 'src/shared/core/enums/OpTipo';
+import { FechaOperacion } from '../value-objects/FechaOperacion';
+import { CantidadPuntos } from '../value-objects/CantidadPuntos';
+import { MontoMoneda } from '../value-objects/MontoMoneda';
+import { Moneda } from '../value-objects/Moneda';
+
 /**
  * Resultado de la ejecución del motor de reglas.
  */
@@ -11,10 +17,10 @@ export interface ReglaEngineResult {
  */
 export interface ReglaEngineRequest {
   clienteId: string;
-  tipo: string;
-  fecha: Date;
-  puntosSolicitados?: number;
-  monto?: number;
-  moneda?: string;
-  saldoActual: number;
+  tipo: OpTipo;
+  fecha: FechaOperacion;
+  puntosSolicitados?: CantidadPuntos;
+  monto?: MontoMoneda;
+  moneda?: Moneda;
+  saldoActual: CantidadPuntos;
 }
