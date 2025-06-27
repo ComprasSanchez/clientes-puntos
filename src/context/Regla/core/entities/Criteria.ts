@@ -1,4 +1,9 @@
+import { OpTipo } from 'src/shared/core/enums/OpTipo';
 import { ReglaEngineRequest } from '../interfaces/IReglaEngine';
+import { FechaOperacion } from '../value-objects/FechaOperacion';
+import { CantidadPuntos } from '../value-objects/CantidadPuntos';
+import { MontoMoneda } from '../value-objects/MontoMoneda';
+import { Moneda } from '../value-objects/Moneda';
 
 /**
  * Criterios para filtrar reglas aplicables.
@@ -6,13 +11,13 @@ import { ReglaEngineRequest } from '../interfaces/IReglaEngine';
  */
 export class ReglaCriteria {
   constructor(
-    public readonly fecha: Date,
-    public readonly tipo: string,
+    public readonly fecha: FechaOperacion,
+    public readonly tipo: OpTipo,
     public readonly clienteId: string,
-    public readonly puntosSolicitados?: number,
-    public readonly monto?: number,
-    public readonly moneda?: string,
-    public readonly saldoActual?: number,
+    public readonly puntosSolicitados?: CantidadPuntos,
+    public readonly monto?: MontoMoneda,
+    public readonly moneda?: Moneda,
+    public readonly saldoActual?: CantidadPuntos,
   ) {}
 
   /**
