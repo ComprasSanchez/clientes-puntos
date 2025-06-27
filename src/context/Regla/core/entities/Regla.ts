@@ -7,6 +7,7 @@ import { ReglaFlag } from '../value-objects/ReglaFlag';
 import { ReglaId } from '../value-objects/ReglaId';
 import { ReglaNombre } from '../value-objects/ReglaNombre';
 import { ReglaPrioridad } from '../value-objects/ReglaPrioridad';
+import { ReglaTipo } from '../value-objects/ReglaTipo';
 import { ReglaVigenciaFin } from '../value-objects/ReglaVigenciaFin';
 import { ReglaVigenciaInicio } from '../value-objects/ReglaVigenciaInicio';
 
@@ -14,6 +15,7 @@ export abstract class Regla {
   constructor(
     public readonly id: ReglaId,
     public readonly nombre: ReglaNombre,
+    public readonly tipo: ReglaTipo,
     public readonly prioridad: ReglaPrioridad,
     public readonly activa: ReglaFlag,
     public readonly excluyente: ReglaFlag,

@@ -14,6 +14,7 @@ import { ReglaVigenciaFin } from '../value-objects/ReglaVigenciaFin';
 import { RatioConversion } from '../value-objects/RatioConversion';
 import { DiasExpiracion } from '../value-objects/DiasExpiracion';
 import { ReglaDescripcion } from '../value-objects/ReglaDescripcion';
+import { ReglaTipo } from '../value-objects/ReglaTipo';
 
 /**
  * Regla de Cotización:
@@ -28,6 +29,7 @@ export class ConversionRule extends Regla {
   constructor(
     id: ReglaId,
     nombre: ReglaNombre,
+    tipo: ReglaTipo,
     prioridad: ReglaPrioridadCotizacion,
     activa: ReglaFlag,
     excluyente: ReglaFlag,
@@ -41,6 +43,7 @@ export class ConversionRule extends Regla {
     super(
       id,
       nombre,
+      tipo,
       prioridad,
       activa,
       excluyente,
@@ -56,18 +59,16 @@ export class ConversionRule extends Regla {
    * - `monto`           → crédito de puntos.
    */
   public apply(ctx: ReglaEngineRequest): ReglaEngineResult {
-    const result: ReglaEngineResult = { debitos: [] };
+    const result: ReglaEngineResult = { debitAmount: 0 };
 
     // Débito: uso de puntos solicitados
-    if (ctx.puntosSolicitados != null && ctx.puntosSolicitados > 0) {
-      result.debitos.push({
-        cantidad: ctx.puntosSolicitados * this.rateSpend.value,
-      });
+    if (ctx.puntosSolicitados != null && ctx.puntosSolicitados.value > 0) {
+      result.debitAmount = ctx.puntosSolicitados.value * this.rateSpend.value;
     }
 
     // Crédito: conversión de monto monetario a puntos
-    if (ctx.monto != null && ctx.monto > 0) {
-      const pts = Math.floor(ctx.monto * this.rateAccred.value);
+    if (ctx.monto != null && ctx.monto.value > 0) {
+      const pts = Math.floor(ctx.monto.value * this.rateAccred.value);
       result.credito = {
         cantidad: pts,
         expiraEn:
