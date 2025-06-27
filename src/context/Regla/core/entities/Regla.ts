@@ -1,7 +1,7 @@
 import {
   ReglaEngineRequest,
   ReglaEngineResult,
-} from '../interfaces/ReglaEngine';
+} from '../interfaces/IReglaEngine';
 import { ReglaDescripcion } from '../value-objects/ReglaDescripcion';
 import { ReglaFlag } from '../value-objects/ReglaFlag';
 import { ReglaId } from '../value-objects/ReglaId';

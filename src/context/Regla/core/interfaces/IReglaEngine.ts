@@ -2,7 +2,7 @@
  * Resultado de la ejecución del motor de reglas.
  */
 export interface ReglaEngineResult {
-  debitos: Array<{ cantidad: number }>;
+  debitAmount: number;
   credito?: { cantidad: number; expiraEn?: Date };
 }
 

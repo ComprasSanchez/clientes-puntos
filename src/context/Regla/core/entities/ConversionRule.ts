@@ -4,7 +4,7 @@ import { Regla } from './Regla';
 import {
   ReglaEngineRequest,
   ReglaEngineResult,
-} from '../interfaces/ReglaEngine';
+} from '../interfaces/IReglaEngine';
 import { ReglaId } from '../value-objects/ReglaId';
 import { ReglaNombre } from '../value-objects/ReglaNombre';
 import { ReglaPrioridadCotizacion } from '../value-objects/ReglaPrioridadCotizacion';
@@ -24,37 +24,30 @@ import { ReglaDescripcion } from '../value-objects/ReglaDescripcion';
  *  - Si `puntosSolicitados` está presente, registra un débito igual a esa cantidad.
  *  - Si `monto` está presente, calcula crédito: floor(monto * rateAccred).
  */
-export class ConversionRule implements Regla {
+export class ConversionRule extends Regla {
   constructor(
-    public readonly id: ReglaId,
-    public readonly nombre: ReglaNombre,
-    public readonly prioridad: ReglaPrioridadCotizacion,
-    public readonly activa: ReglaFlag,
-    public readonly excluyente: ReglaFlag,
-    public readonly vigenciaInicio: ReglaVigenciaInicio,
-    public readonly vigenciaFin: ReglaVigenciaFin | undefined,
-    public readonly descripcion: ReglaDescripcion | undefined,
-
-    /**
-     * Puntos otorgados por unidad de moneda (para crédito).
-     */
+    id: ReglaId,
+    nombre: ReglaNombre,
+    prioridad: ReglaPrioridadCotizacion,
+    activa: ReglaFlag,
+    excluyente: ReglaFlag,
+    vigenciaInicio: ReglaVigenciaInicio,
+    vigenciaFin: ReglaVigenciaFin | undefined,
+    descripcion: ReglaDescripcion | undefined,
     private readonly rateAccred: RatioConversion,
     private readonly rateSpend: RatioConversion,
-    /**
-     * Vida útil (días) del crédito generado.
-     * Si es 0, no se asigna expiración.
-     */
     private readonly creditExpiryDays: DiasExpiracion,
-  ) {}
-
-  /**
-   * La regla está activa dentro de su vigencia.
-   */
-  public isApplicable(fecha: Date = new Date()): boolean {
-    if (!this.activa) return false;
-    if (fecha < this.vigenciaInicio.value) return false;
-    if (this.vigenciaFin && fecha > this.vigenciaFin.value) return false;
-    return true;
+  ) {
+    super(
+      id,
+      nombre,
+      prioridad,
+      activa,
+      excluyente,
+      vigenciaInicio,
+      vigenciaFin,
+      descripcion,
+    );
   }
 
   /**
