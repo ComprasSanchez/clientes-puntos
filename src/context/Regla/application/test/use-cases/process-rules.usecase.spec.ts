@@ -85,7 +85,7 @@ describe('ExecuteRulesUseCase', () => {
       debitAmount: engineResult.debitAmount,
       credito: {
         cantidad: engineResult.credito.cantidad,
-        expiraEn: expDate.toISOString(),
+        expiraEn: expDate,
       },
     });
   });

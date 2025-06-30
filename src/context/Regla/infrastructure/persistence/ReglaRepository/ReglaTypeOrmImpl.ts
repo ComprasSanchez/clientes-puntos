@@ -50,4 +50,12 @@ export class TypeOrmReglaRepository implements ReglaRepository {
     const entities = await qb.getMany();
     return entities.map((e) => e.toDomain());
   }
+
+  /**
+   * Persiste una regla en la base de datos.
+   */
+  async save(regla: ReglaDomain): Promise<void> {
+    const entity = ReglaEntity.fromDomain(regla);
+    await this.repo.save(entity);
+  }
 }

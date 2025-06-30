@@ -13,6 +13,9 @@ import { DevolucionUseCase } from '../application/use-cases/Devolucion/Devolucio
 import { AnulacionUseCase } from '../application/use-cases/Anulacion/Anulacion';
 import { TypeOrmLoteRepository } from './persistence/LoteRepository/LoteTypeOrmImpl';
 import { TypeOrmTransaccionRepository } from './persistence/TransaccionRepository/TransaccionTypeOrmImpl';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { LoteEntity } from './entities/lote.entity';
+import { TransaccionEntity } from './entities/transaccion.entity';
 
 const providers: Provider[] = [
   // 1) Repositorios de Puntos
@@ -70,7 +73,9 @@ const providers: Provider[] = [
 
 @Module({
   imports: [
-    forwardRef(() => ReglaInfrastructureModule), // debe exportar REGLA_ENGINE
+    forwardRef(() => ReglaInfrastructureModule),
+    TypeOrmModule.forFeature([LoteEntity]),
+    TypeOrmModule.forFeature([TransaccionEntity]),
   ],
   providers,
   exports: [CompraUseCase, DevolucionUseCase, AnulacionUseCase],

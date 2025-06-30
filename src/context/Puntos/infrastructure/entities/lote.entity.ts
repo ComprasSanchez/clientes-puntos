@@ -27,7 +27,7 @@ export class LoteEntity {
   @Column('int')
   remaining: number;
 
-  @Column({ type: 'enum', enum: BatchEstado })
+  @Column({ type: 'simple-enum', enum: BatchEstado })
   estado: BatchEstado;
 
   @CreateDateColumn()
@@ -36,7 +36,7 @@ export class LoteEntity {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ nullable: true })
   expiraEn: Date | null;
 
   @Column()

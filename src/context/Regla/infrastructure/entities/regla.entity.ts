@@ -39,10 +39,10 @@ export class ReglaEntity {
   @Column({ type: 'boolean' })
   excluyente: boolean;
 
-  @Column({ type: 'timestamp' })
+  @Column()
   vigenciaInicio: Date;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ nullable: true })
   vigenciaFin: Date | null;
 
   @Column({ nullable: true })

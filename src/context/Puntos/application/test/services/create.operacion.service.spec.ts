@@ -64,7 +64,6 @@ describe('CreateOperacionService', () => {
       loteRepo,
       txRepo,
       reglaEngine,
-      loteFactory,
       txFactory,
       sHandler,
     );

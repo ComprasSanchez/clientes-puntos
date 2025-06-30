@@ -14,4 +14,9 @@ export abstract class ReglaRepository {
    * Recupera una regla por su ID.
    */
   abstract findById(id: string): Promise<Regla | null>;
+
+  /**
+   * Persiste una regla en la base de datos.
+   */
+  abstract save(regla: Regla): Promise<void>;
 }

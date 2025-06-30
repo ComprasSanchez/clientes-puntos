@@ -1,9 +1,14 @@
 import { Module } from '@nestjs/common';
 import { ClienteInfrastructureModule } from './context/Cliente/infrastructure/cliente.module';
-import { ReglaEngineInfrastructureModule } from './context/Regla/infrastructure/regla.module';
+import { ReglaInfrastructureModule } from './context/Regla/infrastructure/regla.module';
+import { PuntosInfrastructureModule } from './context/Puntos/infrastructure/puntos.module';
 
 @Module({
-  imports: [ClienteInfrastructureModule, ReglaEngineInfrastructureModule],
+  imports: [
+    ClienteInfrastructureModule,
+    ReglaInfrastructureModule,
+    PuntosInfrastructureModule,
+  ],
   controllers: [],
   providers: [],
 })

@@ -79,7 +79,7 @@ describe('RuleProcessor', () => {
 
   it('detiene la ejecución cuando encuentra una regla excluyente', () => {
     const rule1 = {
-      prioridad: { value: 2 },
+      prioridad: { value: 0 },
       excluyente: { value: false },
       apply: jest.fn().mockReturnValue({ debitAmount: 2 }),
     } as unknown as Regla;
@@ -91,7 +91,7 @@ describe('RuleProcessor', () => {
     } as unknown as Regla;
 
     const rule3 = {
-      prioridad: { value: 0 },
+      prioridad: { value: 2 },
       excluyente: { value: false },
       apply: jest.fn().mockReturnValue({ debitAmount: 100 }),
     } as unknown as Regla;
