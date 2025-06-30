@@ -1,50 +1,78 @@
 // src/context/Puntos/infrastructure/PuntosInfrastructureModule.ts
-import { Module, Provider } from '@nestjs/common';
+import { forwardRef, Module, Provider } from '@nestjs/common';
 import { TransaccionFactory } from '../core/factories/TransaccionFactory';
 import { SaldoHandler } from '../core/services/SaldoHandler';
 import { CreateOperacionService } from '../application/services/CreateOperacionService';
 import { CompraUseCase } from '../application/use-cases/Compra/Compra';
 import { ReglaInfrastructureModule } from 'src/context/Regla/infrastructure/regla.module';
-import { LOTE_REPO, REGLA_ENGINE, TX_REPO } from './tokens/tokens';
+import { LOTE_REPO, TX_REPO, REGLA_ENGINE } from './tokens/tokens';
+import { LoteRepository } from '../core/repository/LoteRepository';
+import { TransaccionRepository } from '../core/repository/TransaccionRepository';
+import { RuleEngineContract } from 'src/context/Regla/application/dtos/RuleEngineContract';
+import { DevolucionUseCase } from '../application/use-cases/Devolucion/Devolucion';
+import { AnulacionUseCase } from '../application/use-cases/Anulacion/Anulacion';
+import { TypeOrmLoteRepository } from './persistence/LoteRepository/LoteTypeOrmImpl';
+import { TypeOrmTransaccionRepository } from './persistence/TransaccionRepository/TransaccionTypeOrmImpl';
 
 const providers: Provider[] = [
-  // repos de Puntos
+  // 1) Repositorios de Puntos
+  { provide: LOTE_REPO, useClass: TypeOrmLoteRepository },
+  { provide: TX_REPO, useClass: TypeOrmTransaccionRepository },
 
-  // auxiliares
+  // 2) Auxiliares
   TransaccionFactory,
   SaldoHandler,
 
-  // servicio de aplicación
+  // 3) Servicio de aplicación que recibe el adapter via REGLA_ENGINE
   {
     provide: CreateOperacionService,
-    useFactory: (loteRepo, txRepo, reglaEngine, txFactory, saldoHandler) =>
-      new CreateOperacionService(
+    useFactory: (
+      loteRepo: LoteRepository,
+      txRepo: TransaccionRepository,
+      reglaEngine: RuleEngineContract,
+      txFactory: TransaccionFactory,
+      saldoHandler: SaldoHandler,
+    ): CreateOperacionService => {
+      return new CreateOperacionService(
         loteRepo,
         txRepo,
-        reglaEngine,
+        reglaEngine, // aquí va el adapter que implementa ReglaEngine
         txFactory,
         saldoHandler,
-      ),
+      );
+    },
     inject: [
       LOTE_REPO,
       TX_REPO,
-      REGLA_ENGINE,
+      REGLA_ENGINE, // inyecta el adapter desde ReglaInfrastructureModule
       TransaccionFactory,
       SaldoHandler,
     ],
   },
 
-  // caso de uso
+  // 4) Caso de uso de Puntos
   {
     provide: CompraUseCase,
+    useFactory: (svc: CreateOperacionService) => new CompraUseCase(svc),
+    inject: [CreateOperacionService],
+  },
+  {
+    provide: DevolucionUseCase,
+    useFactory: (svc: CreateOperacionService) => new CompraUseCase(svc),
+    inject: [CreateOperacionService],
+  },
+  {
+    provide: AnulacionUseCase,
     useFactory: (svc: CreateOperacionService) => new CompraUseCase(svc),
     inject: [CreateOperacionService],
   },
 ];
 
 @Module({
-  imports: [ReglaInfrastructureModule], // trae el provider REGLA_ENGINE
+  imports: [
+    forwardRef(() => ReglaInfrastructureModule), // debe exportar REGLA_ENGINE
+  ],
   providers,
-  exports: [CompraUseCase],
+  exports: [CompraUseCase, DevolucionUseCase, AnulacionUseCase],
 })
 export class PuntosInfrastructureModule {}

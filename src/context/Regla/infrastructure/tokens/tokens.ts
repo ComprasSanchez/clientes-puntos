@@ -1,3 +1,4 @@
-import { ReglaRepository } from '../../core/repository/ReglaRepository';
-
-export const REGLA_REPO = ReglaRepository;
+export const REGLA_ENGINE = 'REGLA_ENGINE';
+export const REGLA_ENGINE_ADAPTER = 'REGLA_ENGINE_ADAPTER';
+export const REGLA_REPO = 'REGLA_REPO';
+export const EXECUTE_RULES_USE_CASE = 'EXECUTE_RULES_USE_CASE';

@@ -39,7 +39,7 @@ export class ExecuteRulesUseCase {
       credito: result.credito
         ? {
             cantidad: result.credito.cantidad,
-            expiraEn: result.credito.expiraEn!.toISOString(),
+            expiraEn: result.credito.expiraEn,
           }
         : undefined,
     };

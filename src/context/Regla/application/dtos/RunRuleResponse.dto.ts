@@ -1,5 +1,5 @@
 // src/context/Regla/application/dtos/ExecuteRulesResponse.dto.ts
 export class ExecuteRulesResponseDto {
   debitAmount: number;
-  credito?: { cantidad: number; expiraEn?: string }; // ISO date string
+  credito?: { cantidad: number; expiraEn?: Date }; // ISO date string
 }
