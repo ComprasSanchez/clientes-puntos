@@ -9,6 +9,7 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { CategoriaEntity } from './CategoriaEntity';
+import { StatusCliente } from 'src/context/Cliente/core/enums/StatusCliente';
 
 /**
  * Mapeo ORM de la tabla cliente para TypeORM
@@ -33,11 +34,13 @@ export class ClienteEntity {
   @Column({ name: 'fec_nacimiento', type: 'date' })
   fecNacimiento: Date;
 
-  @Column({ name: 'status_cliente', type: 'enum', length: 20 })
-  status: string;
-
-  @Column({ type: 'varchar', length: 50 })
-  categoriaId: string;
+  @Column({
+    name: 'status_cliente',
+    type: 'enum',
+    enum: StatusCliente,
+    default: StatusCliente.Activo,
+  })
+  status: StatusCliente;
 
   @Column({ type: 'varchar', length: 150, nullable: true })
   email: string | null;

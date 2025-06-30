@@ -23,6 +23,7 @@ import { ClienteProvincia } from 'src/context/Cliente/core/value-objects/Cliente
 import { ClienteIdFidely } from 'src/context/Cliente/core/value-objects/ClienteIdFidely';
 import { ClienteTarjetaFidely } from 'src/context/Cliente/core/value-objects/ClienteTarjetaFidely';
 import { ClienteFechaBaja } from 'src/context/Cliente/core/value-objects/ClienteFechaBaja';
+import { CategoriaEntity } from '../entities/CategoriaEntity';
 
 @Injectable()
 export class TypeOrmClienteRepository implements ClienteRepository {
@@ -59,7 +60,7 @@ export class TypeOrmClienteRepository implements ClienteRepository {
 
   private toDomain(e: ClienteEntity): Cliente {
     const catDom = new Categoria(
-      new CategoriaId(e.categoriaId),
+      new CategoriaId(e.categoria.id),
       new CategoriaNombre(e.categoria.nombre),
       new CategoriaDescripcion(e.categoria.descripcion),
     );
@@ -93,7 +94,7 @@ export class TypeOrmClienteRepository implements ClienteRepository {
     e.sexo = c.sexo.value;
     e.fecNacimiento = c.fechaNacimiento.value;
     e.status = c.status.value;
-    e.categoriaId = c.categoria.id.value;
+    e.categoria = { id: c.categoria.id.value } as CategoriaEntity;
     e.email = c.email.value;
     e.telefono = c.telefono.value;
     e.direccion = c.fullAdress.direccion.value;
