@@ -1,32 +1,31 @@
-// src/context/cliente/infrastructure/persistence/ClienteRepositoryImpl.ts
 import { Injectable } from '@nestjs/common';
+import { ClienteRepository } from 'src/context/Cliente/core/repository/ClienteRepository';
+import { ClienteEntity } from '../entities/ClienteEntity';
 import { DataSource, Repository } from 'typeorm';
-import { ClienteRepository } from '../../core/repository/ClienteRepository';
-import { Cliente } from '../../core/entities/Cliente';
-import { ClienteId } from '../../core/value-objects/ClienteId';
-import { ClienteDni } from '../../core/value-objects/ClienteDni';
-import { ClienteNombre } from '../../core/value-objects/ClienteNombre';
-import { ClienteApellido } from '../../core/value-objects/ClienteApellido';
-import { ClienteSexo } from '../../core/value-objects/ClienteSexo';
-import { ClienteFechaNacimiento } from '../../core/value-objects/ClienteFechaNacimiento';
-import { ClienteStatus } from '../../core/value-objects/ClienteStatus';
-import { Categoria } from '../../core/entities/Categoria';
-import { ClienteEmail } from '../../core/value-objects/ClienteEmail';
-import { ClienteTelefono } from '../../core/value-objects/ClienteTelefono';
-import { ClienteDireccion } from '../../core/value-objects/ClienteDireccion';
-import { ClienteCodigoPostal } from '../../core/value-objects/ClienteCodPostal';
-import { ClienteLocalidad } from '../../core/value-objects/ClienteLocalidad';
-import { ClienteProvincia } from '../../core/value-objects/ClienteProvincia';
-import { ClienteIdFidely } from '../../core/value-objects/ClienteIdFidely';
-import { ClienteTarjetaFidely } from '../../core/value-objects/ClienteTarjetaFidely';
-import { ClienteFechaBaja } from '../../core/value-objects/ClienteFechaBaja';
-import { ClienteEntity } from './entities/ClienteEntity';
-import { CategoriaId } from '../../core/value-objects/CategoriaId';
-import { CategoriaNombre } from '../../core/value-objects/CategoriaNombre';
-import { CategoriaDescripcion } from '../../core/value-objects/CategoriaDescripcion';
+import { Cliente } from 'src/context/Cliente/core/entities/Cliente';
+import { ClienteId } from 'src/context/Cliente/core/value-objects/ClienteId';
+import { ClienteDni } from 'src/context/Cliente/core/value-objects/ClienteDni';
+import { Categoria } from 'src/context/Cliente/core/entities/Categoria';
+import { CategoriaId } from 'src/context/Cliente/core/value-objects/CategoriaId';
+import { CategoriaNombre } from 'src/context/Cliente/core/value-objects/CategoriaNombre';
+import { CategoriaDescripcion } from 'src/context/Cliente/core/value-objects/CategoriaDescripcion';
+import { ClienteNombre } from 'src/context/Cliente/core/value-objects/ClienteNombre';
+import { ClienteApellido } from 'src/context/Cliente/core/value-objects/ClienteApellido';
+import { ClienteSexo } from 'src/context/Cliente/core/value-objects/ClienteSexo';
+import { ClienteFechaNacimiento } from 'src/context/Cliente/core/value-objects/ClienteFechaNacimiento';
+import { ClienteStatus } from 'src/context/Cliente/core/value-objects/ClienteStatus';
+import { ClienteEmail } from 'src/context/Cliente/core/value-objects/ClienteEmail';
+import { ClienteTelefono } from 'src/context/Cliente/core/value-objects/ClienteTelefono';
+import { ClienteDireccion } from 'src/context/Cliente/core/value-objects/ClienteDireccion';
+import { ClienteCodigoPostal } from 'src/context/Cliente/core/value-objects/ClienteCodPostal';
+import { ClienteLocalidad } from 'src/context/Cliente/core/value-objects/ClienteLocalidad';
+import { ClienteProvincia } from 'src/context/Cliente/core/value-objects/ClienteProvincia';
+import { ClienteIdFidely } from 'src/context/Cliente/core/value-objects/ClienteIdFidely';
+import { ClienteTarjetaFidely } from 'src/context/Cliente/core/value-objects/ClienteTarjetaFidely';
+import { ClienteFechaBaja } from 'src/context/Cliente/core/value-objects/ClienteFechaBaja';
 
 @Injectable()
-export class ClienteRepositoryImpl implements ClienteRepository {
+export class TypeOrmClienteRepository implements ClienteRepository {
   private readonly ormRepo: Repository<ClienteEntity>;
 
   constructor(dataSource: DataSource) {

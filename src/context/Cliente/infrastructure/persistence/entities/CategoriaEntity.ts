@@ -4,7 +4,7 @@ import { ClienteEntity } from './ClienteEntity';
 @Entity({ name: 'categoria' })
 export class CategoriaEntity {
   @PrimaryColumn()
-  id: number;
+  id: string;
 
   @Column({ type: 'varchar', length: 100 })
   nombre: string;

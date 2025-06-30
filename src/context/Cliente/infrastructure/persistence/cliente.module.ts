@@ -2,17 +2,21 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ClienteEntity } from './entities/ClienteEntity';
 import { CategoriaEntity } from './entities/CategoriaEntity';
-import { ClienteRepositoryImpl } from './ClienteRepository/ClienteRepositoryImpl';
+import { TypeOrmClienteRepository } from './ClienteRepository/ClienteRepositoryImpl';
 
 @Module({
   imports: [TypeOrmModule.forFeature([ClienteEntity, CategoriaEntity])],
   providers: [
     {
       provide: 'ClienteRepository', // el token que usa tu capa de aplicación
-      useClass: ClienteRepositoryImpl, // tu implementación concreta
+      useClass: TypeOrmClienteRepository, // tu implementación concreta
+    },
+    {
+      provide: 'CategoriaRepository', // si tienes un repositorio de categorías
+      useClass: TypeOrmClienteRepository, // o una implementación específica para categorías
     },
   ],
-  exports: ['ClienteRepository'], // exporta los repositorios para que puedan ser usados en otros módulos
+  exports: ['ClienteRepository', 'CategoriaRepository'], // exporta los repositorios para que puedan ser usados en otros módulos
 })
 export class ClientePersistenceModule {
   // Aquí puedes definir tus repositorios, entidades, etc.
