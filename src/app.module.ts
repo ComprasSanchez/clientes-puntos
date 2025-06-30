@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { ClienteInfrastructureModule } from './context/Cliente/infrastructure/cliente.module';
 import { ReglaInfrastructureModule } from './context/Regla/infrastructure/regla.module';
 import { PuntosInfrastructureModule } from './context/Puntos/infrastructure/puntos.module';
-import { ConfigModule } from './context/Config/infrastructure/config.module';
+import { ConfigModule } from './infrastructure/config/config.module';
 
 @Module({
   imports: [

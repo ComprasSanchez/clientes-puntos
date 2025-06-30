@@ -13,6 +13,8 @@ import { ReglaEngineAdapter } from './adapters/ReglaEngineAdapter';
 import { TypeOrmReglaRepository } from './persistence/ReglaRepository/ReglaTypeOrmImpl';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ReglaEntity } from './entities/regla.entity';
+import { ReglaPersistenceModule } from './persistence/persistence.module';
+import { DatabaseModule } from 'src/infrastructure/database/database.module';
 
 @Module({
   imports: [TypeOrmModule.forFeature([ReglaEntity])],
@@ -45,6 +47,8 @@ import { ReglaEntity } from './entities/regla.entity';
     EXECUTE_RULES_USE_CASE,
     REGLA_ENGINE,
     REGLA_ENGINE_ADAPTER,
+    ReglaPersistenceModule,
+    DatabaseModule,
   ],
 })
 export class ReglaInfrastructureModule {}

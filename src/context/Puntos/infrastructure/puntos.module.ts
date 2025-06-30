@@ -16,6 +16,8 @@ import { TypeOrmTransaccionRepository } from './persistence/TransaccionRepositor
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { LoteEntity } from './entities/lote.entity';
 import { TransaccionEntity } from './entities/transaccion.entity';
+import { DatabaseModule } from 'src/infrastructure/database/database.module';
+import { PuntosPersistenceModule } from './persistence/persistence.module';
 
 const providers: Provider[] = [
   // 1) Repositorios de Puntos
@@ -74,8 +76,9 @@ const providers: Provider[] = [
 @Module({
   imports: [
     forwardRef(() => ReglaInfrastructureModule),
-    TypeOrmModule.forFeature([LoteEntity]),
-    TypeOrmModule.forFeature([TransaccionEntity]),
+    TypeOrmModule.forFeature([LoteEntity, TransaccionEntity]),
+    DatabaseModule,
+    PuntosPersistenceModule,
   ],
   providers,
   exports: [CompraUseCase, DevolucionUseCase, AnulacionUseCase],

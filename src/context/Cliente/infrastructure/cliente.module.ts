@@ -1,12 +1,14 @@
 // src/context/cliente/infrastructure/ClienteInfrastructureModule.ts
 import { Module, Provider } from '@nestjs/common';
-import { ClienteRepositoryImpl } from './persistence/ClienteRepositoryImpl';
 import { CLIENTE_REPO, IPUNTOS_SERVICE } from '../core/tokens/tokens';
 import { ObtenerSaldo } from 'src/context/Puntos/application/use-cases/ObtenerSaldo/ObtenerSaldo';
 import { PuntosServiceInMemory } from './adapters/PuntosServiceInMemory/PuntosServiceInMemory';
 import { ClienteGetProfile } from '../application/use-cases/ClienteGetProfile/ClienteGetProfile';
 import { ClienteRepository } from '../core/repository/ClienteRepository';
 import { IPuntosService } from '../application/ports/IPuntosService';
+import { DatabaseModule } from 'src/infrastructure/database/database.module';
+import { ClientePersistenceModule } from './persistence/cliente.module';
+import { ClienteRepositoryImpl } from './persistence/ClienteRepository/ClienteRepositoryImpl';
 
 const providers: Provider[] = [
   // 1) Repo puro
@@ -33,6 +35,6 @@ const providers: Provider[] = [
 
 @Module({
   providers,
-  exports: [ClienteGetProfile],
+  exports: [ClienteGetProfile, DatabaseModule, ClientePersistenceModule],
 })
 export class ClienteInfrastructureModule {}
