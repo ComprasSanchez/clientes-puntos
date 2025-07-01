@@ -2,6 +2,7 @@ import {
   ReglaEngineRequest,
   ReglaEngineResult,
 } from '../interfaces/IReglaEngine';
+import { Condition } from '../interfaces/Condition';
 import { ReglaDescripcion } from '../value-objects/ReglaDescripcion';
 import { ReglaFlag } from '../value-objects/ReglaFlag';
 import { ReglaId } from '../value-objects/ReglaId';
@@ -22,26 +23,43 @@ export abstract class Regla {
     public readonly vigenciaInicio: ReglaVigenciaInicio,
     public readonly vigenciaFin?: ReglaVigenciaFin,
     public readonly descripcion?: ReglaDescripcion,
+    protected readonly condition?: Condition<ReglaEngineRequest>,
   ) {}
 
   /**
    * Verifica si la regla está activa y dentro de su vigencia.
    */
   public isApplicable(fecha: Date = new Date()): boolean {
-    if (!this.activa) {
-      return false;
-    }
-    if (fecha < this.vigenciaInicio.value) {
-      return false;
-    }
-    if (this.vigenciaFin && fecha > this.vigenciaFin.value) {
-      return false;
-    }
+    if (!this.activa.value) return false;
+    if (fecha < this.vigenciaInicio.value) return false;
+    if (this.vigenciaFin && fecha > this.vigenciaFin.value) return false;
     return true;
   }
 
   /**
-   * Ejecuta la lógica de la regla y devuelve un resultado parcial.
+   * Ejecuta la regla: primero vigencia, luego condición (si existe),
+   * y finalmente la lógica concreta.
    */
-  public abstract apply(context: ReglaEngineRequest): ReglaEngineResult;
+  public apply(context: ReglaEngineRequest): ReglaEngineResult {
+    // 1. Vigencia / activa
+    if (!this.isApplicable(context.fecha.value)) {
+      return { debitAmount: 0 };
+    }
+
+    // 2. Condición de aplicación
+    if (this.condition && !this.condition.evaluate(context)) {
+      return { debitAmount: 0 };
+    }
+
+    // 3. Lógica propia de la subclase
+    return this.applyIfTrue(context);
+  }
+
+  /**
+   * Cada subclase implementa aquí su lógica sabiendo que
+   * ya pasó vigencia y condición.
+   */
+  protected abstract applyIfTrue(
+    context: ReglaEngineRequest,
+  ): ReglaEngineResult;
 }
