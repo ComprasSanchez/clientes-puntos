@@ -36,7 +36,7 @@ export class LoteEntity {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @Column({ nullable: true })
+  @Column('timestamp', { nullable: true })
   expiraEn: Date | null;
 
   @Column()

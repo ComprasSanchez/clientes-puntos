@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -9,8 +8,6 @@ import {
 } from 'typeorm';
 import { TipoRegla } from '../../core/enums/TipoRegla';
 import { Regla } from '@regla/core/entities/Regla';
-import { ConversionRule } from '@regla/core/entities/ConversionRule';
-import { ConversionRuleEntity } from './rule-conversion.entity';
 
 /**
  * Entidad base para todas las reglas.
@@ -53,18 +50,4 @@ export abstract class ReglaEntity {
   updatedAt!: Date;
 
   abstract toDomain(): Regla;
-
-  /**
-   * Factory: instanciar la entidad correcta según el tipo de dominio
-   */
-  static fromDomain(regla: Regla): ReglaEntity {
-    switch (regla.tipo.value) {
-      case TipoRegla.CONVERSION:
-        // conversión a ConversionRuleEntity
-        return ConversionRuleEntity.fromDomain(regla as ConversionRule);
-      // caso futuros: TipoRegla.XXXXX => OtraRuleEntity.fromDomain(...)
-      default:
-        throw new Error(`Tipo de regla no soportado: ${regla.tipo.value}`);
-    }
-  }
 }

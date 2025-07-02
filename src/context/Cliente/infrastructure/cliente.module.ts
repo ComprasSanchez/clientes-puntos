@@ -40,6 +40,10 @@ const providers: Provider[] = [
 ];
 
 @Module({
+  imports: [
+    DatabaseModule, // ← Debe ir aquí
+    ClientePersistenceModule, // ← y aquí si lo vas a exportar
+  ],
   providers,
   exports: [ClienteGetProfile, DatabaseModule, ClientePersistenceModule],
 })

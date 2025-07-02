@@ -17,7 +17,11 @@ import { ReglaPersistenceModule } from './persistence/persistence.module';
 import { DatabaseModule } from 'src/infrastructure/database/database.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([ReglaEntity])],
+  imports: [
+    TypeOrmModule.forFeature([ReglaEntity]),
+    DatabaseModule,
+    ReglaPersistenceModule,
+  ],
   providers: [
     // Registry: add the repository class itself
     TypeOrmReglaRepository,

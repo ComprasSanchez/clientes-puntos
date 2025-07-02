@@ -27,10 +27,10 @@ export class OperaacionEntity {
   @Column({ type: 'simple-enum', enum: OpTipo })
   tipo: OpTipo;
 
-  @Column('datetime')
+  @Column('timestamp')
   fecha: Date;
 
-  @Column('string')
+  @Column('varchar', { length: 50 })
   origenTipo: string;
 
   @Column('int', { nullable: true })
@@ -42,7 +42,7 @@ export class OperaacionEntity {
   @Column({ type: 'simple-enum', enum: TipoMoneda, nullable: true })
   moneda: TipoMoneda | null;
 
-  @Column('string', { nullable: true })
+  @Column('varchar', { length: 50, nullable: true })
   refOperacion: string | null;
 
   @Column('int', { nullable: true })

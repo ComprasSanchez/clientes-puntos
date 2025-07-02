@@ -7,6 +7,9 @@ import { Regla as ReglaDomain } from '../../../core/entities/Regla';
 import { ReglaRepository } from 'src/context/Regla/core/repository/ReglaRepository';
 import { ReglaEntity } from '../../entities/regla.entity';
 import { ReglaCriteria } from 'src/context/Regla/core/entities/Criteria';
+import { ConversionRuleEntity } from '@regla/infrastructure/entities/rule-conversion.entity';
+import { ConversionRule } from '@regla/core/entities/ConversionRule';
+import { TipoRegla } from '@regla/core/enums/TipoRegla';
 
 @Injectable()
 export class TypeOrmReglaRepository implements ReglaRepository {
@@ -56,7 +59,15 @@ export class TypeOrmReglaRepository implements ReglaRepository {
    * Persiste una regla en la base de datos.
    */
   async save(regla: ReglaDomain): Promise<void> {
-    const entity = ReglaEntity.fromDomain(regla);
+    let entity: ReglaEntity;
+    switch (regla.tipo.value) {
+      case TipoRegla.CONVERSION:
+        entity = ConversionRuleEntity.fromDomain(regla as ConversionRule);
+        break;
+      // … otros tipos aquí …
+      default:
+        throw new Error(`Tipo de regla no soportado: ${regla.tipo.value}`);
+    }
     await this.repo.save(entity);
   }
 }
