@@ -1,4 +1,4 @@
-import { InvalidNumberFormatError } from '@shared/core/exceptions/InvalidNumberFormatError';
+import { InvalidNumberFormatError } from '../../../../shared/core/exceptions/InvalidNumberFormatError';
 import { ValueIntegrityError } from '@shared/core/exceptions/ValueIntegrityError';
 
 export class CantidadPuntos {
