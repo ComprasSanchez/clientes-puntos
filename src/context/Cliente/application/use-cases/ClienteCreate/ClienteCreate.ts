@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
-import { Categoria } from 'src/context/Cliente/core/entities/Categoria';
+import { Categoria } from '@cliente/core/entities/Categoria';
 import { Cliente } from '@cliente/core/entities/Cliente';
 import { ClienteRepository } from '@cliente/core/repository/ClienteRepository';
 import { ClienteApellido } from '@cliente/core/value-objects/ClienteApellido';

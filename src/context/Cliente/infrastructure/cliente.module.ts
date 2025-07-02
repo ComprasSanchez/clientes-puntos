@@ -1,4 +1,4 @@
-// src/context/cliente/infrastructure/ClienteInfrastructureModule.ts
+// @cliente/infrastructure/ClienteInfrastructureModule.ts
 import { Module, Provider } from '@nestjs/common';
 import {
   CATEGORIA_REPO,

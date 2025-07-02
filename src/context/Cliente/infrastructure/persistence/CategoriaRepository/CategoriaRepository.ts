@@ -2,11 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CategoriaEntity } from '../entities/CategoriaEntity';
-import { CategoriaRepository } from 'src/context/Cliente/core/repository/CategoriaRepository';
-import { Categoria } from 'src/context/Cliente/core/entities/Categoria';
-import { CategoriaId } from 'src/context/Cliente/core/value-objects/CategoriaId';
-import { CategoriaNombre } from 'src/context/Cliente/core/value-objects/CategoriaNombre';
-import { CategoriaDescripcion } from 'src/context/Cliente/core/value-objects/CategoriaDescripcion';
+import { CategoriaRepository } from '@cliente/core/repository/CategoriaRepository';
+import { Categoria } from '@cliente/core/entities/Categoria';
+import { CategoriaId } from '@cliente/core/value-objects/CategoriaId';
+import { CategoriaNombre } from '@cliente/core/value-objects/CategoriaNombre';
+import { CategoriaDescripcion } from '@cliente/core/value-objects/CategoriaDescripcion';
 
 @Injectable()
 export class TypeOrmCategoriaRepository implements CategoriaRepository {

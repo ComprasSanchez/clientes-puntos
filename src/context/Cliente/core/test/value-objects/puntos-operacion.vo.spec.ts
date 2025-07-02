@@ -1,4 +1,4 @@
-import { PuntosOperacion } from 'src/context/Cliente/core/value-objects/PuntosOperacion';
+import { PuntosOperacion } from '@cliente/core/value-objects/PuntosOperacion';
 
 describe('PuntosOperacion VO', () => {
   it('acepta enteros positivos (> 0)', () => {

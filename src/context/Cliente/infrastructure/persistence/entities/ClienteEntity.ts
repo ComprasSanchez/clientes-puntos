@@ -1,4 +1,4 @@
-// src/context/cliente/infrastructure/persistence/entities/ClienteEntity.ts
+// @cliente/infrastructure/persistence/entities/ClienteEntity.ts
 import {
   Entity,
   Column,
@@ -9,7 +9,7 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { CategoriaEntity } from './CategoriaEntity';
-import { StatusCliente } from 'src/context/Cliente/core/enums/StatusCliente';
+import { StatusCliente } from '@cliente/core/enums/StatusCliente';
 
 /**
  * Mapeo ORM de la tabla cliente para TypeORM
