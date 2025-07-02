@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 // @cliente/application/use-cases/CategoriaCreate.ts
 import { CategoriaRepository } from '@cliente/core/repository/CategoriaRepository';
 import { CategoriaId } from '@cliente/core/value-objects/CategoriaId';
