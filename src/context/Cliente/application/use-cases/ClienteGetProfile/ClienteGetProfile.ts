@@ -6,10 +6,15 @@ import { ClienteRepository } from '@cliente/core/repository/ClienteRepository';
 import { ClienteId } from '@cliente/core/value-objects/ClienteId';
 import { ClienteProfileDto } from '@cliente/application/dtos/ClienteProfileDto';
 import { IPuntosService } from '@cliente/application/ports/IPuntosService';
+import { Inject, Injectable } from '@nestjs/common';
+import { CLIENTE_REPO, IPUNTOS_SERVICE } from '@cliente/core/tokens/tokens';
 
+@Injectable()
 export class ClienteGetProfile {
   constructor(
+    @Inject(CLIENTE_REPO)
     private readonly repository: ClienteRepository,
+    @Inject(IPUNTOS_SERVICE)
     private readonly puntosService: IPuntosService,
   ) {}
 

@@ -6,10 +6,16 @@
 import { Cliente } from '@cliente/core/entities/Cliente';
 import { ClienteNotFoundError } from '@cliente/core/exceptions/ClienteNotFoundError';
 import { ClienteRepository } from '@cliente/core/repository/ClienteRepository';
+import { CLIENTE_REPO } from '@cliente/core/tokens/tokens';
 import { ClienteDni } from '@cliente/core/value-objects/ClienteDni';
+import { Inject, Injectable } from '@nestjs/common';
 
+@Injectable()
 export class ClienteFindByDni {
-  constructor(private readonly repository: ClienteRepository) {}
+  constructor(
+    @Inject(CLIENTE_REPO)
+    private readonly repository: ClienteRepository,
+  ) {}
 
   /**
    * Busca un Cliente por su DNI.

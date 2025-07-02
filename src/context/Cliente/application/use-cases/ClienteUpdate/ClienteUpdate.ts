@@ -22,6 +22,8 @@ import { ClienteTarjetaFidely } from '@cliente/core/value-objects/ClienteTarjeta
 import { ClienteTelefono } from '@cliente/core/value-objects/ClienteTelefono';
 import { CategoriaRepository } from '@cliente/core/repository/CategoriaRepository';
 import { CategoriaNotFoundError } from '@cliente/core/exceptions/CategoriaNotFoundError';
+import { Inject, Injectable } from '@nestjs/common';
+import { CATEGORIA_REPO, CLIENTE_REPO } from '@cliente/core/tokens/tokens';
 
 interface ClienteUpdateInput {
   id: string; // siempre obligatorio
@@ -29,7 +31,7 @@ interface ClienteUpdateInput {
   nombre?: string;
   apellido?: string;
   sexo?: string;
-  fechaNacimiento?: Date;
+  fechaNacimiento?: string;
   status?: string;
   categoriaId?: string;
   email?: string | null;
@@ -40,12 +42,15 @@ interface ClienteUpdateInput {
   provincia?: string | null;
   idFidely?: string | null;
   tarjetaFidely?: string | null;
-  fechaBaja?: Date | null;
+  fechaBaja?: string | null;
 }
 
+@Injectable()
 export class ClienteUpdate {
   constructor(
+    @Inject(CLIENTE_REPO)
     private readonly repository: ClienteRepository,
+    @Inject(CATEGORIA_REPO)
     private readonly categoriaRepo: CategoriaRepository,
   ) {}
 
@@ -64,7 +69,7 @@ export class ClienteUpdate {
       cliente.editarSexo(new ClienteSexo(input.sexo));
     if (input.fechaNacimiento !== undefined)
       cliente.editarFechaNacimiento(
-        new ClienteFechaNacimiento(input.fechaNacimiento),
+        new ClienteFechaNacimiento(new Date(input.fechaNacimiento)),
       );
     if (input.status !== undefined)
       cliente.editarStatus(new ClienteStatus(input.status));
@@ -98,8 +103,8 @@ export class ClienteUpdate {
       cliente.editarTarjetaFidely(
         new ClienteTarjetaFidely(input.tarjetaFidely),
       );
-    if (input.fechaBaja !== undefined)
-      cliente.editarFechaBaja(new ClienteFechaBaja(input.fechaBaja));
+    if (input.fechaBaja !== undefined && input.fechaBaja !== null)
+      cliente.editarFechaBaja(new ClienteFechaBaja(new Date(input.fechaBaja)));
 
     cliente.touch();
 

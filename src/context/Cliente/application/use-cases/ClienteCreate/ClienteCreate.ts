@@ -3,7 +3,9 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 import { Categoria } from '@cliente/core/entities/Categoria';
 import { Cliente } from '@cliente/core/entities/Cliente';
+import { StatusCliente } from '@cliente/core/enums/StatusCliente';
 import { ClienteRepository } from '@cliente/core/repository/ClienteRepository';
+import { CLIENTE_REPO } from '@cliente/core/tokens/tokens';
 import { ClienteApellido } from '@cliente/core/value-objects/ClienteApellido';
 import { ClienteCodigoPostal } from '@cliente/core/value-objects/ClienteCodPostal';
 import { ClienteDireccion } from '@cliente/core/value-objects/ClienteDireccion';
@@ -20,11 +22,15 @@ import { ClienteSexo } from '@cliente/core/value-objects/ClienteSexo';
 import { ClienteStatus } from '@cliente/core/value-objects/ClienteStatus';
 import { ClienteTarjetaFidely } from '@cliente/core/value-objects/ClienteTarjetaFidely';
 import { ClienteTelefono } from '@cliente/core/value-objects/ClienteTelefono';
+import { Inject, Injectable } from '@nestjs/common';
 import { UUIDGenerator } from '@shared/core/uuid/UuidGenerator';
 
+@Injectable()
 export class ClienteCreate {
   constructor(
+    @Inject(CLIENTE_REPO)
     private repository: ClienteRepository,
+    @Inject(UUIDGenerator)
     private readonly idGen: UUIDGenerator,
   ) {}
 
@@ -34,7 +40,6 @@ export class ClienteCreate {
     apellido: string,
     sexo: string,
     fechaNacimiento: Date,
-    status: string,
     categoria: Categoria,
     email?: string,
     telefono?: string,
@@ -52,7 +57,7 @@ export class ClienteCreate {
       new ClienteApellido(apellido),
       new ClienteSexo(sexo),
       new ClienteFechaNacimiento(fechaNacimiento),
-      new ClienteStatus(status),
+      new ClienteStatus(StatusCliente.Activo),
       new Categoria(categoria.id, categoria.nombre, categoria.descripcion),
       new ClienteEmail(email || null),
       new ClienteTelefono(telefono || null),

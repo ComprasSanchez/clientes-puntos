@@ -3,10 +3,16 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 import { ClienteNotFoundError } from '@cliente/core/exceptions/ClienteNotFoundError';
 import { ClienteRepository } from '@cliente/core/repository/ClienteRepository';
+import { CLIENTE_REPO } from '@cliente/core/tokens/tokens';
 import { ClienteId } from '@cliente/core/value-objects/ClienteId';
+import { Inject, Injectable } from '@nestjs/common';
 
+@Injectable()
 export class ClienteDelete {
-  constructor(private readonly repo: ClienteRepository) {}
+  constructor(
+    @Inject(CLIENTE_REPO)
+    private readonly repo: ClienteRepository,
+  ) {}
 
   /**
    * Marca al cliente como inactivo en lugar de borrarlo de la base.
