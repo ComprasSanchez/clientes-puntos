@@ -1,4 +1,10 @@
 import { NestFactory } from '@nestjs/core';
+
+// Polyfill de Web Crypto API en Node 18
+if (!globalThis.crypto) {
+  globalThis.crypto = crypto;
+}
+
 import { AppModule } from './app.module';
 
 async function bootstrap() {
