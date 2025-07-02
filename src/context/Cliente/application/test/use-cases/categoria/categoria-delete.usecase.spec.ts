@@ -1,10 +1,13 @@
-import { CategoriaRepository } from 'src/context/Cliente/core/repository/CategoriaRepository';
-import { CategoriaNotFoundError } from 'src/context/Cliente/core/exceptions/CategoriaNotFoundError';
-import { Categoria } from 'src/context/Cliente/core/entities/Categoria';
-import { CategoriaId } from 'src/context/Cliente/core/value-objects/CategoriaId';
-import { CategoriaNombre } from 'src/context/Cliente/core/value-objects/CategoriaNombre';
-import { CategoriaDescripcion } from 'src/context/Cliente/core/value-objects/CategoriaDescripcion';
-import { CategoriaDelete } from '../../../use-cases/CategoriaDelete/CategoriaDelete';
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+import { CategoriaRepository } from '@cliente/core/repository/CategoriaRepository';
+import { CategoriaNotFoundError } from '@cliente/core/exceptions/CategoriaNotFoundError';
+import { Categoria } from '@cliente/core/entities/Categoria';
+import { CategoriaId } from '@cliente/core/value-objects/CategoriaId';
+import { CategoriaNombre } from '@cliente/core/value-objects/CategoriaNombre';
+import { CategoriaDescripcion } from '@cliente/core/value-objects/CategoriaDescripcion';
+import { CategoriaDelete } from '@cliente/application/use-cases/CategoriaDelete/CategoriaDelete';
 
 describe('CategoriaDelete Use Case', () => {
   let repo: jest.Mocked<CategoriaRepository>;

@@ -1,14 +1,15 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/unbound-method */
 // test/application/use-cases/cliente-create.usecase.spec.ts
 
-import { ClienteRepository } from 'src/context/Cliente/core/repository/ClienteRepository';
-import { ClienteCreate } from '../../../use-cases/ClienteCreate/ClienteCreate';
-import { Categoria } from 'src/context/Cliente/core/entities/Categoria';
-import { CategoriaId } from 'src/context/Cliente/core/value-objects/CategoriaId';
-import { CategoriaNombre } from 'src/context/Cliente/core/value-objects/CategoriaNombre';
-import { CategoriaDescripcion } from 'src/context/Cliente/core/value-objects/CategoriaDescripcion';
-import { FakeUUIDGen } from '../../../../../../shared/core/uuid/test/stubs/FakeUUIDGenerator';
+import { ClienteCreate } from '@cliente/application/use-cases/ClienteCreate/ClienteCreate';
+import { Categoria } from '@cliente/core/entities/Categoria';
+import { ClienteRepository } from '@cliente/core/repository/ClienteRepository';
+import { CategoriaDescripcion } from '@cliente/core/value-objects/CategoriaDescripcion';
+import { CategoriaId } from '@cliente/core/value-objects/CategoriaId';
+import { CategoriaNombre } from '@cliente/core/value-objects/CategoriaNombre';
+import { FakeUUIDGen } from '@shared/core/uuid/test/stubs/FakeUUIDGenerator';
 
 describe('ClienteCreate Use Case', () => {
   let idGen: FakeUUIDGen;

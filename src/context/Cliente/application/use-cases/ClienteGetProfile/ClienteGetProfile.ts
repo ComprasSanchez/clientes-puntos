@@ -1,8 +1,11 @@
-import { ClienteNotFoundError } from '../../../core/exceptions/ClienteNotFoundError';
-import { ClienteRepository } from '../../../core/repository/ClienteRepository';
-import { ClienteId } from '../../../core/value-objects/ClienteId';
-import { ClienteProfileDto } from '../../dtos/ClienteProfileDto';
-import { IPuntosService } from '../../ports/IPuntosService';
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+import { ClienteNotFoundError } from '@cliente/core/exceptions/ClienteNotFoundError';
+import { ClienteRepository } from '@cliente/core/repository/ClienteRepository';
+import { ClienteId } from '@cliente/core/value-objects/ClienteId';
+import { ClienteProfileDto } from '@cliente/application/dtos/ClienteProfileDto';
+import { IPuntosService } from '@cliente/application/ports/IPuntosService';
 
 export class ClienteGetProfile {
   constructor(

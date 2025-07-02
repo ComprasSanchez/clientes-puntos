@@ -1,9 +1,12 @@
-// src/context/Cliente/application/use-cases/ClienteFindByDni.ts
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+// @cliente/application/use-cases/ClienteFindByDni.ts
 
-import { Cliente } from 'src/context/Cliente/core/entities/Cliente';
-import { ClienteNotFoundError } from 'src/context/Cliente/core/exceptions/ClienteNotFoundError';
-import { ClienteRepository } from 'src/context/Cliente/core/repository/ClienteRepository';
-import { ClienteDni } from 'src/context/Cliente/core/value-objects/ClienteDni';
+import { Cliente } from '@cliente/core/entities/Cliente';
+import { ClienteNotFoundError } from '@cliente/core/exceptions/ClienteNotFoundError';
+import { ClienteRepository } from '@cliente/core/repository/ClienteRepository';
+import { ClienteDni } from '@cliente/core/value-objects/ClienteDni';
 
 export class ClienteFindByDni {
   constructor(private readonly repository: ClienteRepository) {}

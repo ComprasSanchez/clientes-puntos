@@ -1,6 +1,9 @@
-import { CategoriaRepository } from 'src/context/Cliente/core/repository/CategoriaRepository';
-import { UUIDGenerator } from 'src/shared/core/uuid/UuidGenerator';
-import { CategoriaCreate } from '../../../use-cases/CategoriaCreate/CategoriaCreate';
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+import { CategoriaRepository } from '@cliente/core/repository/CategoriaRepository';
+import { UUIDGenerator } from '@shared/core/uuid/UuidGenerator';
+import { CategoriaCreate } from '@cliente/application/use-cases/CategoriaCreate/CategoriaCreate';
 
 describe('CategoriaCreate Use Case', () => {
   let repo: jest.Mocked<CategoriaRepository>;

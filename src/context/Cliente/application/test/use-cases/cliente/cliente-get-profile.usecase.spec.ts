@@ -1,31 +1,33 @@
-/* eslint-disable @typescript-eslint/unbound-method */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
 // __tests__/ClienteGetProfile.spec.ts
-import { ClienteRepository } from 'src/context/Cliente/core/repository/ClienteRepository';
-import { IPuntosService } from 'src/context/Cliente/application/ports/IPuntosService';
-import { ClienteNotFoundError } from 'src/context/Cliente/core/exceptions/ClienteNotFoundError';
-import { ClienteProfileDto } from 'src/context/Cliente/application/dtos/ClienteProfileDto'; // ajusta según tu estructura
-import { ClienteGetProfile } from '../../../use-cases/ClienteGetProfile/ClienteGetProfile';
-import { ClienteId } from 'src/context/Cliente/core/value-objects/ClienteId';
-import { Categoria } from 'src/context/Cliente/core/entities/Categoria';
-import { CategoriaId } from 'src/context/Cliente/core/value-objects/CategoriaId';
-import { CategoriaNombre } from 'src/context/Cliente/core/value-objects/CategoriaNombre';
-import { Cliente } from 'src/context/Cliente/core/entities/Cliente';
-import { ClienteDni } from 'src/context/Cliente/core/value-objects/ClienteDni';
-import { ClienteNombre } from 'src/context/Cliente/core/value-objects/ClienteNombre';
-import { ClienteApellido } from 'src/context/Cliente/core/value-objects/ClienteApellido';
-import { ClienteSexo } from 'src/context/Cliente/core/value-objects/ClienteSexo';
-import { ClienteFechaNacimiento } from 'src/context/Cliente/core/value-objects/ClienteFechaNacimiento';
-import { ClienteStatus } from 'src/context/Cliente/core/value-objects/ClienteStatus';
-import { ClienteEmail } from 'src/context/Cliente/core/value-objects/ClienteEmail';
-import { ClienteTelefono } from 'src/context/Cliente/core/value-objects/ClienteTelefono';
-import { ClienteDireccion } from 'src/context/Cliente/core/value-objects/ClienteDireccion';
-import { ClienteCodigoPostal } from 'src/context/Cliente/core/value-objects/ClienteCodPostal';
-import { ClienteLocalidad } from 'src/context/Cliente/core/value-objects/ClienteLocalidad';
-import { ClienteProvincia } from 'src/context/Cliente/core/value-objects/ClienteProvincia';
-import { ClienteIdFidely } from 'src/context/Cliente/core/value-objects/ClienteIdFidely';
-import { ClienteTarjetaFidely } from 'src/context/Cliente/core/value-objects/ClienteTarjetaFidely';
-import { ClienteFechaBaja } from 'src/context/Cliente/core/value-objects/ClienteFechaBaja';
-import { StatusCliente } from 'src/context/Cliente/core/enums/StatusCliente';
+import { ClienteRepository } from '@cliente/core/repository/ClienteRepository';
+import { IPuntosService } from '@cliente/application/ports/IPuntosService';
+import { ClienteNotFoundError } from '@cliente/core/exceptions/ClienteNotFoundError';
+import { ClienteProfileDto } from '@cliente/application/dtos/ClienteProfileDto'; // ajusta según tu estructura
+import { ClienteGetProfile } from '@cliente/application/use-cases/ClienteGetProfile/ClienteGetProfile';
+import { ClienteId } from '@cliente/core/value-objects/ClienteId';
+import { Categoria } from '@cliente/core/entities/Categoria';
+import { CategoriaId } from '@cliente/core/value-objects/CategoriaId';
+import { CategoriaNombre } from '@cliente/core/value-objects/CategoriaNombre';
+import { Cliente } from '@cliente/core/entities/Cliente';
+import { ClienteDni } from '@cliente/core/value-objects/ClienteDni';
+import { ClienteNombre } from '@cliente/core/value-objects/ClienteNombre';
+import { ClienteApellido } from '@cliente/core/value-objects/ClienteApellido';
+import { ClienteSexo } from '@cliente/core/value-objects/ClienteSexo';
+import { ClienteFechaNacimiento } from '@cliente/core/value-objects/ClienteFechaNacimiento';
+import { ClienteStatus } from '@cliente/core/value-objects/ClienteStatus';
+import { ClienteEmail } from '@cliente/core/value-objects/ClienteEmail';
+import { ClienteTelefono } from '@cliente/core/value-objects/ClienteTelefono';
+import { ClienteDireccion } from '@cliente/core/value-objects/ClienteDireccion';
+import { ClienteCodigoPostal } from '@cliente/core/value-objects/ClienteCodPostal';
+import { ClienteLocalidad } from '@cliente/core/value-objects/ClienteLocalidad';
+import { ClienteProvincia } from '@cliente/core/value-objects/ClienteProvincia';
+import { ClienteIdFidely } from '@cliente/core/value-objects/ClienteIdFidely';
+import { ClienteTarjetaFidely } from '@cliente/core/value-objects/ClienteTarjetaFidely';
+import { ClienteFechaBaja } from '@cliente/core/value-objects/ClienteFechaBaja';
+import { StatusCliente } from '@cliente/core/enums/StatusCliente';
 
 describe('ClienteGetProfile', () => {
   let repoMock: jest.Mocked<ClienteRepository>;

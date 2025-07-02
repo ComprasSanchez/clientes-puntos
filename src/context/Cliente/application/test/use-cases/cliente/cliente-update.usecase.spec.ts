@@ -1,21 +1,22 @@
-/* eslint-disable @typescript-eslint/unbound-method */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-import { ClienteRepository } from 'src/context/Cliente/core/repository/ClienteRepository';
-import { CategoriaRepository } from 'src/context/Cliente/core/repository/CategoriaRepository';
-import { ClienteUpdate } from '../../../use-cases/ClienteUpdate/ClienteUpdate';
-import { ClienteNotFoundError } from 'src/context/Cliente/core/exceptions/ClienteNotFoundError';
-import { Cliente } from 'src/context/Cliente/core/entities/Cliente';
-import { ClienteId } from 'src/context/Cliente/core/value-objects/ClienteId';
-import { ClienteDni } from 'src/context/Cliente/core/value-objects/ClienteDni';
-import { ClienteNombre } from 'src/context/Cliente/core/value-objects/ClienteNombre';
-import { ClienteApellido } from 'src/context/Cliente/core/value-objects/ClienteApellido';
-import { ClienteSexo } from 'src/context/Cliente/core/value-objects/ClienteSexo';
-import { ClienteFechaNacimiento } from 'src/context/Cliente/core/value-objects/ClienteFechaNacimiento';
-import { ClienteStatus } from 'src/context/Cliente/core/value-objects/ClienteStatus';
-import { Categoria } from 'src/context/Cliente/core/entities/Categoria';
-import { CategoriaId } from 'src/context/Cliente/core/value-objects/CategoriaId';
-import { CategoriaNombre } from 'src/context/Cliente/core/value-objects/CategoriaNombre';
-import { CategoriaDescripcion } from 'src/context/Cliente/core/value-objects/CategoriaDescripcion';
+import { ClienteRepository } from '@cliente/core/repository/ClienteRepository';
+import { CategoriaRepository } from '@cliente/core/repository/CategoriaRepository';
+import { ClienteUpdate } from '@cliente/application/use-cases/ClienteUpdate/ClienteUpdate';
+import { ClienteNotFoundError } from '@cliente/core/exceptions/ClienteNotFoundError';
+import { Cliente } from '@cliente/core/entities/Cliente';
+import { ClienteId } from '@cliente/core/value-objects/ClienteId';
+import { ClienteDni } from '@cliente/core/value-objects/ClienteDni';
+import { ClienteNombre } from '@cliente/core/value-objects/ClienteNombre';
+import { ClienteApellido } from '@cliente/core/value-objects/ClienteApellido';
+import { ClienteSexo } from '@cliente/core/value-objects/ClienteSexo';
+import { ClienteFechaNacimiento } from '@cliente/core/value-objects/ClienteFechaNacimiento';
+import { ClienteStatus } from '@cliente/core/value-objects/ClienteStatus';
+import { Categoria } from '@cliente/core/entities/Categoria';
+import { CategoriaId } from '@cliente/core/value-objects/CategoriaId';
+import { CategoriaNombre } from '@cliente/core/value-objects/CategoriaNombre';
+import { CategoriaDescripcion } from '@cliente/core/value-objects/CategoriaDescripcion';
 
 describe('ClienteUpdate Use Case', () => {
   let repo: jest.Mocked<ClienteRepository>;

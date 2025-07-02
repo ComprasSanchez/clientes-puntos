@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
-import { CategoriaId } from 'src/context/Cliente/core/value-objects/CategoriaId';
+import { CategoriaId } from '@cliente/core/value-objects/CategoriaId';
 import { ClienteNotFoundError } from '@cliente/core/exceptions/ClienteNotFoundError';
 import { ClienteRepository } from '@cliente/core/repository/ClienteRepository';
 import { ClienteApellido } from '@cliente/core/value-objects/ClienteApellido';
@@ -20,8 +20,8 @@ import { ClienteSexo } from '@cliente/core/value-objects/ClienteSexo';
 import { ClienteStatus } from '@cliente/core/value-objects/ClienteStatus';
 import { ClienteTarjetaFidely } from '@cliente/core/value-objects/ClienteTarjetaFidely';
 import { ClienteTelefono } from '@cliente/core/value-objects/ClienteTelefono';
-import { CategoriaRepository } from 'src/context/Cliente/core/repository/CategoriaRepository';
-import { CategoriaNotFoundError } from 'src/context/Cliente/core/exceptions/CategoriaNotFoundError';
+import { CategoriaRepository } from '@cliente/core/repository/CategoriaRepository';
+import { CategoriaNotFoundError } from '@cliente/core/exceptions/CategoriaNotFoundError';
 
 interface ClienteUpdateInput {
   id: string; // siempre obligatorio

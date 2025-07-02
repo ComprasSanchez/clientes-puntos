@@ -1,5 +1,4 @@
 import { ConversionRule } from 'src/context/Regla/core/entities/ConversionRule';
-import { TipoRegla } from 'src/context/Regla/core/enums/TipoRegla';
 import { DiasExpiracion } from 'src/context/Regla/core/value-objects/DiasExpiracion';
 import { RatioConversion } from 'src/context/Regla/core/value-objects/RatioConversion';
 import { ReglaDescripcion } from 'src/context/Regla/core/value-objects/ReglaDescripcion';
@@ -7,7 +6,6 @@ import { ReglaFlag } from 'src/context/Regla/core/value-objects/ReglaFlag';
 import { ReglaId } from 'src/context/Regla/core/value-objects/ReglaId';
 import { ReglaNombre } from 'src/context/Regla/core/value-objects/ReglaNombre';
 import { ReglaPrioridadCotizacion } from 'src/context/Regla/core/value-objects/ReglaPrioridadCotizacion';
-import { ReglaTipo } from 'src/context/Regla/core/value-objects/ReglaTipo';
 import { ReglaVigenciaFin } from 'src/context/Regla/core/value-objects/ReglaVigenciaFin';
 import { ReglaVigenciaInicio } from 'src/context/Regla/core/value-objects/ReglaVigenciaInicio';
 
@@ -44,7 +42,6 @@ export function buildConversionRule(
   return new ConversionRule(
     new ReglaId(id),
     new ReglaNombre(nombre),
-    ReglaTipo.create(TipoRegla.CONVERSION),
     new ReglaPrioridadCotizacion(1),
     new ReglaFlag(activa),
     new ReglaFlag(excluyente),
