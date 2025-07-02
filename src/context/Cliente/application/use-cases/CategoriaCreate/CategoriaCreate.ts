@@ -1,5 +1,5 @@
 // @cliente/application/use-cases/CategoriaCreate.ts
-import { CategoriaRepository } from '@cliente/core/repository/CategoriaRepository';
+import { CategoriaRepository } from '../../../core/repository/CategoriaRepository';
 import { CategoriaId } from '@cliente/core/value-objects/CategoriaId';
 import { CategoriaNombre } from '@cliente/core/value-objects/CategoriaNombre';
 import { CategoriaDescripcion } from '@cliente/core/value-objects/CategoriaDescripcion';
