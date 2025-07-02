@@ -1,10 +1,10 @@
-import { Transaccion } from 'src/context/Puntos/core/entities/Transaccion';
-import { TxTipo } from 'src/context/Puntos/core/enums/TxTipo';
-import { CantidadPuntos } from 'src/context/Puntos/core/value-objects/CantidadPuntos';
-import { LoteId } from 'src/context/Puntos/core/value-objects/LoteId';
-import { OperacionId } from 'src/context/Puntos/core/value-objects/OperacionId';
-import { ReferenciaMovimiento } from 'src/context/Puntos/core/value-objects/ReferenciaMovimiento';
-import { TransaccionId } from 'src/context/Puntos/core/value-objects/TransaccionId';
+import { Transaccion } from '@puntos/core/entities/Transaccion';
+import { TxTipo } from '@puntos/core/enums/TxTipo';
+import { CantidadPuntos } from '@puntos/core/value-objects/CantidadPuntos';
+import { LoteId } from '@puntos/core/value-objects/LoteId';
+import { OperacionId } from '@puntos/core/value-objects/OperacionId';
+import { ReferenciaMovimiento } from '@puntos/core/value-objects/ReferenciaMovimiento';
+import { TransaccionId } from '@puntos/core/value-objects/TransaccionId';
 
 /**
  * Factory for Transaccion domain entity.

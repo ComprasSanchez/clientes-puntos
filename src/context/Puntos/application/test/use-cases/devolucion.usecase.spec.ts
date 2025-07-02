@@ -4,11 +4,11 @@ import { OpTipo } from 'src/shared/core/enums/OpTipo';
 import { CreateOperacionService } from '../../services/CreateOperacionService';
 import { OperacionDto } from '../../dtos/OperacionDto';
 import { CreateOperacionResponse } from '../../dtos/CreateOperacionResponse';
-import { OperacionId } from 'src/context/Puntos/core/value-objects/OperacionId';
+import { OperacionId } from '@puntos/core/value-objects/OperacionId';
 import { DevolucionUseCase } from '../../use-cases/Devolucion/Devolucion';
-import { LoteId } from 'src/context/Puntos/core/value-objects/LoteId';
-import { OrigenOperacion } from 'src/context/Puntos/core/value-objects/OrigenOperacion';
-import { ReferenciaMovimiento } from 'src/context/Puntos/core/value-objects/ReferenciaMovimiento';
+import { LoteId } from '@puntos/core/value-objects/LoteId';
+import { OrigenOperacion } from '@puntos/core/value-objects/OrigenOperacion';
+import { ReferenciaMovimiento } from '@puntos/core/value-objects/ReferenciaMovimiento';
 
 describe('CompraUseCase', () => {
   let service: jest.Mocked<CreateOperacionService>;

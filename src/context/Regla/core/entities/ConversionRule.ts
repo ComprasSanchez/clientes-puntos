@@ -1,4 +1,4 @@
-// src/context/Regla/domain/entities/ConversionRule.ts
+// @regla/domain/entities/ConversionRule.ts
 import { Regla } from './Regla';
 import {
   ReglaEngineRequest,

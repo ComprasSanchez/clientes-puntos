@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { LoteRepository } from 'src/context/Puntos/core/repository/LoteRepository';
+import { LoteRepository } from '@puntos/core/repository/LoteRepository';
 import { FindOptionsWhere, Repository } from 'typeorm';
 import { LoteEntity } from '../../entities/lote.entity';
-import { Lote } from 'src/context/Puntos/core/entities/Lote';
-import { LoteId } from 'src/context/Puntos/core/value-objects/LoteId';
-import { BatchEstado } from 'src/context/Puntos/core/enums/BatchEstado';
+import { Lote } from '@puntos/core/entities/Lote';
+import { LoteId } from '@puntos/core/value-objects/LoteId';
+import { BatchEstado } from '@puntos/core/enums/BatchEstado';
 
 @Injectable()
 export class TypeOrmLoteRepository implements LoteRepository {

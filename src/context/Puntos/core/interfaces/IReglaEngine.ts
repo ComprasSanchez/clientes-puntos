@@ -1,4 +1,4 @@
-// src/context/Puntos/core/interfaces/IReglaEngine.ts
+// @puntos/core/interfaces/IReglaEngine.ts
 
 export interface ReglaEngineRequest {
   clienteId: string;

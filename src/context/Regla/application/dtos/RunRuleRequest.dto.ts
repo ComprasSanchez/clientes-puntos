@@ -1,4 +1,4 @@
-// src/context/Regla/application/dtos/ExecuteRulesRequest.dto.ts
+// @regla/application/dtos/ExecuteRulesRequest.dto.ts
 export class ExecuteRulesRequestDto {
   clienteId: string;
   tipo: string;

@@ -1,13 +1,13 @@
-import { ConversionRule } from 'src/context/Regla/core/entities/ConversionRule';
-import { DiasExpiracion } from 'src/context/Regla/core/value-objects/DiasExpiracion';
-import { RatioConversion } from 'src/context/Regla/core/value-objects/RatioConversion';
-import { ReglaDescripcion } from 'src/context/Regla/core/value-objects/ReglaDescripcion';
-import { ReglaFlag } from 'src/context/Regla/core/value-objects/ReglaFlag';
-import { ReglaId } from 'src/context/Regla/core/value-objects/ReglaId';
-import { ReglaNombre } from 'src/context/Regla/core/value-objects/ReglaNombre';
-import { ReglaPrioridadCotizacion } from 'src/context/Regla/core/value-objects/ReglaPrioridadCotizacion';
-import { ReglaVigenciaFin } from 'src/context/Regla/core/value-objects/ReglaVigenciaFin';
-import { ReglaVigenciaInicio } from 'src/context/Regla/core/value-objects/ReglaVigenciaInicio';
+import { ConversionRule } from '@regla/core/entities/ConversionRule';
+import { DiasExpiracion } from '@regla/core/value-objects/DiasExpiracion';
+import { RatioConversion } from '@regla/core/value-objects/RatioConversion';
+import { ReglaDescripcion } from '@regla/core/value-objects/ReglaDescripcion';
+import { ReglaFlag } from '@regla/core/value-objects/ReglaFlag';
+import { ReglaId } from '@regla/core/value-objects/ReglaId';
+import { ReglaNombre } from '@regla/core/value-objects/ReglaNombre';
+import { ReglaPrioridadCotizacion } from '@regla/core/value-objects/ReglaPrioridadCotizacion';
+import { ReglaVigenciaFin } from '@regla/core/value-objects/ReglaVigenciaFin';
+import { ReglaVigenciaInicio } from '@regla/core/value-objects/ReglaVigenciaInicio';
 
 /**
  * Factory for ConversionRule (Regla de conversión).

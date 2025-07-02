@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
-// src/context/Regla/infrastructure/adapters/TypeOrmReglaRepository.ts
+// @regla/infrastructure/adapters/TypeOrmReglaRepository.ts
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Regla as ReglaDomain } from '../../../core/entities/Regla';
-import { ReglaRepository } from 'src/context/Regla/core/repository/ReglaRepository';
+import { ReglaRepository } from '@regla/core/repository/ReglaRepository';
 import { ReglaEntity } from '../../entities/regla.entity';
-import { ReglaCriteria } from 'src/context/Regla/core/entities/Criteria';
+import { ReglaCriteria } from '@regla/core/entities/Criteria';
 import { ConversionRuleEntity } from '@regla/infrastructure/entities/rule-conversion.entity';
 import { ConversionRule } from '@regla/core/entities/ConversionRule';
 import { TipoRegla } from '@regla/core/enums/TipoRegla';

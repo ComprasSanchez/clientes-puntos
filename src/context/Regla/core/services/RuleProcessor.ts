@@ -1,4 +1,4 @@
-// src/context/Regla/domain/services/RuleProcessor.ts
+// @regla/domain/services/RuleProcessor.ts
 
 import { Regla } from '../entities/Regla';
 import {

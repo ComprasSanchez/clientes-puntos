@@ -1,15 +1,15 @@
 /* eslint-disable @typescript-eslint/unbound-method */
-import { ReglaRepository } from 'src/context/Regla/core/repository/ReglaRepository';
+import { ReglaRepository } from '@regla/core/repository/ReglaRepository';
 import { RulesOrchestrationService } from '../../services/RuleOrchestationService';
 import {
   ReglaEngineRequest,
   ReglaEngineResult,
-} from 'src/context/Regla/core/interfaces/IReglaEngine';
-import { ReglaCriteria } from 'src/context/Regla/core/entities/Criteria';
-import { RuleProcessor } from 'src/context/Regla/core/services/RuleProcessor';
+} from '@regla/core/interfaces/IReglaEngine';
+import { ReglaCriteria } from '@regla/core/entities/Criteria';
+import { RuleProcessor } from '@regla/core/services/RuleProcessor';
 import { OpTipo } from 'src/shared/core/enums/OpTipo';
-import { FechaOperacion } from 'src/context/Regla/core/value-objects/FechaOperacion';
-import { CantidadPuntos } from 'src/context/Regla/core/value-objects/CantidadPuntos';
+import { FechaOperacion } from '@regla/core/value-objects/FechaOperacion';
+import { CantidadPuntos } from '@regla/core/value-objects/CantidadPuntos';
 
 describe('RulesOrchestrationService', () => {
   let repo: ReglaRepository;

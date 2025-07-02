@@ -1,4 +1,4 @@
-import { ObtenerSaldo } from 'src/context/Puntos/application/use-cases/ObtenerSaldo/ObtenerSaldo';
+import { ObtenerSaldo } from '@puntos/application/use-cases/ObtenerSaldo/ObtenerSaldo';
 import { IPuntosService } from '../../../application/ports/IPuntosService';
 
 export class PuntosServiceInMemory implements IPuntosService {

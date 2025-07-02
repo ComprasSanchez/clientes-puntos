@@ -1,4 +1,4 @@
-// src/context/puntos/domain/repositories/TransaccionRepository.ts
+// @puntos/domain/repositories/TransaccionRepository.ts
 import { Transaccion } from '../entities/Transaccion';
 import { LoteId } from '../value-objects/LoteId';
 import { TransaccionId } from '../value-objects/TransaccionId';

@@ -1,4 +1,4 @@
-// src/context/Puntos/infrastructure/persistence/persistence.module.ts
+// @puntos/infrastructure/persistence/persistence.module.ts
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { TransaccionEntity } from '../entities/transaccion.entity';

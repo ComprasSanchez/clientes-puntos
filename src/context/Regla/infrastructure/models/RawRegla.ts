@@ -1,4 +1,4 @@
-// src/context/Regla/infra/models/RawRegla.ts
+// @regla/infra/models/RawRegla.ts
 export interface RawRegla {
   id: string;
   nombre: string;

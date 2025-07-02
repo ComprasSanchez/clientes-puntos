@@ -1,4 +1,4 @@
-// src/context/Regla/infrastructure/ReglaEngineAdapter.ts
+// @regla/infrastructure/ReglaEngineAdapter.ts
 import { Injectable, Inject } from '@nestjs/common';
 import { EXECUTE_RULES_USE_CASE } from '../tokens/tokens';
 import { ExecuteRulesUseCase } from '../../application/use-cases/ProcessRules';

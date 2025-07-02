@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { TransaccionRepository } from 'src/context/Puntos/core/repository/TransaccionRepository';
+import { TransaccionRepository } from '@puntos/core/repository/TransaccionRepository';
 import { Repository, FindOptionsWhere } from 'typeorm';
 import { TransaccionEntity } from '../../entities/transaccion.entity';
-import { Transaccion } from 'src/context/Puntos/core/entities/Transaccion';
-import { TransaccionId } from 'src/context/Puntos/core/value-objects/TransaccionId';
-import { LoteId } from 'src/context/Puntos/core/value-objects/LoteId';
+import { Transaccion } from '@puntos/core/entities/Transaccion';
+import { TransaccionId } from '@puntos/core/value-objects/TransaccionId';
+import { LoteId } from '@puntos/core/value-objects/LoteId';
 
 @Injectable()
 export class TypeOrmTransaccionRepository implements TransaccionRepository {

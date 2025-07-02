@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/require-await */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-// src/context/Puntos/infrastructure/services/ReglaEngineServiceInMemory.ts
+// @puntos/infrastructure/services/ReglaEngineServiceInMemory.ts
 
 import {
   ReglaEngine,

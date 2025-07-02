@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 // __tests__/PuntosServiceInMemory.spec.ts
-import { ObtenerSaldo } from 'src/context/Puntos/application/use-cases/ObtenerSaldo/ObtenerSaldo';
+import { ObtenerSaldo } from '@puntos/application/use-cases/ObtenerSaldo/ObtenerSaldo';
 import { PuntosServiceInMemory } from './PuntosServiceInMemory';
 
 describe('PuntosServiceInMemory', () => {

@@ -1,4 +1,4 @@
-// src/context/Puntos/core/factories/LoteFactory.ts
+// @puntos/core/factories/LoteFactory.ts
 import { UUIDGenerator } from 'src/shared/core/uuid/UuidGenerator';
 import { Lote } from '../entities/Lote';
 import { LoteId } from '../value-objects/LoteId';

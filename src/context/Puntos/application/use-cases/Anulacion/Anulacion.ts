@@ -3,9 +3,9 @@ import { CreateOperacionRequest } from '../../dtos/CreateOperacionRequest';
 import { CreateOperacionResponse } from '../../dtos/CreateOperacionResponse';
 import { OperacionDto } from '../../dtos/OperacionDto';
 import { CreateOperacionService } from '../../services/CreateOperacionService';
-import { OrigenOperacion } from 'src/context/Puntos/core/value-objects/OrigenOperacion';
-import { ReferenciaMovimiento } from 'src/context/Puntos/core/value-objects/ReferenciaMovimiento';
-import { OperacionId } from 'src/context/Puntos/core/value-objects/OperacionId';
+import { OrigenOperacion } from '@puntos/core/value-objects/OrigenOperacion';
+import { ReferenciaMovimiento } from '@puntos/core/value-objects/ReferenciaMovimiento';
+import { OperacionId } from '@puntos/core/value-objects/OperacionId';
 
 export class AnulacionUseCase {
   constructor(private readonly service: CreateOperacionService) {}

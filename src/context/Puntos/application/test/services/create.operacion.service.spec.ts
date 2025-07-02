@@ -1,26 +1,26 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 import { OpTipo } from 'src/shared/core/enums/OpTipo';
-import { TxTipo } from 'src/context/Puntos/core/enums/TxTipo';
-import { LoteRepository } from 'src/context/Puntos/core/repository/LoteRepository';
-import { TransaccionRepository } from 'src/context/Puntos/core/repository/TransaccionRepository';
+import { TxTipo } from '@puntos/core/enums/TxTipo';
+import { LoteRepository } from '@puntos/core/repository/LoteRepository';
+import { TransaccionRepository } from '@puntos/core/repository/TransaccionRepository';
 import {
   IReglaEngine,
   ReglaEngineResult,
-} from 'src/context/Puntos/core/interfaces/IReglaEngine';
-import { LoteFactory } from 'src/context/Puntos/core/factories/LoteFactory';
-import { TransaccionFactory } from 'src/context/Puntos/core/factories/TransaccionFactory';
-import { Lote } from 'src/context/Puntos/core/entities/Lote';
-import { LoteId } from 'src/context/Puntos/core/value-objects/LoteId';
-import { CantidadPuntos } from 'src/context/Puntos/core/value-objects/CantidadPuntos';
-import { OperacionId } from 'src/context/Puntos/core/value-objects/OperacionId';
+} from '@puntos/core/interfaces/IReglaEngine';
+import { LoteFactory } from '@puntos/core/factories/LoteFactory';
+import { TransaccionFactory } from '@puntos/core/factories/TransaccionFactory';
+import { Lote } from '@puntos/core/entities/Lote';
+import { LoteId } from '@puntos/core/value-objects/LoteId';
+import { CantidadPuntos } from '@puntos/core/value-objects/CantidadPuntos';
+import { OperacionId } from '@puntos/core/value-objects/OperacionId';
 import { CreateOperacionService } from '../../services/CreateOperacionService';
 import { CreateOperacionRequest } from '../../dtos/CreateOperacionRequest';
-import { OrigenOperacion } from 'src/context/Puntos/core/value-objects/OrigenOperacion';
+import { OrigenOperacion } from '@puntos/core/value-objects/OrigenOperacion';
 import { FakeUUIDGen } from 'src/shared/core/uuid/test/stubs/FakeUUIDGenerator';
-import { BatchEstado } from 'src/context/Puntos/core/enums/BatchEstado';
-import { Transaccion } from 'src/context/Puntos/core/entities/Transaccion';
-import { TransaccionId } from 'src/context/Puntos/core/value-objects/TransaccionId';
-import { SaldoHandler } from 'src/context/Puntos/core/services/SaldoHandler';
+import { BatchEstado } from '@puntos/core/enums/BatchEstado';
+import { Transaccion } from '@puntos/core/entities/Transaccion';
+import { TransaccionId } from '@puntos/core/value-objects/TransaccionId';
+import { SaldoHandler } from '@puntos/core/services/SaldoHandler';
 
 describe('CreateOperacionService', () => {
   let loteRepo: jest.Mocked<LoteRepository>;

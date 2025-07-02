@@ -1,4 +1,4 @@
-// src/context/Puntos/core/entities/Operacion.ts
+// @puntos/core/entities/Operacion.ts
 import { OpTipo } from '../../../../shared/core/enums/OpTipo';
 import { CantidadPuntos } from '../value-objects/CantidadPuntos';
 import { FechaOperacion } from '../value-objects/FechaOperacion';

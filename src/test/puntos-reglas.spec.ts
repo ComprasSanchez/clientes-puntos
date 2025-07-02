@@ -1,31 +1,31 @@
 // test/e2e/puntos-reglas.e2e-spec.ts
 import { Test, TestingModule } from '@nestjs/testing';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { CompraUseCase } from 'src/context/Puntos/application/use-cases/Compra/Compra';
-import { LoteEntity } from 'src/context/Puntos/infrastructure/entities/lote.entity';
-import { TransaccionEntity } from 'src/context/Puntos/infrastructure/entities/transaccion.entity';
-import { PuntosInfrastructureModule } from 'src/context/Puntos/infrastructure/puntos.module';
-import { ReglaEntity } from 'src/context/Regla/infrastructure/entities/regla.entity';
-import { ReglaInfrastructureModule } from 'src/context/Regla/infrastructure/regla.module';
+import { CompraUseCase } from '@puntos/application/use-cases/Compra/Compra';
+import { LoteEntity } from '@puntos/infrastructure/entities/lote.entity';
+import { TransaccionEntity } from '@puntos/infrastructure/entities/transaccion.entity';
+import { PuntosInfrastructureModule } from '@puntos/infrastructure/puntos.module';
+import { ReglaEntity } from '@regla/infrastructure/entities/regla.entity';
+import { ReglaInfrastructureModule } from '@regla/infrastructure/regla.module';
 import { OpTipo } from 'src/shared/core/enums/OpTipo';
 import { DataSource } from 'typeorm';
 import { buildConversionRule } from './factories/BuildConversionRule';
 import { buildLote } from './factories/BuildLote';
-import { REGLA_REPO } from 'src/context/Regla/infrastructure/tokens/tokens';
-import { ReglaRepository } from 'src/context/Regla/core/repository/ReglaRepository';
+import { REGLA_REPO } from '@regla/infrastructure/tokens/tokens';
+import { ReglaRepository } from '@regla/core/repository/ReglaRepository';
 import {
   LOTE_REPO,
   TX_REPO,
-} from 'src/context/Puntos/infrastructure/tokens/tokens';
-import { LoteRepository } from 'src/context/Puntos/core/repository/LoteRepository';
-import { TransaccionRepository } from 'src/context/Puntos/core/repository/TransaccionRepository';
-import { TransaccionId } from 'src/context/Puntos/core/value-objects/TransaccionId';
-import { ReglaCriteria } from 'src/context/Regla/core/entities/Criteria';
-import { FechaOperacion } from 'src/context/Regla/core/value-objects/FechaOperacion';
+} from '@puntos/infrastructure/tokens/tokens';
+import { LoteRepository } from '@puntos/core/repository/LoteRepository';
+import { TransaccionRepository } from '@puntos/core/repository/TransaccionRepository';
+import { TransaccionId } from '@puntos/core/value-objects/TransaccionId';
+import { ReglaCriteria } from '@regla/core/entities/Criteria';
+import { FechaOperacion } from '@regla/core/value-objects/FechaOperacion';
 import { TipoMoneda } from 'src/shared/core/enums/TipoMoneda';
-import { MontoMoneda } from 'src/context/Regla/core/value-objects/MontoMoneda';
-import { Moneda } from 'src/context/Regla/core/value-objects/Moneda';
-import { CantidadPuntos } from 'src/context/Regla/core/value-objects/CantidadPuntos';
+import { MontoMoneda } from '@regla/core/value-objects/MontoMoneda';
+import { Moneda } from '@regla/core/value-objects/Moneda';
+import { CantidadPuntos } from '@regla/core/value-objects/CantidadPuntos';
 
 describe('E2E: Puntos ←→ Reglas', () => {
   let moduleRef: TestingModule;

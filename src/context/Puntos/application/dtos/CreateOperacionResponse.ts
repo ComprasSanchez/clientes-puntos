@@ -1,4 +1,4 @@
-import { TxTipo } from 'src/context/Puntos/core/enums/TxTipo';
+import { TxTipo } from '@puntos/core/enums/TxTipo';
 import { Lote } from '../../core/entities/Lote';
 import { LoteId } from '../../core/value-objects/LoteId';
 

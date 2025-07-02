@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
-// src/context/Puntos/core/services/SaldoHandler.ts
+// @puntos/core/services/SaldoHandler.ts
 import { Saldo } from '../entities/Saldo';
 import { LoteFactory } from '../factories/LoteFactory';
 import { Lote } from '../entities/Lote';

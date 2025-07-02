@@ -1,4 +1,4 @@
-// src/context/Puntos/core/value-objects/Moneda.ts
+// @puntos/core/value-objects/Moneda.ts
 import { InvalidCoinError } from 'src/shared/core/exceptions/InvalidCoinError';
 import { TipoMoneda } from 'src/shared/core/enums/TipoMoneda';
 

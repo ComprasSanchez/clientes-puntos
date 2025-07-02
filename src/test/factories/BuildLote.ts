@@ -1,10 +1,10 @@
-import { Lote } from 'src/context/Puntos/core/entities/Lote';
-import { BatchEstado } from 'src/context/Puntos/core/enums/BatchEstado';
-import { CantidadPuntos } from 'src/context/Puntos/core/value-objects/CantidadPuntos';
-import { FechaExpiracion } from 'src/context/Puntos/core/value-objects/FechaExpiracion';
-import { LoteId } from 'src/context/Puntos/core/value-objects/LoteId';
-import { OrigenOperacion } from 'src/context/Puntos/core/value-objects/OrigenOperacion';
-import { ReferenciaMovimiento } from 'src/context/Puntos/core/value-objects/ReferenciaMovimiento';
+import { Lote } from '@puntos/core/entities/Lote';
+import { BatchEstado } from '@puntos/core/enums/BatchEstado';
+import { CantidadPuntos } from '@puntos/core/value-objects/CantidadPuntos';
+import { FechaExpiracion } from '@puntos/core/value-objects/FechaExpiracion';
+import { LoteId } from '@puntos/core/value-objects/LoteId';
+import { OrigenOperacion } from '@puntos/core/value-objects/OrigenOperacion';
+import { ReferenciaMovimiento } from '@puntos/core/value-objects/ReferenciaMovimiento';
 
 /**
  * Factory for Lote domain entity.

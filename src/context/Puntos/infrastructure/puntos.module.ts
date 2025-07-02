@@ -1,14 +1,14 @@
-// src/context/Puntos/infrastructure/PuntosInfrastructureModule.ts
+// @puntos/infrastructure/PuntosInfrastructureModule.ts
 import { forwardRef, Module, Provider } from '@nestjs/common';
 import { TransaccionFactory } from '../core/factories/TransaccionFactory';
 import { SaldoHandler } from '../core/services/SaldoHandler';
 import { CreateOperacionService } from '../application/services/CreateOperacionService';
 import { CompraUseCase } from '../application/use-cases/Compra/Compra';
-import { ReglaInfrastructureModule } from 'src/context/Regla/infrastructure/regla.module';
+import { ReglaInfrastructureModule } from '@regla/infrastructure/regla.module';
 import { LOTE_REPO, TX_REPO, REGLA_ENGINE } from './tokens/tokens';
 import { LoteRepository } from '../core/repository/LoteRepository';
 import { TransaccionRepository } from '../core/repository/TransaccionRepository';
-import { RuleEngineContract } from 'src/context/Regla/application/dtos/RuleEngineContract';
+import { RuleEngineContract } from '@regla/application/dtos/RuleEngineContract';
 import { DevolucionUseCase } from '../application/use-cases/Devolucion/Devolucion';
 import { AnulacionUseCase } from '../application/use-cases/Anulacion/Anulacion';
 import { TypeOrmLoteRepository } from './persistence/LoteRepository/LoteTypeOrmImpl';

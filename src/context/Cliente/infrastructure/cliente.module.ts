@@ -5,7 +5,7 @@ import {
   CLIENTE_REPO,
   IPUNTOS_SERVICE,
 } from '../core/tokens/tokens';
-import { ObtenerSaldo } from 'src/context/Puntos/application/use-cases/ObtenerSaldo/ObtenerSaldo';
+import { ObtenerSaldo } from '@puntos/application/use-cases/ObtenerSaldo/ObtenerSaldo';
 import { PuntosServiceInMemory } from './adapters/PuntosServiceInMemory/PuntosServiceInMemory';
 import { ClienteGetProfile } from '../application/use-cases/ClienteGetProfile/ClienteGetProfile';
 import { ClienteRepository } from '../core/repository/ClienteRepository';
