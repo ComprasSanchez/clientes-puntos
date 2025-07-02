@@ -35,7 +35,6 @@ export class ReglaFactory {
         return new ConversionRule(
           id,
           nombre,
-          tipo,
           prioridad,
           activa,
           excluyente,
