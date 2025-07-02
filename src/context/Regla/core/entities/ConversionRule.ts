@@ -43,6 +43,18 @@ export class ConversionRule extends Regla {
     );
   }
 
+  get rateAccredVo(): RatioConversion {
+    return this.rateAccred;
+  }
+
+  get rateSpendVo(): RatioConversion {
+    return this.rateSpend;
+  }
+
+  get creditExpiryDaysVo(): DiasExpiracion | undefined {
+    return this.creditExpiryDays;
+  }
+
   protected applyIfTrue(ctx: ReglaEngineRequest): ReglaEngineResult {
     const result: ReglaEngineResult = { debitAmount: 0 };
 

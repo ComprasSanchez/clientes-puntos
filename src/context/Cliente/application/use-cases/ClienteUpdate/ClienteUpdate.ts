@@ -1,22 +1,25 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
 import { CategoriaId } from 'src/context/Cliente/core/value-objects/CategoriaId';
-import { ClienteNotFoundError } from '../../../core/exceptions/ClienteNotFoundError';
-import { ClienteRepository } from '../../../core/repository/ClienteRepository';
-import { ClienteApellido } from '../../../core/value-objects/ClienteApellido';
-import { ClienteCodigoPostal } from '../../../core/value-objects/ClienteCodPostal';
-import { ClienteDireccion } from '../../../core/value-objects/ClienteDireccion';
-import { ClienteDni } from '../../../core/value-objects/ClienteDni';
-import { ClienteEmail } from '../../../core/value-objects/ClienteEmail';
-import { ClienteFechaBaja } from '../../../core/value-objects/ClienteFechaBaja';
-import { ClienteFechaNacimiento } from '../../../core/value-objects/ClienteFechaNacimiento';
-import { ClienteId } from '../../../core/value-objects/ClienteId';
-import { ClienteIdFidely } from '../../../core/value-objects/ClienteIdFidely';
-import { ClienteLocalidad } from '../../../core/value-objects/ClienteLocalidad';
-import { ClienteNombre } from '../../../core/value-objects/ClienteNombre';
-import { ClienteProvincia } from '../../../core/value-objects/ClienteProvincia';
-import { ClienteSexo } from '../../../core/value-objects/ClienteSexo';
-import { ClienteStatus } from '../../../core/value-objects/ClienteStatus';
-import { ClienteTarjetaFidely } from '../../../core/value-objects/ClienteTarjetaFidely';
-import { ClienteTelefono } from '../../../core/value-objects/ClienteTelefono';
+import { ClienteNotFoundError } from '@cliente/core/exceptions/ClienteNotFoundError';
+import { ClienteRepository } from '@cliente/core/repository/ClienteRepository';
+import { ClienteApellido } from '@cliente/core/value-objects/ClienteApellido';
+import { ClienteCodigoPostal } from '@cliente/core/value-objects/ClienteCodPostal';
+import { ClienteDireccion } from '@cliente/core/value-objects/ClienteDireccion';
+import { ClienteDni } from '@cliente/core/value-objects/ClienteDni';
+import { ClienteEmail } from '@cliente/core/value-objects/ClienteEmail';
+import { ClienteFechaBaja } from '@cliente/core/value-objects/ClienteFechaBaja';
+import { ClienteFechaNacimiento } from '@cliente/core/value-objects/ClienteFechaNacimiento';
+import { ClienteId } from '@cliente/core/value-objects/ClienteId';
+import { ClienteIdFidely } from '@cliente/core/value-objects/ClienteIdFidely';
+import { ClienteLocalidad } from '@cliente/core/value-objects/ClienteLocalidad';
+import { ClienteNombre } from '@cliente/core/value-objects/ClienteNombre';
+import { ClienteProvincia } from '@cliente/core/value-objects/ClienteProvincia';
+import { ClienteSexo } from '@cliente/core/value-objects/ClienteSexo';
+import { ClienteStatus } from '@cliente/core/value-objects/ClienteStatus';
+import { ClienteTarjetaFidely } from '@cliente/core/value-objects/ClienteTarjetaFidely';
+import { ClienteTelefono } from '@cliente/core/value-objects/ClienteTelefono';
 import { CategoriaRepository } from 'src/context/Cliente/core/repository/CategoriaRepository';
 import { CategoriaNotFoundError } from 'src/context/Cliente/core/exceptions/CategoriaNotFoundError';
 

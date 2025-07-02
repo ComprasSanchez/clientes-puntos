@@ -1,6 +1,9 @@
-import { ClienteNotFoundError } from '../../../core/exceptions/ClienteNotFoundError';
-import { ClienteRepository } from '../../../core/repository/ClienteRepository';
-import { ClienteId } from '../../../core/value-objects/ClienteId';
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+import { ClienteNotFoundError } from '@cliente/core/exceptions/ClienteNotFoundError';
+import { ClienteRepository } from '@cliente/core/repository/ClienteRepository';
+import { ClienteId } from '@cliente/core/value-objects/ClienteId';
 
 export class ClienteDelete {
   constructor(private readonly repo: ClienteRepository) {}

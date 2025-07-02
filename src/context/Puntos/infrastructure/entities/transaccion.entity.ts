@@ -33,6 +33,9 @@ export class TransaccionEntity {
   @Column('uuid', { nullable: true })
   referenciaId: string | null;
 
+  @Column('jsonb')
+  reglasAplicadas: any;
+
   @CreateDateColumn()
   createdAt: Date;
 

@@ -45,4 +45,23 @@ export class ConversionRuleEntity extends ReglaEntity {
         : undefined,
     );
   }
+
+  static fromDomain(domain: ConversionRule): ConversionRuleEntity {
+    const e = new ConversionRuleEntity();
+    e.id = domain.id.value;
+    e.nombre = domain.nombre.value;
+    e.tipo = TipoRegla.CONVERSION;
+    e.prioridad = domain.prioridad.value;
+    e.activa = domain.activa.value;
+    e.excluyente = domain.excluyente.value;
+    e.vigenciaInicio = domain.vigenciaInicio.value;
+    e.vigenciaFin = domain.vigenciaFin?.value;
+    e.descripcion = domain.descripcion?.value;
+    e.config = new ConversionConfig(
+      domain.rateAccredVo,
+      domain.rateSpendVo,
+      domain.creditExpiryDaysVo,
+    );
+    return e;
+  }
 }

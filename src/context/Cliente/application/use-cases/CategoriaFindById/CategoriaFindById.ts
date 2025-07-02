@@ -1,7 +1,10 @@
-import { CategoriaRepository } from '../../../core/repository/CategoriaRepository';
-import { Categoria } from '../../../core/entities/Categoria';
-import { CategoriaId } from '../../../core/value-objects/CategoriaId';
-import { CategoriaNotFoundError } from '../../../core/exceptions/CategoriaNotFoundError';
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+import { Categoria } from '@cliente/core/entities/Categoria';
+import { CategoriaNotFoundError } from '@cliente/core/exceptions/CategoriaNotFoundError';
+import { CategoriaRepository } from '@cliente/core/repository/CategoriaRepository';
+import { CategoriaId } from '@cliente/core/value-objects/CategoriaId';
 
 export class CategoriaFindById {
   constructor(private readonly repo: CategoriaRepository) {}

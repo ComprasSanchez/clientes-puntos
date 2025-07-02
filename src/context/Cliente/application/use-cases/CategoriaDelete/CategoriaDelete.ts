@@ -1,6 +1,10 @@
-import { CategoriaRepository } from '../../../core/repository/CategoriaRepository';
-import { CategoriaId } from '../../../core/value-objects/CategoriaId';
-import { CategoriaNotFoundError } from '../../../core/exceptions/CategoriaNotFoundError';
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+
+import { CategoriaNotFoundError } from '@cliente/core/exceptions/CategoriaNotFoundError';
+import { CategoriaRepository } from '@cliente/core/repository/CategoriaRepository';
+import { CategoriaId } from '@cliente/core/value-objects/CategoriaId';
 
 export class CategoriaDelete {
   constructor(private readonly repo: CategoriaRepository) {}
