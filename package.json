@@ -6,7 +6,7 @@
   "private": true,
   "license": "ISC",
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
+    "build": "nest build --config tsconfig.build.json",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "cross-env NODE_ENV=development nest start",
     "start:docker": "node -r tsconfig-paths/register dist/main.js",

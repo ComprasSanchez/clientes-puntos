@@ -21,6 +21,8 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci --omit=dev
 
+COPY tsconfig.json tsconfig.build.json ./
+
 # 2) Trae el dist compilado
 COPY --from=builder /app/dist ./dist
 
