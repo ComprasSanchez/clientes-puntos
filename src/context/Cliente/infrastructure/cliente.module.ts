@@ -14,10 +14,22 @@ import { DatabaseModule } from 'src/infrastructure/database/database.module';
 import { ClientePersistenceModule } from './persistence/cliente.module';
 import { TypeOrmClienteRepository } from './persistence/ClienteRepository/ClienteRepositoryImpl';
 import { TypeOrmCategoriaRepository } from './persistence/CategoriaRepository/CategoriaRepository';
+import { CategoriaController } from './controllers/CategoriaController';
+import { CategoriaCreate } from '@cliente/application/use-cases/CategoriaCreate/CategoriaCreate';
+import { CategoriaFindAll } from '@cliente/application/use-cases/CategoriaFindAll/CategoriaFindAll';
+import { CategoriaFindById } from '@cliente/application/use-cases/CategoriaFindById/CategoriaFindById';
+import { CategoriaUpdate } from '@cliente/application/use-cases/CategoriaUpdate/CategoriaUpdate';
+import { CategoriaDelete } from '@cliente/application/use-cases/CategoriaDelete/CategoriaDelete';
 
 const providers: Provider[] = [
   // 1) Repo puro
   { provide: CLIENTE_REPO, useClass: TypeOrmClienteRepository },
+
+  CategoriaCreate,
+  CategoriaFindAll,
+  CategoriaFindById,
+  CategoriaUpdate,
+  CategoriaDelete,
   { provide: CATEGORIA_REPO, useClass: TypeOrmCategoriaRepository },
 
   // 2) Caso de uso de Puntos (ya viene de PuntosApplicationModule o lo provees aquí)
@@ -44,6 +56,7 @@ const providers: Provider[] = [
     DatabaseModule, // ← Debe ir aquí
     ClientePersistenceModule, // ← y aquí si lo vas a exportar
   ],
+  controllers: [CategoriaController],
   providers,
   exports: [ClienteGetProfile, DatabaseModule, ClientePersistenceModule],
 })

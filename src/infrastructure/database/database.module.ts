@@ -16,10 +16,7 @@ import { ConfigModule } from '../config/config.module';
         username: cfg.get<string>('dbUser'),
         password: cfg.get<string>('dbPass'),
         database: cfg.get<string>('dbName'),
-        entities: [
-          __dirname +
-            '/../../context/**/infrastructure/entities/*.entity.{ts,js}',
-        ],
+        autoLoadEntities: true,
         synchronize: cfg.get<string>('nodeEnv') !== 'production',
       }),
     }),

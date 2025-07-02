@@ -5,7 +5,9 @@ import {
 } from 'uuid';
 import { UUIDGenerator } from '../../core/uuid/UuidGenerator';
 import { UUIDValidationError } from './exceptions/UUIDValidationError';
+import { Injectable } from '@nestjs/common';
 
+@Injectable()
 export class UUIDv4Generator implements UUIDGenerator {
   generate(): string {
     const id = uuidv4();

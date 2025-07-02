@@ -3,12 +3,18 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { CategoriaNotFoundError } from '@cliente/core/exceptions/CategoriaNotFoundError';
 import { CategoriaRepository } from '@cliente/core/repository/CategoriaRepository';
+import { CATEGORIA_REPO } from '@cliente/core/tokens/tokens';
 import { CategoriaDescripcion } from '@cliente/core/value-objects/CategoriaDescripcion';
 import { CategoriaId } from '@cliente/core/value-objects/CategoriaId';
 import { CategoriaNombre } from '@cliente/core/value-objects/CategoriaNombre';
+import { Inject, Injectable } from '@nestjs/common';
 
+@Injectable()
 export class CategoriaUpdate {
-  constructor(private readonly repo: CategoriaRepository) {}
+  constructor(
+    @Inject(CATEGORIA_REPO)
+    private readonly repo: CategoriaRepository,
+  ) {}
 
   /**
    * Modifica una categoría existente.

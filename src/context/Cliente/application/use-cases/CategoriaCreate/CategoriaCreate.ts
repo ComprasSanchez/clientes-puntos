@@ -5,10 +5,15 @@ import { CategoriaNombre } from '@cliente/core/value-objects/CategoriaNombre';
 import { CategoriaDescripcion } from '@cliente/core/value-objects/CategoriaDescripcion';
 import { Categoria } from '@cliente/core/entities/Categoria';
 import { UUIDGenerator } from '@shared/core/uuid/UuidGenerator';
+import { Inject, Injectable } from '@nestjs/common';
+import { CATEGORIA_REPO } from '@cliente/core/tokens/tokens';
 
+@Injectable()
 export class CategoriaCreate {
   constructor(
+    @Inject(CATEGORIA_REPO)
     private readonly repo: CategoriaRepository,
+    @Inject(UUIDGenerator)
     private readonly idGen: UUIDGenerator,
   ) {}
 

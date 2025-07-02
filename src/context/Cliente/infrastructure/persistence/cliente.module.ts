@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ClienteEntity } from './entities/ClienteEntity';
-import { CategoriaEntity } from './entities/CategoriaEntity';
+import { ClienteEntity } from '../entities/ClienteEntity';
+import { CategoriaEntity } from '../entities/CategoriaEntity';
 import { TypeOrmClienteRepository } from './ClienteRepository/ClienteRepositoryImpl';
 import { TypeOrmCategoriaRepository } from './CategoriaRepository/CategoriaRepository';
 import { CATEGORIA_REPO, CLIENTE_REPO } from '@cliente/core/tokens/tokens';

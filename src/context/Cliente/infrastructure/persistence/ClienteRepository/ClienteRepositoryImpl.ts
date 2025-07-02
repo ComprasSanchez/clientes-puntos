@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ClienteRepository } from '@cliente/core/repository/ClienteRepository';
-import { ClienteEntity } from '../entities/ClienteEntity';
+import { ClienteEntity } from '../../entities/ClienteEntity';
 import { DataSource, Repository } from 'typeorm';
 import { Cliente } from '@cliente/core/entities/Cliente';
 import { ClienteId } from '@cliente/core/value-objects/ClienteId';
@@ -23,7 +23,7 @@ import { ClienteProvincia } from '@cliente/core/value-objects/ClienteProvincia';
 import { ClienteIdFidely } from '@cliente/core/value-objects/ClienteIdFidely';
 import { ClienteTarjetaFidely } from '@cliente/core/value-objects/ClienteTarjetaFidely';
 import { ClienteFechaBaja } from '@cliente/core/value-objects/ClienteFechaBaja';
-import { CategoriaEntity } from '../entities/CategoriaEntity';
+import { CategoriaEntity } from '../../entities/CategoriaEntity';
 
 @Injectable()
 export class TypeOrmClienteRepository implements ClienteRepository {
