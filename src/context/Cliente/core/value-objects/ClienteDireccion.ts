@@ -1,5 +1,5 @@
-import { MaxLengthRequiredError } from 'src/shared/core/exceptions/MaxLengthRequiredError';
-import { MinLengthRequiredError } from 'src/shared/core/exceptions/MinLengthRequiredError';
+import { MaxLengthRequiredError } from '@shared/core/exceptions/MaxLengthRequiredError';
+import { MinLengthRequiredError } from '@shared/core/exceptions/MinLengthRequiredError';
 
 export class ClienteDireccion {
   value: string | null;

@@ -1,5 +1,5 @@
-import { InvalidFormatError } from 'src/shared/core/exceptions/InvalidFormatError';
-import { InvalidDateError } from 'src/shared/core/exceptions/InvalidDateError';
+import { InvalidFormatError } from '@shared/core/exceptions/InvalidFormatError';
+import { InvalidDateError } from '@shared/core/exceptions/InvalidDateError';
 import { ReglaVigenciaInicio } from '../../value-objects/ReglaVigenciaInicio';
 
 describe('ReglaVigenciaInicio', () => {

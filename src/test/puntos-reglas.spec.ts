@@ -7,7 +7,7 @@ import { TransaccionEntity } from '@puntos/infrastructure/entities/transaccion.e
 import { PuntosInfrastructureModule } from '@puntos/infrastructure/puntos.module';
 import { ReglaEntity } from '@regla/infrastructure/entities/regla.entity';
 import { ReglaInfrastructureModule } from '@regla/infrastructure/regla.module';
-import { OpTipo } from 'src/shared/core/enums/OpTipo';
+import { OpTipo } from '@shared/core/enums/OpTipo';
 import { DataSource } from 'typeorm';
 import { buildConversionRule } from './factories/BuildConversionRule';
 import { buildLote } from './factories/BuildLote';
@@ -22,7 +22,7 @@ import { TransaccionRepository } from '@puntos/core/repository/TransaccionReposi
 import { TransaccionId } from '@puntos/core/value-objects/TransaccionId';
 import { ReglaCriteria } from '@regla/core/entities/Criteria';
 import { FechaOperacion } from '@regla/core/value-objects/FechaOperacion';
-import { TipoMoneda } from 'src/shared/core/enums/TipoMoneda';
+import { TipoMoneda } from '@shared/core/enums/TipoMoneda';
 import { MontoMoneda } from '@regla/core/value-objects/MontoMoneda';
 import { Moneda } from '@regla/core/value-objects/Moneda';
 import { CantidadPuntos } from '@regla/core/value-objects/CantidadPuntos';

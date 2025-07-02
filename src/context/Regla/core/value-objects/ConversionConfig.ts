@@ -1,7 +1,7 @@
 import { RatioConversion } from './RatioConversion';
 import { DiasExpiracion } from './DiasExpiracion';
-import { InvalidNumberFormatError } from 'src/shared/core/exceptions/InvalidNumberFormatError';
-import { FieldRequiredError } from 'src/shared/core/exceptions/FieldRequiredError';
+import { InvalidNumberFormatError } from '@shared/core/exceptions/InvalidNumberFormatError';
+import { FieldRequiredError } from '@shared/core/exceptions/FieldRequiredError';
 
 /**
  * Plain object interface para Serialización en JSONB.

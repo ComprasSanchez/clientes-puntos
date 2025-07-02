@@ -1,5 +1,5 @@
-import { FieldRequiredError } from 'src/shared/core/exceptions/FieldRequiredError';
-import { InvalidNumberFormatError } from 'src/shared/core/exceptions/InvalidNumberFormatError';
+import { FieldRequiredError } from '@shared/core/exceptions/FieldRequiredError';
+import { InvalidNumberFormatError } from '@shared/core/exceptions/InvalidNumberFormatError';
 
 export class ReglaPrioridad {
   constructor(public readonly value: number) {

@@ -1,4 +1,4 @@
-import { InvalidFormatError } from 'src/shared/core/exceptions/InvalidFormatError';
+import { InvalidFormatError } from '@shared/core/exceptions/InvalidFormatError';
 import { ReglaVigenciaFin } from '../../value-objects/ReglaVigenciaFin';
 
 describe('ReglaVigenciaFin', () => {

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/unbound-method */
-import { OpTipo } from 'src/shared/core/enums/OpTipo';
+import { OpTipo } from '@shared/core/enums/OpTipo';
 import { TxTipo } from '@puntos/core/enums/TxTipo';
 import { LoteRepository } from '@puntos/core/repository/LoteRepository';
 import { TransaccionRepository } from '@puntos/core/repository/TransaccionRepository';
@@ -16,7 +16,7 @@ import { OperacionId } from '@puntos/core/value-objects/OperacionId';
 import { CreateOperacionService } from '../../services/CreateOperacionService';
 import { CreateOperacionRequest } from '../../dtos/CreateOperacionRequest';
 import { OrigenOperacion } from '@puntos/core/value-objects/OrigenOperacion';
-import { FakeUUIDGen } from 'src/shared/core/uuid/test/stubs/FakeUUIDGenerator';
+import { FakeUUIDGen } from '@shared/core/uuid/test/stubs/FakeUUIDGenerator';
 import { BatchEstado } from '@puntos/core/enums/BatchEstado';
 import { Transaccion } from '@puntos/core/entities/Transaccion';
 import { TransaccionId } from '@puntos/core/value-objects/TransaccionId';

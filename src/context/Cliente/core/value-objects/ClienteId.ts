@@ -1,4 +1,4 @@
-import { FieldRequiredError } from 'src/shared/core/exceptions/FieldRequiredError';
+import { FieldRequiredError } from '@shared/core/exceptions/FieldRequiredError';
 
 export class ClienteId {
   private readonly _value: string;

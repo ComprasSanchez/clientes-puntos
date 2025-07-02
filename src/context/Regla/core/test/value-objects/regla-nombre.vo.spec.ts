@@ -1,6 +1,6 @@
-import { FieldRequiredError } from 'src/shared/core/exceptions/FieldRequiredError';
-import { MinLengthRequiredError } from 'src/shared/core/exceptions/MinLengthRequiredError';
-import { MaxLengthRequiredError } from 'src/shared/core/exceptions/MaxLengthRequiredError';
+import { FieldRequiredError } from '@shared/core/exceptions/FieldRequiredError';
+import { MinLengthRequiredError } from '@shared/core/exceptions/MinLengthRequiredError';
+import { MaxLengthRequiredError } from '@shared/core/exceptions/MaxLengthRequiredError';
 import { ReglaNombre } from '../../value-objects/ReglaNombre';
 
 describe('ReglaNombre', () => {

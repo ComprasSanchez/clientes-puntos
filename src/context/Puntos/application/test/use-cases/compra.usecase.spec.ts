@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 // src/application/usecases/CompraUseCase.spec.ts
-import { OpTipo } from 'src/shared/core/enums/OpTipo';
+import { OpTipo } from '@shared/core/enums/OpTipo';
 import { CreateOperacionService } from '../../services/CreateOperacionService';
 import { CompraUseCase } from '../../use-cases/Compra/Compra';
 import { OperacionDto } from '../../dtos/OperacionDto';

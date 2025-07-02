@@ -1,4 +1,4 @@
-import { MaxLengthRequiredError } from 'src/shared/core/exceptions/MaxLengthRequiredError';
+import { MaxLengthRequiredError } from '@shared/core/exceptions/MaxLengthRequiredError';
 import { ReglaDescripcion } from '../../value-objects/ReglaDescripcion';
 
 describe('ReglaDescripcion', () => {

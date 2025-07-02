@@ -1,6 +1,6 @@
 // @puntos/core/value-objects/Moneda.ts
-import { InvalidCoinError } from 'src/shared/core/exceptions/InvalidCoinError';
-import { TipoMoneda } from 'src/shared/core/enums/TipoMoneda';
+import { InvalidCoinError } from '@shared/core/exceptions/InvalidCoinError';
+import { TipoMoneda } from '@shared/core/enums/TipoMoneda';
 
 export class Moneda {
   private readonly _value: TipoMoneda;

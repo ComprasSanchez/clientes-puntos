@@ -1,7 +1,7 @@
-import { FieldRequiredError } from 'src/shared/core/exceptions/FieldRequiredError';
-import { InvalidFormatError } from 'src/shared/core/exceptions/InvalidFormatError';
-import { MaxLengthRequiredError } from 'src/shared/core/exceptions/MaxLengthRequiredError';
-import { MinLengthRequiredError } from 'src/shared/core/exceptions/MinLengthRequiredError';
+import { FieldRequiredError } from '@shared/core/exceptions/FieldRequiredError';
+import { InvalidFormatError } from '@shared/core/exceptions/InvalidFormatError';
+import { MaxLengthRequiredError } from '@shared/core/exceptions/MaxLengthRequiredError';
+import { MinLengthRequiredError } from '@shared/core/exceptions/MinLengthRequiredError';
 
 export class ClienteApellido {
   value: string;

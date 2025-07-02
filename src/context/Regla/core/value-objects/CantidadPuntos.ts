@@ -1,5 +1,5 @@
-import { InvalidNumberFormatError } from 'src/shared/core/exceptions/InvalidNumberFormatError';
-import { ValueIntegrityError } from 'src/shared/core/exceptions/ValueIntegrityError';
+import { InvalidNumberFormatError } from '@shared/core/exceptions/InvalidNumberFormatError';
+import { ValueIntegrityError } from '@shared/core/exceptions/ValueIntegrityError';
 
 export class CantidadPuntos {
   public readonly value: number;

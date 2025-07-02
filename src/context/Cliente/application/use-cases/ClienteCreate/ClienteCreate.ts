@@ -20,7 +20,7 @@ import { ClienteSexo } from '@cliente/core/value-objects/ClienteSexo';
 import { ClienteStatus } from '@cliente/core/value-objects/ClienteStatus';
 import { ClienteTarjetaFidely } from '@cliente/core/value-objects/ClienteTarjetaFidely';
 import { ClienteTelefono } from '@cliente/core/value-objects/ClienteTelefono';
-import { UUIDGenerator } from 'src/shared/core/uuid/UuidGenerator';
+import { UUIDGenerator } from '@shared/core/uuid/UuidGenerator';
 
 export class ClienteCreate {
   constructor(

@@ -1,6 +1,6 @@
-import { InvalidFormatError } from 'src/shared/core/exceptions/InvalidFormatError';
+import { InvalidFormatError } from '@shared/core/exceptions/InvalidFormatError';
 import { StatusCliente } from '../enums/StatusCliente';
-import { FieldRequiredError } from 'src/shared/core/exceptions/FieldRequiredError';
+import { FieldRequiredError } from '@shared/core/exceptions/FieldRequiredError';
 
 export class ClienteStatus {
   value: StatusCliente;

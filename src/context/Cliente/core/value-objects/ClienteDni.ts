@@ -1,5 +1,5 @@
-import { FieldRequiredError } from 'src/shared/core/exceptions/FieldRequiredError';
-import { InvalidFormatError } from 'src/shared/core/exceptions/InvalidFormatError';
+import { FieldRequiredError } from '@shared/core/exceptions/FieldRequiredError';
+import { InvalidFormatError } from '@shared/core/exceptions/InvalidFormatError';
 
 export class ClienteDni {
   value: string;

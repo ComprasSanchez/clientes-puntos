@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/unbound-method */
-import { OpTipo } from 'src/shared/core/enums/OpTipo';
+import { OpTipo } from '@shared/core/enums/OpTipo';
 import { ExecuteRulesUseCase } from '../../use-cases/ProcessRules';
 import { RulesOrchestrationService } from '../../services/RuleOrchestationService';
 import { ExecuteRulesRequestDto } from '../../dtos/RunRuleRequest.dto';

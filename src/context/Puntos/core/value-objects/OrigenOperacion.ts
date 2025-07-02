@@ -1,5 +1,5 @@
-import { FieldRequiredError } from 'src/shared/core/exceptions/FieldRequiredError';
-import { MaxLengthRequiredError } from 'src/shared/core/exceptions/MaxLengthRequiredError';
+import { FieldRequiredError } from '@shared/core/exceptions/FieldRequiredError';
+import { MaxLengthRequiredError } from '@shared/core/exceptions/MaxLengthRequiredError';
 
 export class OrigenOperacion {
   public readonly value: string;

@@ -1,6 +1,6 @@
-import { FieldRequiredError } from 'src/shared/core/exceptions/FieldRequiredError';
-import { MaxLengthRequiredError } from 'src/shared/core/exceptions/MaxLengthRequiredError';
-import { MinLengthRequiredError } from 'src/shared/core/exceptions/MinLengthRequiredError';
+import { FieldRequiredError } from '@shared/core/exceptions/FieldRequiredError';
+import { MaxLengthRequiredError } from '@shared/core/exceptions/MaxLengthRequiredError';
+import { MinLengthRequiredError } from '@shared/core/exceptions/MinLengthRequiredError';
 
 export class ReglaNombre {
   value: string;

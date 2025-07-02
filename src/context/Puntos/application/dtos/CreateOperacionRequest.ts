@@ -1,4 +1,4 @@
-import { OpTipo } from 'src/shared/core/enums/OpTipo';
+import { OpTipo } from '@shared/core/enums/OpTipo';
 import { OrigenOperacion } from '../../core/value-objects/OrigenOperacion';
 import { ReferenciaMovimiento } from '../../core/value-objects/ReferenciaMovimiento';
 import { OperacionId } from '../../core/value-objects/OperacionId';

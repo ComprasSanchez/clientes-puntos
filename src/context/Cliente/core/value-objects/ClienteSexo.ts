@@ -1,6 +1,6 @@
-import { FieldRequiredError } from 'src/shared/core/exceptions/FieldRequiredError';
+import { FieldRequiredError } from '@shared/core/exceptions/FieldRequiredError';
 import { Sexo } from '../enums/SexoCliente';
-import { InvalidFormatError } from 'src/shared/core/exceptions/InvalidFormatError';
+import { InvalidFormatError } from '@shared/core/exceptions/InvalidFormatError';
 
 export class ClienteSexo {
   value: string;

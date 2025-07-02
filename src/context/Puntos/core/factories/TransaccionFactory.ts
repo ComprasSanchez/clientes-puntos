@@ -1,4 +1,4 @@
-import { UUIDGenerator } from 'src/shared/core/uuid/UuidGenerator';
+import { UUIDGenerator } from '@shared/core/uuid/UuidGenerator';
 import { Transaccion } from '../entities/Transaccion';
 import { TransaccionId } from '../value-objects/TransaccionId';
 import { OperacionId } from '../value-objects/OperacionId';

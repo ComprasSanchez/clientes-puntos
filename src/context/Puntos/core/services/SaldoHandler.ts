@@ -6,7 +6,7 @@ import { Lote } from '../entities/Lote';
 import { CantidadPuntos } from '../value-objects/CantidadPuntos';
 import { Operacion } from '../entities/Operacion';
 import { FechaExpiracion } from '../value-objects/FechaExpiracion';
-import { OpTipo } from 'src/shared/core/enums/OpTipo';
+import { OpTipo } from '@shared/core/enums/OpTipo';
 import { Transaccion } from '../entities/Transaccion';
 import { LoteId } from '../value-objects/LoteId';
 

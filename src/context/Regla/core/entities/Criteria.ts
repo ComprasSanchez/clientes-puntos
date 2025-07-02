@@ -1,4 +1,4 @@
-import { OpTipo } from 'src/shared/core/enums/OpTipo';
+import { OpTipo } from '@shared/core/enums/OpTipo';
 import { ReglaEngineRequest } from '../interfaces/IReglaEngine';
 import { FechaOperacion } from '../value-objects/FechaOperacion';
 import { CantidadPuntos } from '../value-objects/CantidadPuntos';

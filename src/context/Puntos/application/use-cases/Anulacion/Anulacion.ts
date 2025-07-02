@@ -1,4 +1,4 @@
-import { OpTipo } from 'src/shared/core/enums/OpTipo';
+import { OpTipo } from '@shared/core/enums/OpTipo';
 import { CreateOperacionRequest } from '../../dtos/CreateOperacionRequest';
 import { CreateOperacionResponse } from '../../dtos/CreateOperacionResponse';
 import { OperacionDto } from '../../dtos/OperacionDto';

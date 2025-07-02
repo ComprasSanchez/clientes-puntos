@@ -1,4 +1,4 @@
-import { FieldRequiredError } from 'src/shared/core/exceptions/FieldRequiredError';
+import { FieldRequiredError } from '@shared/core/exceptions/FieldRequiredError';
 import { ReglaId } from '../../value-objects/ReglaId';
 
 describe('ReglaId', () => {

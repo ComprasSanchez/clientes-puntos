@@ -1,4 +1,4 @@
-import { UUIDGenerator } from 'src/shared/core/uuid/UuidGenerator';
+import { UUIDGenerator } from '@shared/core/uuid/UuidGenerator';
 
 export class FakeUUIDGen implements UUIDGenerator {
   generate(): string {

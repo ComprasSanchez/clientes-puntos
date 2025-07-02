@@ -1,4 +1,4 @@
-import { InvalidNumberFormatError } from 'src/shared/core/exceptions/InvalidNumberFormatError';
+import { InvalidNumberFormatError } from '@shared/core/exceptions/InvalidNumberFormatError';
 import { DiasExpiracion } from '../../value-objects/DiasExpiracion';
 
 describe('DiasExpiracion', () => {

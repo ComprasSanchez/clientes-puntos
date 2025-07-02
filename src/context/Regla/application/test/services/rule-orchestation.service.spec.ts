@@ -7,7 +7,7 @@ import {
 } from '@regla/core/interfaces/IReglaEngine';
 import { ReglaCriteria } from '@regla/core/entities/Criteria';
 import { RuleProcessor } from '@regla/core/services/RuleProcessor';
-import { OpTipo } from 'src/shared/core/enums/OpTipo';
+import { OpTipo } from '@shared/core/enums/OpTipo';
 import { FechaOperacion } from '@regla/core/value-objects/FechaOperacion';
 import { CantidadPuntos } from '@regla/core/value-objects/CantidadPuntos';
 

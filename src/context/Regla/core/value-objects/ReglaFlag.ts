@@ -1,4 +1,4 @@
-import { InvalidBooleanError } from 'src/shared/core/exceptions/InvalidBooleanError';
+import { InvalidBooleanError } from '@shared/core/exceptions/InvalidBooleanError';
 
 export class ReglaFlag {
   constructor(public readonly value: boolean) {

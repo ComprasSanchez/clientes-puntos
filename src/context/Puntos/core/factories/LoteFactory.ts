@@ -1,5 +1,5 @@
 // @puntos/core/factories/LoteFactory.ts
-import { UUIDGenerator } from 'src/shared/core/uuid/UuidGenerator';
+import { UUIDGenerator } from '@shared/core/uuid/UuidGenerator';
 import { Lote } from '../entities/Lote';
 import { LoteId } from '../value-objects/LoteId';
 import { CantidadPuntos } from '../value-objects/CantidadPuntos';

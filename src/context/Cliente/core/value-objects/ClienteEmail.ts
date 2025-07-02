@@ -1,4 +1,4 @@
-import { InvalidFormatError } from 'src/shared/core/exceptions/InvalidFormatError';
+import { InvalidFormatError } from '@shared/core/exceptions/InvalidFormatError';
 
 export class ClienteEmail {
   value: string | null;

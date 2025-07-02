@@ -11,7 +11,7 @@ import { TransaccionFactory } from '@puntos/core/factories/TransaccionFactory';
 import { LoteRepository } from '@puntos/core/repository/LoteRepository';
 import { TransaccionRepository } from '@puntos/core/repository/TransaccionRepository';
 import { IReglaEngine } from '@puntos/core/interfaces/IReglaEngine';
-import { OpTipo } from 'src/shared/core/enums/OpTipo';
+import { OpTipo } from '@shared/core/enums/OpTipo';
 import { TxTipo } from '@puntos/core/enums/TxTipo';
 import { LoteId } from '../../core/value-objects/LoteId';
 import { Transaccion } from '../../core/entities/Transaccion';

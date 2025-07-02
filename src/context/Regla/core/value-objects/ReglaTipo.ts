@@ -1,5 +1,5 @@
 // @puntos/core/value-objects/Moneda.ts
-import { InvalidCoinError } from 'src/shared/core/exceptions/InvalidCoinError';
+import { InvalidCoinError } from '@shared/core/exceptions/InvalidCoinError';
 import { TipoRegla } from '../enums/TipoRegla';
 
 export class ReglaTipo {

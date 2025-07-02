@@ -1,5 +1,5 @@
-import { OpTipo } from 'src/shared/core/enums/OpTipo';
-import { TipoMoneda } from 'src/shared/core/enums/TipoMoneda';
+import { OpTipo } from '@shared/core/enums/OpTipo';
+import { TipoMoneda } from '@shared/core/enums/TipoMoneda';
 import {
   Entity,
   Column,

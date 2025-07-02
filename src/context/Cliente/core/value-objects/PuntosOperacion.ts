@@ -1,4 +1,4 @@
-import { ValueIntegrityError } from 'src/shared/core/exceptions/ValueIntegrityError';
+import { ValueIntegrityError } from '@shared/core/exceptions/ValueIntegrityError';
 
 export class PuntosOperacion {
   readonly value: number;

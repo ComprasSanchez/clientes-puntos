@@ -1,5 +1,5 @@
-import { InvalidDateError } from 'src/shared/core/exceptions/InvalidDateError';
-import { InvalidFormatError } from 'src/shared/core/exceptions/InvalidFormatError';
+import { InvalidDateError } from '@shared/core/exceptions/InvalidDateError';
+import { InvalidFormatError } from '@shared/core/exceptions/InvalidFormatError';
 
 export class ClienteFechaNacimiento {
   value: Date;
