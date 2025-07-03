@@ -87,6 +87,14 @@ describe('ExecuteRulesUseCase', () => {
         cantidad: engineResult.credito.cantidad,
         expiraEn: expDate,
       },
+      reglasAplicadas: {
+        'regla-1': [
+          {
+            id: '19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3',
+            nombre: 'Regla de bonificación',
+          },
+        ],
+      },
     });
   });
 });

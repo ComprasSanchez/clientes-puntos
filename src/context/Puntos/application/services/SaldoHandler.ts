@@ -1,22 +1,27 @@
 /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
 // @puntos/core/services/SaldoHandler.ts
-import { Saldo } from '../entities/Saldo';
-import { LoteFactory } from '../factories/LoteFactory';
-import { Lote } from '../entities/Lote';
-import { CantidadPuntos } from '../value-objects/CantidadPuntos';
-import { Operacion } from '../entities/Operacion';
-import { FechaExpiracion } from '../value-objects/FechaExpiracion';
+import { LoteId } from '@puntos/core/value-objects/LoteId';
+import { LoteFactory } from '../../core/factories/LoteFactory';
 import { OpTipo } from '@shared/core/enums/OpTipo';
-import { Transaccion } from '../entities/Transaccion';
-import { LoteId } from '../value-objects/LoteId';
+import { CantidadPuntos } from '@puntos/core/value-objects/CantidadPuntos';
+import { Lote } from '@puntos/core/entities/Lote';
+import { Saldo } from '@puntos/core/entities/Saldo';
+import { Operacion } from '@puntos/core/entities/Operacion';
+import { FechaExpiracion } from '@puntos/core/value-objects/FechaExpiracion';
+import { Transaccion } from '@puntos/core/entities/Transaccion';
+import { Inject, Injectable } from '@nestjs/common';
+import { LOTE_FACTORY } from '@puntos/core/tokens/tokens';
 
 export interface AplicacionCambioResult {
   detallesDebito: Array<{ loteId: LoteId; cantidad: CantidadPuntos }>;
   nuevoLote?: Lote;
 }
 
+@Injectable()
 export class SaldoHandler {
-  constructor(private readonly loteFactory: LoteFactory) {}
+  constructor(
+    @Inject(LOTE_FACTORY) private readonly loteFactory: LoteFactory,
+  ) {}
 
   aplicarCambio(
     saldo: Saldo,

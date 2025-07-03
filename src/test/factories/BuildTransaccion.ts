@@ -37,6 +37,7 @@ export function buildTransaccion(
     tipo,
     cantidad: new CantidadPuntos(cantidad),
     createdAt,
+    reglasAplicadas: {},
     referenciaId: referenciaId
       ? new ReferenciaMovimiento(referenciaId)
       : undefined,

@@ -36,6 +36,7 @@ export interface CreditoInstruction {
 export interface CambioOperacion {
   debitos: DebitoInstruction[];
   creditos: CreditoInstruction[];
+  reglasAplicadas: Record<string, Array<{ id: string; nombre: string }>>;
 }
 
 export class Operacion {
@@ -127,6 +128,8 @@ export class Operacion {
       });
     }
 
-    return { debitos, creditos };
+    const reglasAplicadas = result.reglasAplicadas || {};
+
+    return { debitos, creditos, reglasAplicadas };
   }
 }

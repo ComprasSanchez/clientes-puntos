@@ -6,5 +6,7 @@ export const REGLA_ENGINE = 'REGLA_ENGINE';
 export const REGLAS_USECASE = 'REGLAS_USECASE';
 export const CREATE_OPERACION_SERVICE = Symbol('CreateOperacionService');
 export const TX_FACTORY = Symbol('TransaccionFactory');
+export const LOTE_FACTORY = Symbol('LoteFactory');
 export const SALDO_HANDLER = Symbol('SaldoHandler');
 export const EXECUTE_RULES_USE_CASE = Symbol('ExecuteRulesUseCase');
+export const OBTENER_SALDO_SERVICE = Symbol('ObtenerSaldoService');

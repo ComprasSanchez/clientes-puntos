@@ -37,6 +37,7 @@ export class ReglaEngineAdapter implements RuleEngineContract {
           ? new Date(respDto.credito.expiraEn)
           : undefined,
       },
+      reglasAplicadas: respDto.reglasAplicadas || {}, // Asegurarse de que siempre sea un objeto
     };
   }
 }

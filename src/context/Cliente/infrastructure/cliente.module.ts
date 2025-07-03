@@ -1,12 +1,6 @@
 // @cliente/infrastructure/ClienteInfrastructureModule.ts
-import { Module, Provider } from '@nestjs/common';
-import {
-  CATEGORIA_REPO,
-  CLIENTE_REPO,
-  IPUNTOS_SERVICE,
-} from '../core/tokens/tokens';
-import { ObtenerSaldo } from '../../Puntos/application/use-cases/ObtenerSaldo/ObtenerSaldo';
-import { PuntosServiceInMemory } from './adapters/PuntosServiceInMemory/PuntosServiceInMemory';
+import { forwardRef, Module, Provider } from '@nestjs/common';
+import { CATEGORIA_REPO, CLIENTE_REPO } from '../core/tokens/tokens';
 import { ClienteGetProfile } from '../application/use-cases/ClienteGetProfile/ClienteGetProfile';
 import { DatabaseModule } from 'src/infrastructure/database/database.module';
 import { ClientePersistenceModule } from './persistence/cliente.module';
@@ -25,6 +19,7 @@ import { ClienteFindAll } from '@cliente/application/use-cases/ClienteFindAll/Cl
 import { ClienteFindByDni } from '@cliente/application/use-cases/ClienteFindByDni/ClienteFindByDni';
 import { ClienteFindById } from '@cliente/application/use-cases/ClienteFindbyId/ClienteFindById';
 import { ClienteController } from './controllers/ClienteController';
+import { PuntosInfrastructureModule } from '@puntos/infrastructure/puntos.module';
 
 const providers: Provider[] = [
   // 1) Repo puro
@@ -43,22 +38,13 @@ const providers: Provider[] = [
   CategoriaUpdate,
   CategoriaDelete,
   { provide: CATEGORIA_REPO, useClass: TypeOrmCategoriaRepository },
-
-  // 2) Caso de uso de Puntos (ya viene de PuntosApplicationModule o lo provees aquí)
-  ObtenerSaldo,
-
-  // 3) Adapter in-memory de IPuntosService
-  {
-    provide: IPUNTOS_SERVICE,
-    useFactory: (saldoUc: ObtenerSaldo) => new PuntosServiceInMemory(saldoUc),
-    inject: [ObtenerSaldo],
-  },
 ];
 
 @Module({
   imports: [
     DatabaseModule, // ← Debe ir aquí
     ClientePersistenceModule, // ← y aquí si lo vas a exportar
+    forwardRef(() => PuntosInfrastructureModule),
   ],
   controllers: [CategoriaController, ClienteController],
   providers,

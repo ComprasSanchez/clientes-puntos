@@ -7,8 +7,6 @@ import {
   IReglaEngine,
   ReglaEngineResult,
 } from '@puntos/core/interfaces/IReglaEngine';
-import { LoteFactory } from '@puntos/core/factories/LoteFactory';
-import { TransaccionFactory } from '@puntos/core/factories/TransaccionFactory';
 import { Lote } from '@puntos/core/entities/Lote';
 import { LoteId } from '@puntos/core/value-objects/LoteId';
 import { CantidadPuntos } from '@puntos/core/value-objects/CantidadPuntos';
@@ -20,7 +18,9 @@ import { FakeUUIDGen } from '@shared/core/uuid/test/stubs/FakeUUIDGenerator';
 import { BatchEstado } from '@puntos/core/enums/BatchEstado';
 import { Transaccion } from '@puntos/core/entities/Transaccion';
 import { TransaccionId } from '@puntos/core/value-objects/TransaccionId';
-import { SaldoHandler } from '@puntos/core/services/SaldoHandler';
+import { SaldoHandler } from '@puntos/application/services/SaldoHandler';
+import { LoteFactory } from '@puntos/core/factories/LoteFactory';
+import { TransaccionFactory } from '@puntos/core/factories/TransaccionFactory';
 
 describe('CreateOperacionService', () => {
   let loteRepo: jest.Mocked<LoteRepository>;
@@ -86,6 +86,14 @@ describe('CreateOperacionService', () => {
     const reglaResult: ReglaEngineResult = {
       debitAmount: 0,
       credito: { cantidad: 75, expiraEn: now },
+      reglasAplicadas: {
+        'regla-1': [
+          {
+            id: '19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3',
+            nombre: 'Regla de bonificación',
+          },
+        ],
+      },
     };
     reglaEngine.procesar.mockResolvedValue(reglaResult);
 
@@ -110,6 +118,14 @@ describe('CreateOperacionService', () => {
       cantidad: new CantidadPuntos(75),
       createdAt: now,
       referenciaId: undefined,
+      reglasAplicadas: {
+        'regla-1': [
+          {
+            id: '19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3',
+            nombre: 'Regla de bonificación',
+          },
+        ],
+      },
     });
     jest.spyOn(txFactory, 'createFromDto').mockReturnValue(txEntity);
 
@@ -176,6 +192,14 @@ describe('CreateOperacionService', () => {
 
     const reglaResult: ReglaEngineResult = {
       debitAmount: 100,
+      reglasAplicadas: {
+        'regla-1': [
+          {
+            id: '19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3',
+            nombre: 'Regla de bonificación',
+          },
+        ],
+      },
     };
     reglaEngine.procesar.mockResolvedValue(reglaResult);
 
@@ -187,6 +211,14 @@ describe('CreateOperacionService', () => {
       cantidad: new CantidadPuntos(100),
       createdAt: now,
       referenciaId: undefined,
+      reglasAplicadas: {
+        'regla-1': [
+          {
+            id: '19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3',
+            nombre: 'Regla de bonificación',
+          },
+        ],
+      },
     });
     jest.spyOn(txFactory, 'createFromDto').mockReturnValue(txEntity);
 
@@ -250,6 +282,14 @@ describe('CreateOperacionService', () => {
     const reglaResult: ReglaEngineResult = {
       debitAmount: 100,
       credito: { cantidad: 30, expiraEn: now },
+      reglasAplicadas: {
+        'regla-1': [
+          {
+            id: '19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3',
+            nombre: 'Regla de bonificación',
+          },
+        ],
+      },
     };
     (reglaEngine.procesar as jest.Mock).mockResolvedValue(reglaResult);
 
@@ -276,6 +316,14 @@ describe('CreateOperacionService', () => {
       cantidad: new CantidadPuntos(100),
       createdAt: now,
       referenciaId: undefined,
+      reglasAplicadas: {
+        'regla-1': [
+          {
+            id: '19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3',
+            nombre: 'Regla de bonificación',
+          },
+        ],
+      },
     });
     const txCredit = Transaccion.createOrphan({
       id: new TransaccionId('19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3'),
@@ -285,6 +333,14 @@ describe('CreateOperacionService', () => {
       cantidad: new CantidadPuntos(30),
       createdAt: now,
       referenciaId: undefined,
+      reglasAplicadas: {
+        'regla-1': [
+          {
+            id: '19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3',
+            nombre: 'Regla de bonificación',
+          },
+        ],
+      },
     });
     const txSpy = jest.spyOn(txFactory, 'createFromDto');
     txSpy.mockReturnValueOnce(txDebit).mockReturnValueOnce(txCredit);
@@ -393,6 +449,14 @@ describe('CreateOperacionService', () => {
     // El motor de reglas devuelve tres débitos
     const reglaResult: ReglaEngineResult = {
       debitAmount: 500,
+      reglasAplicadas: {
+        'regla-1': [
+          {
+            id: '19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3',
+            nombre: 'Regla de bonificación',
+          },
+        ],
+      },
     };
     (reglaEngine.procesar as jest.Mock).mockResolvedValue(reglaResult);
 
@@ -405,6 +469,14 @@ describe('CreateOperacionService', () => {
       cantidad: new CantidadPuntos(150),
       createdAt: now,
       referenciaId: undefined,
+      reglasAplicadas: {
+        'regla-1': [
+          {
+            id: '19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3',
+            nombre: 'Regla de bonificación',
+          },
+        ],
+      },
     });
     const tx2 = Transaccion.createOrphan({
       id: new TransaccionId('19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3'),
@@ -414,6 +486,14 @@ describe('CreateOperacionService', () => {
       cantidad: new CantidadPuntos(250),
       createdAt: now,
       referenciaId: undefined,
+      reglasAplicadas: {
+        'regla-1': [
+          {
+            id: '19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3',
+            nombre: 'Regla de bonificación',
+          },
+        ],
+      },
     });
     const tx3 = Transaccion.createOrphan({
       id: new TransaccionId('19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3'),
@@ -423,6 +503,14 @@ describe('CreateOperacionService', () => {
       cantidad: new CantidadPuntos(100),
       createdAt: now,
       referenciaId: undefined,
+      reglasAplicadas: {
+        'regla-1': [
+          {
+            id: '19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3',
+            nombre: 'Regla de bonificación',
+          },
+        ],
+      },
     });
     const txSpy = jest.spyOn(txFactory, 'createFromDto');
     txSpy
@@ -527,6 +615,14 @@ describe('CreateOperacionService', () => {
       cantidad: new CantidadPuntos(40),
       createdAt: now,
       referenciaId: undefined,
+      reglasAplicadas: {
+        'regla-1': [
+          {
+            id: '19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3',
+            nombre: 'Regla de bonificación',
+          },
+        ],
+      },
     });
     //    — El repo de transacciones debe devolvérmela
     txRepo.findByOperationId.mockResolvedValue([purchaseTx]);
@@ -557,6 +653,14 @@ describe('CreateOperacionService', () => {
       cantidad: new CantidadPuntos(40),
       createdAt: now,
       referenciaId: undefined,
+      reglasAplicadas: {
+        'regla-1': [
+          {
+            id: '19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3',
+            nombre: 'Regla de bonificación',
+          },
+        ],
+      },
     });
     jest.spyOn(txFactory, 'createFromDto').mockReturnValue(txEntity);
 

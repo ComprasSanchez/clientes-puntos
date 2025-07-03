@@ -1,5 +1,6 @@
 import { OpTipo } from '@shared/core/enums/OpTipo';
 import { TipoMoneda } from '@shared/core/enums/TipoMoneda';
+import { Operacion } from '../../core/entities/Operacion';
 
 export class OperacionResponseDto {
   id: number;
@@ -14,4 +15,19 @@ export class OperacionResponseDto {
   refAnulacion?: number | null;
   createdAt: Date;
   updatedAt: Date;
+
+  static fromDomain(this: void, operacion: Operacion): OperacionResponseDto {
+    const dto = new OperacionResponseDto();
+    dto.id = operacion.id.value;
+    dto.clienteId = operacion.clienteId;
+    dto.tipo = operacion.tipo;
+    dto.fecha = operacion.fecha.value;
+    dto.origenTipo = operacion.origenTipo.value;
+    dto.puntos = operacion.puntos?.value;
+    dto.monto = operacion.monto?.value;
+    dto.moneda = operacion.moneda?.value;
+    dto.refOperacion = operacion.refOperacion?.value ?? null;
+    dto.refAnulacion = operacion.refAnulacion?.value ?? null;
+    return dto;
+  }
 }

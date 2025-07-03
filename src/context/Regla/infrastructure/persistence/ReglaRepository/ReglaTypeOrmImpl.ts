@@ -26,9 +26,6 @@ export class TypeOrmReglaRepository implements ReglaRepository {
 
   async findByCriteria(criteria: ReglaCriteria): Promise<ReglaDomain[]> {
     const qb = this.repo.createQueryBuilder('r');
-    if (criteria.tipo) {
-      qb.andWhere('r.tipo = :tipo', { tipo: criteria.tipo });
-    }
     qb.andWhere('r.activa = :activa', { activa: true });
     if (criteria.fecha) {
       qb.andWhere('r.vigenciaInicio <= :fecha', {

@@ -48,6 +48,7 @@ export class ExecuteRulesUseCase {
             expiraEn: result.credito.expiraEn,
           }
         : undefined,
+      reglasAplicadas: result.reglasAplicadas || [], // Asegurarse de que siempre sea un array
     };
     return response;
   }

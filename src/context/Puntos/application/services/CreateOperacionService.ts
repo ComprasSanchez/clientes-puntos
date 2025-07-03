@@ -15,7 +15,7 @@ import { OpTipo } from '@shared/core/enums/OpTipo';
 import { TxTipo } from '@puntos/core/enums/TxTipo';
 import { LoteId } from '../../core/value-objects/LoteId';
 import { Transaccion } from '../../core/entities/Transaccion';
-import { SaldoHandler } from '../../core/services/SaldoHandler';
+import { SaldoHandler } from './SaldoHandler';
 import { RefundError } from '../../core/exceptions/Operacion/RefundError';
 import { Inject, Injectable } from '@nestjs/common';
 import {
@@ -97,8 +97,12 @@ export class CreateOperacionService {
 
     // 5️⃣ Persistir cambios en lotes
     for (const lote of saldo.getLotes()) {
+      // Si el lote ES el nuevo, no lo actualices (porque lo vas a guardar abajo)
+      if (nuevoLote && lote.id.value === nuevoLote.id.value) continue;
       await this.loteRepo.update(lote);
     }
+
+    // Guardar SOLO el lote nuevo
     if (nuevoLote) {
       await this.loteRepo.save(nuevoLote);
     }
@@ -137,6 +141,7 @@ export class CreateOperacionService {
         cantidad: reg.cantidad,
         fechaCreacion: new Date(),
         referenciaId: req.referencia,
+        reglasAplicadas: cambio.reglasAplicadas,
       };
       const tx = this.txFactory.createFromDto(dto);
       await this.txRepo.save(tx);

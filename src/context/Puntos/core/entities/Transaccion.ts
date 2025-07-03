@@ -15,6 +15,10 @@ export class Transaccion {
     private readonly _tipo: TxTipo,
     private readonly _cantidad: CantidadPuntos,
     private readonly _createdAt: Date,
+    private readonly _reglasAplicadas: Record<
+      string,
+      Array<{ id: string; nombre: string }>
+    >,
     private readonly _referenciaId?: ReferenciaMovimiento,
   ) {
     this._updatedAt = new Date(_createdAt);
@@ -30,6 +34,7 @@ export class Transaccion {
     tipo: TxTipo;
     cantidad: CantidadPuntos;
     createdAt: Date;
+    reglasAplicadas: Record<string, Array<{ id: string; nombre: string }>>;
     referenciaId?: ReferenciaMovimiento;
   }): Transaccion {
     return new Transaccion(
@@ -39,6 +44,7 @@ export class Transaccion {
       args.tipo,
       args.cantidad,
       args.createdAt,
+      args.reglasAplicadas,
       args.referenciaId,
     );
   }
@@ -73,5 +79,9 @@ export class Transaccion {
 
   get referenciaId(): ReferenciaMovimiento | undefined {
     return this._referenciaId;
+  }
+
+  get reglasAplicadas(): Record<string, Array<{ id: string; nombre: string }>> {
+    return this._reglasAplicadas;
   }
 }

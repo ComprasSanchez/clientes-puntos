@@ -70,7 +70,7 @@ export class ConversionRule extends Regla {
   }
 
   protected applyIfTrue(ctx: ReglaEngineRequest): ReglaEngineResult {
-    const result: ReglaEngineResult = { debitAmount: 0 };
+    const result: ReglaEngineResult = { debitAmount: 0, reglasAplicadas: {} };
 
     // 1. Débito: puntos solicitados (si vienen, o 0)
     const ptsReq = ctx.puntosSolicitados?.value ?? 0;

@@ -13,6 +13,7 @@ export interface ReglaEngineRequest {
 export interface ReglaEngineResult {
   debitAmount: number;
   credito?: { cantidad: number; expiraEn?: Date };
+  reglasAplicadas: Record<string, Array<{ id: string; nombre: string }>>;
 }
 
 export interface IReglaEngine {

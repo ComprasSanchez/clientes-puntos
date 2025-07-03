@@ -12,6 +12,7 @@ export interface CreateTransaccionParams {
   loteId: LoteId;
   tipo: TxTipo;
   cantidad: CantidadPuntos;
+  reglasAplicadas: Record<string, Array<{ id: string; nombre: string }>>;
   referenciaId?: ReferenciaMovimiento;
   fechaCreacion?: Date;
 }
@@ -35,6 +36,7 @@ export class TransaccionFactory {
       cantidad: params.cantidad,
       createdAt: fecha,
       referenciaId: params.referenciaId,
+      reglasAplicadas: params.reglasAplicadas,
     });
   }
 }

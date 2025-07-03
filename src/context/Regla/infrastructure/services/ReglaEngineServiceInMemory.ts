@@ -15,8 +15,10 @@ import {
  */
 export class ReglaEngineServiceInMemory implements ReglaEngine {
   constructor(
-    private readonly resultadoStub: ReglaEngineResult = { debitAmount: 0 },
-    d,
+    private readonly resultadoStub: ReglaEngineResult = {
+      debitAmount: 0,
+      reglasAplicadas: {},
+    },
   ) {}
 
   async procesar(_req: ReglaEngineRequest): Promise<ReglaEngineResult> {

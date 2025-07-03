@@ -105,10 +105,10 @@ export abstract class Regla {
 
   public apply(context: ReglaEngineRequest): ReglaEngineResult {
     if (!this.isApplicable(context.fecha.value)) {
-      return { debitAmount: 0 };
+      return { debitAmount: 0, reglasAplicadas: {} };
     }
     if (this.condition && !this.condition.evaluate(context)) {
-      return { debitAmount: 0 };
+      return { debitAmount: 0, reglasAplicadas: {} };
     }
     return this.applyIfTrue(context);
   }

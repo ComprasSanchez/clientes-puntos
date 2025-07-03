@@ -18,7 +18,7 @@ export class TransaccionEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column('uuid')
+  @Column('bigint')
   operationId: number;
 
   @Column('uuid')
@@ -30,11 +30,11 @@ export class TransaccionEntity {
   @Column('int')
   cantidad: number;
 
-  @Column('uuid', { nullable: true })
+  @Column('varchar', { length: '50', nullable: true })
   referenciaId: string | null;
 
   @Column('jsonb')
-  reglasAplicadas: any;
+  reglasAplicadas: Record<string, Array<{ id: string; nombre: string }>>;
 
   @CreateDateColumn()
   createdAt: Date;
@@ -50,6 +50,7 @@ export class TransaccionEntity {
       this.tipo,
       new CantidadPuntos(this.cantidad),
       this.createdAt,
+      this.reglasAplicadas,
       this.referenciaId
         ? new ReferenciaMovimiento(this.referenciaId)
         : undefined,
@@ -64,6 +65,7 @@ export class TransaccionEntity {
     e.tipo = trans.tipo;
     e.cantidad = trans.cantidad.value;
     e.referenciaId = trans.referenciaId?.value ?? null;
+    e.reglasAplicadas = trans.reglasAplicadas;
     e.createdAt = trans.createdAt;
     e.updatedAt = trans.updatedAt;
     return e;

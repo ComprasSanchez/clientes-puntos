@@ -42,7 +42,7 @@ export class LoteEntity {
   @Column()
   origenTipo: string;
 
-  @Column('uuid', { nullable: true })
+  @Column('varchar', { length: 50, nullable: true })
   referenciaId: string | null;
 
   toDomain(): Lote {

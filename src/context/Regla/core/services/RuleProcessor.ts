@@ -21,10 +21,21 @@ export class RuleProcessor {
     );
 
     // 2. Aplicar y acumular
-    const resultado: ReglaEngineResult = { debitAmount: 0 };
+    const resultado: ReglaEngineResult = {
+      debitAmount: 0,
+      reglasAplicadas: {},
+    };
 
     for (const regla of sorted) {
       const parcial = regla.apply(context);
+
+      const tipo = regla.tipo;
+      const reglaInfo = { id: regla.id.value, nombre: regla.nombre.value };
+
+      if (!resultado.reglasAplicadas[tipo.value]) {
+        resultado.reglasAplicadas[tipo.value] = [];
+      }
+      resultado.reglasAplicadas[tipo.value].push(reglaInfo);
 
       if (parcial.debitAmount) {
         resultado.debitAmount += parcial.debitAmount;
