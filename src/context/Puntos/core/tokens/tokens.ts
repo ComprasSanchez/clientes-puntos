@@ -1,6 +1,10 @@
 // @puntos/infrastructure/tokens.ts
 export const LOTE_REPO = Symbol('LoteRepository');
 export const TX_REPO = Symbol('TransaccionRepository');
+export const OPERACION_REPO = Symbol('OperacionRepository');
 export const REGLA_ENGINE = 'REGLA_ENGINE';
 export const REGLAS_USECASE = 'REGLAS_USECASE';
+export const CREATE_OPERACION_SERVICE = Symbol('CreateOperacionService');
+export const TX_FACTORY = Symbol('TransaccionFactory');
+export const SALDO_HANDLER = Symbol('SaldoHandler');
 export const EXECUTE_RULES_USE_CASE = Symbol('ExecuteRulesUseCase');

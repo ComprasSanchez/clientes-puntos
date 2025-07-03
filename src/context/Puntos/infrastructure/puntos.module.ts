@@ -1,87 +1,44 @@
 // @puntos/infrastructure/PuntosInfrastructureModule.ts
-import { forwardRef, Module, Provider } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { TransaccionFactory } from '../core/factories/TransaccionFactory';
 import { SaldoHandler } from '../core/services/SaldoHandler';
 import { CreateOperacionService } from '../application/services/CreateOperacionService';
 import { CompraUseCase } from '../application/use-cases/Compra/Compra';
-import { ReglaInfrastructureModule } from '@regla/infrastructure/regla.module';
-import { LOTE_REPO, TX_REPO } from './tokens/tokens';
-import { LoteRepository } from '../core/repository/LoteRepository';
-import { TransaccionRepository } from '../core/repository/TransaccionRepository';
-import { RuleEngineContract } from '@regla/application/dtos/RuleEngineContract';
 import { DevolucionUseCase } from '../application/use-cases/Devolucion/Devolucion';
 import { AnulacionUseCase } from '../application/use-cases/Anulacion/Anulacion';
-import { TypeOrmLoteRepository } from './persistence/LoteRepository/LoteTypeOrmImpl';
-import { TypeOrmTransaccionRepository } from './persistence/TransaccionRepository/TransaccionTypeOrmImpl';
+import { ReglaInfrastructureModule } from '@regla/infrastructure/regla.module';
+import {
+  CREATE_OPERACION_SERVICE,
+  SALDO_HANDLER,
+  TX_FACTORY,
+} from '../core/tokens/tokens';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { LoteEntity } from './entities/lote.entity';
 import { TransaccionEntity } from './entities/transaccion.entity';
 import { DatabaseModule } from 'src/infrastructure/database/database.module';
 import { PuntosPersistenceModule } from './persistence/persistence.module';
-import { REGLA_ENGINE_ADAPTER } from '@regla/core/tokens/tokens';
-
-const providers: Provider[] = [
-  // 1) Repositorios de Puntos
-  { provide: LOTE_REPO, useClass: TypeOrmLoteRepository },
-  { provide: TX_REPO, useClass: TypeOrmTransaccionRepository },
-
-  // 2) Auxiliares
-  TransaccionFactory,
-  SaldoHandler,
-
-  // 3) Servicio de aplicación que recibe el adapter via REGLA_ENGINE
-  {
-    provide: CreateOperacionService,
-    useFactory: (
-      loteRepo: LoteRepository,
-      txRepo: TransaccionRepository,
-      reglaEngine: RuleEngineContract,
-      txFactory: TransaccionFactory,
-      saldoHandler: SaldoHandler,
-    ): CreateOperacionService => {
-      return new CreateOperacionService(
-        loteRepo,
-        txRepo,
-        reglaEngine, // aquí va el adapter que implementa ReglaEngine
-        txFactory,
-        saldoHandler,
-      );
-    },
-    inject: [
-      LOTE_REPO,
-      TX_REPO,
-      REGLA_ENGINE_ADAPTER, // inyecta el adapter desde ReglaInfrastructureModule
-      TransaccionFactory,
-      SaldoHandler,
-    ],
-  },
-
-  // 4) Caso de uso de Puntos
-  {
-    provide: CompraUseCase,
-    useFactory: (svc: CreateOperacionService) => new CompraUseCase(svc),
-    inject: [CreateOperacionService],
-  },
-  {
-    provide: DevolucionUseCase,
-    useFactory: (svc: CreateOperacionService) => new CompraUseCase(svc),
-    inject: [CreateOperacionService],
-  },
-  {
-    provide: AnulacionUseCase,
-    useFactory: (svc: CreateOperacionService) => new CompraUseCase(svc),
-    inject: [CreateOperacionService],
-  },
-];
+import { OperacionEntity } from './entities/operacion.entity';
 
 @Module({
   imports: [
     forwardRef(() => ReglaInfrastructureModule),
-    TypeOrmModule.forFeature([LoteEntity, TransaccionEntity]),
+    TypeOrmModule.forFeature([LoteEntity, TransaccionEntity, OperacionEntity]),
     DatabaseModule,
     PuntosPersistenceModule,
   ],
-  providers,
+  providers: [
+    // Factories y servicios auxiliares
+    { provide: TX_FACTORY, useClass: TransaccionFactory },
+    { provide: SALDO_HANDLER, useClass: SaldoHandler },
+
+    // Servicio de aplicación y adapter de regla
+    { provide: CREATE_OPERACION_SERVICE, useClass: CreateOperacionService },
+
+    // Casos de uso
+    CompraUseCase,
+    DevolucionUseCase,
+    AnulacionUseCase,
+  ],
   exports: [CompraUseCase, DevolucionUseCase, AnulacionUseCase],
 })
 export class PuntosInfrastructureModule {}

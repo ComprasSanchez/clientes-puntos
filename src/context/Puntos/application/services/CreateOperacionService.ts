@@ -17,13 +17,27 @@ import { LoteId } from '../../core/value-objects/LoteId';
 import { Transaccion } from '../../core/entities/Transaccion';
 import { SaldoHandler } from '../../core/services/SaldoHandler';
 import { RefundError } from '../../core/exceptions/Operacion/RefundError';
+import { Inject, Injectable } from '@nestjs/common';
+import {
+  LOTE_REPO,
+  SALDO_HANDLER,
+  TX_FACTORY,
+  TX_REPO,
+} from '@puntos/core/tokens/tokens';
+import { REGLA_ENGINE_ADAPTER } from '@regla/core/tokens/tokens';
 
+@Injectable()
 export class CreateOperacionService {
   constructor(
+    @Inject(LOTE_REPO)
     private readonly loteRepo: LoteRepository,
+    @Inject(TX_REPO)
     private readonly txRepo: TransaccionRepository,
+    @Inject(REGLA_ENGINE_ADAPTER)
     private readonly reglaEngine: IReglaEngine,
+    @Inject(TX_FACTORY)
     private readonly txFactory: TransaccionFactory,
+    @Inject(SALDO_HANDLER)
     private readonly saldoHandler: SaldoHandler,
   ) {}
 

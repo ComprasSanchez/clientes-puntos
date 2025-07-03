@@ -24,7 +24,7 @@ export class TransaccionEntity {
   @Column('uuid')
   loteId: string;
 
-  @Column({ type: 'simple-enum', enum: TxTipo })
+  @Column({ type: 'enum', enum: TxTipo, enumName: 'transaccion_tipo_enum' })
   tipo: TxTipo;
 
   @Column('int')

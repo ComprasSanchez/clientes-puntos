@@ -6,9 +6,15 @@ import { CreateOperacionService } from '../../services/CreateOperacionService';
 import { OrigenOperacion } from '@puntos/core/value-objects/OrigenOperacion';
 import { ReferenciaMovimiento } from '@puntos/core/value-objects/ReferenciaMovimiento';
 import { OperacionId } from '@puntos/core/value-objects/OperacionId';
+import { Inject, Injectable } from '@nestjs/common';
+import { CREATE_OPERACION_SERVICE } from '@puntos/core/tokens/tokens';
 
+@Injectable()
 export class DevolucionUseCase {
-  constructor(private readonly service: CreateOperacionService) {}
+  constructor(
+    @Inject(CREATE_OPERACION_SERVICE)
+    private readonly service: CreateOperacionService,
+  ) {}
 
   async run(input: OperacionDto): Promise<CreateOperacionResponse> {
     // 1️⃣ Validar/conversiones de primitivos a VOs

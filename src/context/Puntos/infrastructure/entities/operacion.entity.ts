@@ -17,14 +17,14 @@ import { Moneda } from '../../core/value-objects/Moneda';
 import { ReferenciaMovimiento } from '../../core/value-objects/ReferenciaMovimiento';
 
 @Entity({ name: 'operaciones' })
-export class OperaacionEntity {
+export class OperacionEntity {
   @PrimaryColumn('int')
   id: number;
 
   @Column('uuid')
   clienteId: string;
 
-  @Column({ type: 'simple-enum', enum: OpTipo })
+  @Column({ type: 'enum', enum: OpTipo, enumName: 'operacion_tipo_enum' })
   tipo: OpTipo;
 
   @Column('timestamp')
@@ -39,7 +39,12 @@ export class OperaacionEntity {
   @Column('int', { nullable: true })
   monto: number | null;
 
-  @Column({ type: 'simple-enum', enum: TipoMoneda, nullable: true })
+  @Column({
+    type: 'enum',
+    enum: TipoMoneda,
+    enumName: 'operacion_moneda_enum',
+    nullable: true,
+  })
   moneda: TipoMoneda | null;
 
   @Column('varchar', { length: 50, nullable: true })
@@ -73,8 +78,8 @@ export class OperaacionEntity {
     );
   }
 
-  static fromDomain(operacion: Operacion): OperaacionEntity {
-    const entity = new OperaacionEntity();
+  static fromDomain(operacion: Operacion): OperacionEntity {
+    const entity = new OperacionEntity();
     entity.id = operacion.id.value;
     entity.clienteId = operacion.clienteId;
     entity.tipo = operacion.tipo;

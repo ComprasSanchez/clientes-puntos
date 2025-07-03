@@ -16,7 +16,7 @@ import { ReglaRepository } from '@regla/core/repository/ReglaRepository';
 import {
   LOTE_REPO,
   TX_REPO,
-} from '@puntos/infrastructure/tokens/tokens';
+} from '@puntos/core/tokens/tokens';
 import { LoteRepository } from '@puntos/core/repository/LoteRepository';
 import { TransaccionRepository } from '@puntos/core/repository/TransaccionRepository';
 import { TransaccionId } from '@puntos/core/value-objects/TransaccionId';
