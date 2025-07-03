@@ -7,7 +7,7 @@ export class CreateReglaDto {
   prioridad: number;
   activa: boolean;
   excluyente: boolean;
-  vigenciaInicio: Date;
+  vigenciaInicio: string;
   vigenciaFin?: Date;
   descripcion?: string;
 

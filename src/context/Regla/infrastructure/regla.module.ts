@@ -28,10 +28,11 @@ import { ReglaCreate } from '@regla/application/use-cases/ReglaCreate/Create';
 import { ReglaUpdate } from '@regla/application/use-cases/ReglaUpdate/Update';
 import { ReglaDelete } from '@regla/application/use-cases/ReglaDelete/Delete';
 import { ReglaController } from './controllers/ReglaController';
+import { ConversionRuleEntity } from './entities/rule-conversion.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([ReglaEntity]),
+    TypeOrmModule.forFeature([ReglaEntity, ConversionRuleEntity]),
     DatabaseModule,
     ReglaPersistenceModule,
   ],
@@ -66,6 +67,8 @@ import { ReglaController } from './controllers/ReglaController';
   ],
   exports: [
     REGLA_REPO,
+    REGLA_ENGINE,
+    REGLA_ENGINE_ADAPTER,
     EXECUTE_RULES_USE_CASE,
     ReglaPersistenceModule,
     DatabaseModule,

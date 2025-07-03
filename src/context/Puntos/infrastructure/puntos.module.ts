@@ -5,7 +5,7 @@ import { SaldoHandler } from '../core/services/SaldoHandler';
 import { CreateOperacionService } from '../application/services/CreateOperacionService';
 import { CompraUseCase } from '../application/use-cases/Compra/Compra';
 import { ReglaInfrastructureModule } from '@regla/infrastructure/regla.module';
-import { LOTE_REPO, TX_REPO, REGLA_ENGINE } from './tokens/tokens';
+import { LOTE_REPO, TX_REPO } from './tokens/tokens';
 import { LoteRepository } from '../core/repository/LoteRepository';
 import { TransaccionRepository } from '../core/repository/TransaccionRepository';
 import { RuleEngineContract } from '@regla/application/dtos/RuleEngineContract';
@@ -18,6 +18,7 @@ import { LoteEntity } from './entities/lote.entity';
 import { TransaccionEntity } from './entities/transaccion.entity';
 import { DatabaseModule } from 'src/infrastructure/database/database.module';
 import { PuntosPersistenceModule } from './persistence/persistence.module';
+import { REGLA_ENGINE_ADAPTER } from '@regla/core/tokens/tokens';
 
 const providers: Provider[] = [
   // 1) Repositorios de Puntos
@@ -49,7 +50,7 @@ const providers: Provider[] = [
     inject: [
       LOTE_REPO,
       TX_REPO,
-      REGLA_ENGINE, // inyecta el adapter desde ReglaInfrastructureModule
+      REGLA_ENGINE_ADAPTER, // inyecta el adapter desde ReglaInfrastructureModule
       TransaccionFactory,
       SaldoHandler,
     ],

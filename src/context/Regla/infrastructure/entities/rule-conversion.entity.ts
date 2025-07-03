@@ -17,7 +17,7 @@ import { DiasExpiracion } from '../../core/value-objects/DiasExpiracion';
  * Entidad específica para reglas de tipo CONVERSION.
  * Hereda de ReglaEntity (STI).
  */
-@ChildEntity(TipoRegla.CONVERSION)
+@ChildEntity('CONVERSION')
 export class ConversionRuleEntity extends ReglaEntity {
   @Column('jsonb', {
     nullable: true,
@@ -62,6 +62,8 @@ export class ConversionRuleEntity extends ReglaEntity {
       domain.rateSpendVo,
       domain.creditExpiryDaysVo,
     );
+
+    console.log(domain.tipo.value);
     return e;
   }
 }

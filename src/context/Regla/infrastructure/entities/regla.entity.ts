@@ -14,7 +14,14 @@ import { Regla } from '@regla/core/entities/Regla';
  * Usa Single Table Inheritance (STI) por el campo `tipo`.
  */
 @Entity({ name: 'reglas' })
-@TableInheritance({ column: { name: 'tipo', type: 'enum', enum: TipoRegla } })
+@TableInheritance({
+  column: {
+    name: 'tipo',
+    type: 'enum',
+    enum: TipoRegla,
+    enumName: 'reglas_tipo_enum',
+  },
+})
 export abstract class ReglaEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
@@ -22,7 +29,11 @@ export abstract class ReglaEntity {
   @Column()
   nombre!: string;
 
-  @Column({ type: 'enum', enum: TipoRegla })
+  @Column({
+    type: 'enum',
+    enum: TipoRegla,
+    enumName: 'reglas_tipo_enum',
+  })
   tipo!: TipoRegla;
 
   @Column('int')

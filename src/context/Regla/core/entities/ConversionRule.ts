@@ -14,6 +14,7 @@ import { RatioConversion } from '../value-objects/RatioConversion';
 import { DiasExpiracion } from '../value-objects/DiasExpiracion';
 import { ReglaDescripcion } from '../value-objects/ReglaDescripcion';
 import { ReglaTipo } from '../value-objects/ReglaTipo';
+import { TipoRegla } from '../enums/TipoRegla';
 
 export class ConversionRule extends Regla {
   constructor(
@@ -32,7 +33,7 @@ export class ConversionRule extends Regla {
     super(
       id,
       nombre,
-      ReglaTipo.create('CONVERSION'),
+      ReglaTipo.create(TipoRegla.CONVERSION),
       prioridad,
       activa,
       excluyente,

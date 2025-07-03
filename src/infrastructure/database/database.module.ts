@@ -18,6 +18,7 @@ import { ConfigModule } from '../config/config.module';
         database: cfg.get<string>('dbName'),
         autoLoadEntities: true,
         synchronize: cfg.get<string>('nodeEnv') !== 'production',
+        logging: ['query', 'error'],
       }),
     }),
   ],

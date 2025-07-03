@@ -15,6 +15,8 @@ export class TypeOrmReglaRepository implements ReglaRepository {
   constructor(
     @InjectRepository(ReglaEntity)
     private readonly repo: Repository<ReglaEntity>,
+    @InjectRepository(ConversionRuleEntity)
+    private readonly conversionRuleRepo: Repository<ConversionRuleEntity>,
   ) {}
 
   async findById(id: string): Promise<ReglaDomain | null> {
@@ -46,15 +48,29 @@ export class TypeOrmReglaRepository implements ReglaRepository {
   }
 
   async save(regla: ReglaDomain): Promise<void> {
-    let entity: ReglaEntity;
+    let ent: ReglaEntity;
     switch (regla.tipo.value) {
       case TipoRegla.CONVERSION:
-        entity = ConversionRuleEntity.fromDomain(regla as ConversionRule);
+        ent = ConversionRuleEntity.fromDomain(regla as ConversionRule);
+        ent.tipo = TipoRegla.CONVERSION;
         break;
       default:
         throw new Error(`Tipo de regla no soportado: ${regla.tipo.value}`);
     }
-    await this.repo.save(entity);
+    console.log(
+      'Antes de save: entity.tipo =',
+      ent.tipo,
+      'typeof:',
+      typeof ent.tipo,
+    );
+
+    if (ent instanceof ConversionRuleEntity) {
+      await this.conversionRuleRepo.save(ent);
+    } else {
+      // Si tuvieras otras entidades hijas, usarías su repositorio específico aquí
+      // O podrías tener un mapeo de TipoRegla a repositorios específicos
+      await this.repo.save(ent); // Esto solo se usaría para la entidad base si se pudiera instanciar directamente
+    }
   }
 
   async update(regla: ReglaDomain): Promise<void> {
