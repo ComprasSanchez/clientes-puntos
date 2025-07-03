@@ -4,6 +4,8 @@ import { ReglaInfrastructureModule } from './context/Regla/infrastructure/regla.
 import { PuntosInfrastructureModule } from './context/Puntos/infrastructure/puntos.module';
 import { ConfigModule } from './infrastructure/config/config.module';
 import { SharedModule } from '@shared/shared.module';
+import { APP_FILTER } from '@nestjs/core';
+import { AppExceptionFilter } from '@shared/core/exceptions/AppExceptionFilter';
 
 @Module({
   imports: [
@@ -14,6 +16,11 @@ import { SharedModule } from '@shared/shared.module';
     PuntosInfrastructureModule,
   ],
   controllers: [],
-  providers: [],
+  providers: [
+    {
+      provide: APP_FILTER,
+      useClass: AppExceptionFilter,
+    },
+  ],
 })
 export class AppModule {}

@@ -1,4 +1,6 @@
 import { FieldRequiredError } from '@shared/core/exceptions/FieldRequiredError';
+import { InvalidUUIDError } from '@shared/core/exceptions/InvalidUUIDError';
+import { UUID_REGEX } from '@shared/core/regex/uuid_regex';
 
 export class TransaccionId {
   public readonly value: string;
@@ -7,6 +9,7 @@ export class TransaccionId {
     if (!value) {
       throw new FieldRequiredError('ID');
     }
+    if (!UUID_REGEX.test(value)) throw new InvalidUUIDError(value);
     this.value = value;
   }
 
