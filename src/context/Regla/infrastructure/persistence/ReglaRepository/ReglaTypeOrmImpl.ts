@@ -57,13 +57,6 @@ export class TypeOrmReglaRepository implements ReglaRepository {
       default:
         throw new Error(`Tipo de regla no soportado: ${regla.tipo.value}`);
     }
-    console.log(
-      'Antes de save: entity.tipo =',
-      ent.tipo,
-      'typeof:',
-      typeof ent.tipo,
-    );
-
     if (ent instanceof ConversionRuleEntity) {
       await this.conversionRuleRepo.save(ent);
     } else {

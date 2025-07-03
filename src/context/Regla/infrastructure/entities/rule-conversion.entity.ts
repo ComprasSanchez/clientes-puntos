@@ -63,7 +63,6 @@ export class ConversionRuleEntity extends ReglaEntity {
       domain.creditExpiryDaysVo,
     );
 
-    console.log(domain.tipo.value);
     return e;
   }
 }
