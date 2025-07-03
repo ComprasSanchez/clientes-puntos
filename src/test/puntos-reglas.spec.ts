@@ -11,7 +11,7 @@ import { OpTipo } from '@shared/core/enums/OpTipo';
 import { DataSource } from 'typeorm';
 import { buildConversionRule } from './factories/BuildConversionRule';
 import { buildLote } from './factories/BuildLote';
-import { REGLA_REPO } from '@regla/infrastructure/tokens/tokens';
+import { REGLA_REPO } from '@regla/core/tokens/tokens';
 import { ReglaRepository } from '@regla/core/repository/ReglaRepository';
 import {
   LOTE_REPO,

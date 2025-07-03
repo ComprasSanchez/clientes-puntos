@@ -1,5 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 // test/application/use-cases/cliente-create.usecase.spec.ts
 
@@ -41,7 +40,6 @@ describe('ClienteCreate Use Case', () => {
       'Pérez',
       'M',
       new Date('1990-01-01'),
-      'activo',
       defaultCategoria,
       'juan@dominio.com',
       '+541234567890',
@@ -72,7 +70,6 @@ describe('ClienteCreate Use Case', () => {
       'Gómez',
       'F',
       new Date('1985-05-05'),
-      'activo',
       defaultCategoria,
       // resto undefined
     );

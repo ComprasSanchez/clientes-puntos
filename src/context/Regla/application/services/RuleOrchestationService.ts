@@ -1,3 +1,4 @@
+import { Inject, Injectable } from '@nestjs/common';
 import { ReglaCriteria } from '../../core/entities/Criteria';
 import {
   ReglaEngineRequest,
@@ -5,14 +6,18 @@ import {
 } from '../../core/interfaces/IReglaEngine';
 import { ReglaRepository } from '../../core/repository/ReglaRepository';
 import { RuleProcessor } from '../../core/services/RuleProcessor';
+import { REGLA_REPO } from '@regla/core/tokens/tokens';
 
 /**
  * Servicio de aplicación: orquesta repositorio, criterios y procesador de reglas.
  */
+@Injectable()
 export class RulesOrchestrationService {
   private processor = new RuleProcessor();
 
-  constructor(private readonly reglaRepo: ReglaRepository) {}
+  constructor(
+    @Inject(REGLA_REPO) private readonly reglaRepo: ReglaRepository,
+  ) {}
 
   /**
    * Devuelve el resultado de aplicar reglas a un contexto dado.

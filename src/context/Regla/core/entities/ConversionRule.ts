@@ -25,9 +25,9 @@ export class ConversionRule extends Regla {
     vigenciaInicio: ReglaVigenciaInicio,
     vigenciaFin: ReglaVigenciaFin | undefined,
     descripcion: ReglaDescripcion | undefined,
-    private readonly rateAccred: RatioConversion,
-    private readonly rateSpend: RatioConversion,
-    private readonly creditExpiryDays?: DiasExpiracion,
+    private rateAccred: RatioConversion,
+    private rateSpend: RatioConversion,
+    private creditExpiryDays?: DiasExpiracion,
   ) {
     super(
       id,
@@ -53,6 +53,19 @@ export class ConversionRule extends Regla {
 
   get creditExpiryDaysVo(): DiasExpiracion | undefined {
     return this.creditExpiryDays;
+  }
+
+  cambiarRateAccred(nuevoRate: RatioConversion): void {
+    this.rateAccred = nuevoRate;
+    this.touch();
+  }
+  cambiarRateSpend(nuevoRate: RatioConversion): void {
+    this.rateSpend = nuevoRate;
+    this.touch();
+  }
+  cambiarCreditExpiryDays(nuevoDias?: DiasExpiracion): void {
+    this.creditExpiryDays = nuevoDias;
+    this.touch();
   }
 
   protected applyIfTrue(ctx: ReglaEngineRequest): ReglaEngineResult {

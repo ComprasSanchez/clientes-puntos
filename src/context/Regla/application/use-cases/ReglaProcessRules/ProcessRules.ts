@@ -1,18 +1,24 @@
 import { OpTipo } from '@shared/core/enums/OpTipo';
-import { ReglaEngineRequest } from '../../core/interfaces/IReglaEngine';
-import { CantidadPuntos } from '../../core/value-objects/CantidadPuntos';
-import { FechaOperacion } from '../../core/value-objects/FechaOperacion';
-import { Moneda } from '../../core/value-objects/Moneda';
-import { MontoMoneda } from '../../core/value-objects/MontoMoneda';
-import { ExecuteRulesRequestDto } from '../dtos/RunRuleRequest.dto';
-import { ExecuteRulesResponseDto } from '../dtos/RunRuleResponse.dto';
-import { RulesOrchestrationService } from '../services/RuleOrchestationService';
+import { ReglaEngineRequest } from '../../../core/interfaces/IReglaEngine';
+import { CantidadPuntos } from '../../../core/value-objects/CantidadPuntos';
+import { FechaOperacion } from '../../../core/value-objects/FechaOperacion';
+import { Moneda } from '../../../core/value-objects/Moneda';
+import { MontoMoneda } from '../../../core/value-objects/MontoMoneda';
+import { ExecuteRulesRequestDto } from '../../dtos/RunRuleRequest.dto';
+import { ExecuteRulesResponseDto } from '../../dtos/RunRuleResponse.dto';
+import { RulesOrchestrationService } from '../../services/RuleOrchestationService';
+import { Inject, Injectable } from '@nestjs/common';
+import { RULE_ORCHESTATION_SERVICE } from '@regla/core/tokens/tokens';
 
 /**
  * Caso de uso: mapea DTO, llama al servicio de orquestación y mapea resultado.
  */
+@Injectable()
 export class ExecuteRulesUseCase {
-  constructor(private readonly orchestration: RulesOrchestrationService) {}
+  constructor(
+    @Inject(RULE_ORCHESTATION_SERVICE)
+    private readonly orchestration: RulesOrchestrationService,
+  ) {}
 
   public async execute(
     dto: ExecuteRulesRequestDto,

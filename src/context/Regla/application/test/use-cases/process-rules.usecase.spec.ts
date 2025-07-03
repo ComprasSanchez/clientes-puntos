@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 import { OpTipo } from '@shared/core/enums/OpTipo';
-import { ExecuteRulesUseCase } from '../../use-cases/ProcessRules';
+import { ExecuteRulesUseCase } from '../../use-cases/ReglaProcessRules/ProcessRules';
 import { RulesOrchestrationService } from '../../services/RuleOrchestationService';
 import { ExecuteRulesRequestDto } from '../../dtos/RunRuleRequest.dto';
 import { ExecuteRulesResponseDto } from '../../dtos/RunRuleResponse.dto';

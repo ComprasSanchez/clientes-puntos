@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
 // @regla/infrastructure/adapters/TypeOrmReglaRepository.ts
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -18,28 +17,17 @@ export class TypeOrmReglaRepository implements ReglaRepository {
     private readonly repo: Repository<ReglaEntity>,
   ) {}
 
-  /**
-   * Recupera una regla por su ID.
-   */
   async findById(id: string): Promise<ReglaDomain | null> {
     const entity = await this.repo.findOne({ where: { id } });
     return entity ? entity.toDomain() : null;
   }
 
-  /**
-   * Recupera las reglas que cumplen los criterios.
-   */
   async findByCriteria(criteria: ReglaCriteria): Promise<ReglaDomain[]> {
     const qb = this.repo.createQueryBuilder('r');
-
-    // Filtrar por tipo de regla
     if (criteria.tipo) {
       qb.andWhere('r.tipo = :tipo', { tipo: criteria.tipo });
     }
-    // Solo reglas activas
     qb.andWhere('r.activa = :activa', { activa: true });
-
-    // Filtrar por vigencia
     if (criteria.fecha) {
       qb.andWhere('r.vigenciaInicio <= :fecha', {
         fecha: criteria.fecha.value,
@@ -47,27 +35,34 @@ export class TypeOrmReglaRepository implements ReglaRepository {
         fecha: criteria.fecha.value,
       });
     }
-
-    // Ordenar por prioridad
     qb.orderBy('r.prioridad', 'ASC');
-
     const entities = await qb.getMany();
     return entities.map((e) => e.toDomain());
   }
 
-  /**
-   * Persiste una regla en la base de datos.
-   */
+  async findAll(): Promise<ReglaDomain[]> {
+    const entities = await this.repo.find();
+    return entities.map((e) => e.toDomain());
+  }
+
   async save(regla: ReglaDomain): Promise<void> {
     let entity: ReglaEntity;
     switch (regla.tipo.value) {
       case TipoRegla.CONVERSION:
         entity = ConversionRuleEntity.fromDomain(regla as ConversionRule);
         break;
-      // … otros tipos aquí …
       default:
         throw new Error(`Tipo de regla no soportado: ${regla.tipo.value}`);
     }
     await this.repo.save(entity);
+  }
+
+  async update(regla: ReglaDomain): Promise<void> {
+    // Utiliza el save, que en TypeORM actualiza si el id existe
+    await this.save(regla);
+  }
+
+  async delete(id: string): Promise<void> {
+    await this.repo.delete(id);
   }
 }

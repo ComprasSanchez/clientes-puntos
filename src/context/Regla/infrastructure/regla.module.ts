@@ -1,20 +1,33 @@
 import { Module } from '@nestjs/common';
-import { ReglaEngineServiceInMemory } from './services/ReglaEngineServiceInMemory';
-import { RulesOrchestrationService } from '../application/services/RuleOrchestationService';
-import { ExecuteRulesUseCase } from '../application/use-cases/ProcessRules';
-import {
-  EXECUTE_RULES_USE_CASE,
-  REGLA_ENGINE,
-  REGLA_ENGINE_ADAPTER,
-  REGLA_REPO,
-} from './tokens/tokens';
-import { ReglaRepository } from '../core/repository/ReglaRepository';
-import { ReglaEngineAdapter } from './adapters/ReglaEngineAdapter';
-import { TypeOrmReglaRepository } from './persistence/ReglaRepository/ReglaTypeOrmImpl';
 import { TypeOrmModule } from '@nestjs/typeorm';
+
 import { ReglaEntity } from './entities/regla.entity';
 import { ReglaPersistenceModule } from './persistence/persistence.module';
 import { DatabaseModule } from 'src/infrastructure/database/database.module';
+
+import { ReglaRepository } from '../core/repository/ReglaRepository';
+import { TypeOrmReglaRepository } from './persistence/ReglaRepository/ReglaTypeOrmImpl';
+
+import { ReglaEngineServiceInMemory } from './services/ReglaEngineServiceInMemory';
+import { ReglaEngineAdapter } from './adapters/ReglaEngineAdapter';
+
+import { RulesOrchestrationService } from '../application/services/RuleOrchestationService';
+
+import { ExecuteRulesUseCase } from '@regla/application/use-cases/ReglaProcessRules/ProcessRules';
+
+import {
+  REGLA_REPO,
+  REGLA_ENGINE,
+  REGLA_ENGINE_ADAPTER,
+  RULE_ORCHESTATION_SERVICE,
+  EXECUTE_RULES_USE_CASE,
+} from '../core/tokens/tokens';
+import { ReglaFindAll } from '@regla/application/use-cases/ReglaFindAll/FindAll';
+import { ReglaFindById } from '@regla/application/use-cases/ReglaFindById/FindById';
+import { ReglaCreate } from '@regla/application/use-cases/ReglaCreate/Create';
+import { ReglaUpdate } from '@regla/application/use-cases/ReglaUpdate/Update';
+import { ReglaDelete } from '@regla/application/use-cases/ReglaDelete/Delete';
+import { ReglaController } from './controllers/ReglaController';
 
 @Module({
   imports: [
@@ -22,35 +35,38 @@ import { DatabaseModule } from 'src/infrastructure/database/database.module';
     DatabaseModule,
     ReglaPersistenceModule,
   ],
+  controllers: [ReglaController],
   providers: [
-    // Registry: add the repository class itself
+    // Persistencia
     TypeOrmReglaRepository,
-
-    // Bind tokens to the class instance
     { provide: REGLA_REPO, useExisting: TypeOrmReglaRepository },
     { provide: ReglaRepository, useExisting: REGLA_REPO },
 
-    // Stub engine
+    // Engine (puedes cambiar a otro en prod/test)
     { provide: REGLA_ENGINE, useClass: ReglaEngineServiceInMemory },
 
-    // Orchestration service
-    RulesOrchestrationService,
-
-    // Use case
-    ExecuteRulesUseCase,
-    { provide: EXECUTE_RULES_USE_CASE, useExisting: ExecuteRulesUseCase },
-
-    // Adapter for engine interface
+    // Adapter para el engine (opcional, swap con in-memory/real)
     ReglaEngineAdapter,
     { provide: REGLA_ENGINE_ADAPTER, useExisting: ReglaEngineAdapter },
-    { provide: REGLA_ENGINE, useExisting: REGLA_ENGINE_ADAPTER },
+
+    // Orchestration service (token propio)
+    {
+      provide: RULE_ORCHESTATION_SERVICE,
+      useClass: RulesOrchestrationService,
+    },
+
+    // Use cases
+    ReglaFindAll,
+    ReglaFindById,
+    ReglaCreate,
+    ReglaUpdate,
+    ReglaDelete,
+    ExecuteRulesUseCase,
+    { provide: EXECUTE_RULES_USE_CASE, useExisting: ExecuteRulesUseCase },
   ],
   exports: [
     REGLA_REPO,
-    ReglaRepository,
     EXECUTE_RULES_USE_CASE,
-    REGLA_ENGINE,
-    REGLA_ENGINE_ADAPTER,
     ReglaPersistenceModule,
     DatabaseModule,
   ],

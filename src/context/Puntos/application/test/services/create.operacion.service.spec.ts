@@ -74,7 +74,7 @@ describe('CreateOperacionService', () => {
     const now = new Date('2025-06-24T12:00:00Z');
     const origen = new OrigenOperacion('PLEX');
     const req: CreateOperacionRequest = {
-      clienteId: 'client-1',
+      clienteId: '19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3',
       tipo: OpTipo.COMPRA,
       origenTipo: origen,
       montoMoneda: 150,
@@ -90,8 +90,8 @@ describe('CreateOperacionService', () => {
     reglaEngine.procesar.mockResolvedValue(reglaResult);
 
     const loteEntity = new Lote(
-      new LoteId('lote-1'),
-      'client-1',
+      new LoteId('19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3'),
+      '19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3',
       new CantidadPuntos(75),
       new CantidadPuntos(75),
       BatchEstado.DISPONIBLE,
@@ -103,9 +103,9 @@ describe('CreateOperacionService', () => {
     jest.spyOn(loteFactory, 'crear').mockReturnValue(loteEntity);
 
     const txEntity = Transaccion.createOrphan({
-      id: new TransaccionId('tx-123'),
+      id: new TransaccionId('19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3'),
       operationId: OperacionId.create(),
-      loteId: new LoteId('lote-1'),
+      loteId: new LoteId('19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3'),
       tipo: TxTipo.ACREDITACION,
       cantidad: new CantidadPuntos(75),
       createdAt: now,
@@ -119,7 +119,7 @@ describe('CreateOperacionService', () => {
     // Assert: factory called with params
     expect(loteFactory.crear).toHaveBeenCalledWith(
       expect.objectContaining({
-        clienteId: 'client-1',
+        clienteId: '19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3',
         cantidad: new CantidadPuntos(75),
         origen,
       }),
@@ -129,7 +129,7 @@ describe('CreateOperacionService', () => {
     // Assert: txFactory called with a DTO matching lote-1
     expect(txFactory.createFromDto).toHaveBeenCalledWith(
       expect.objectContaining({
-        loteId: new LoteId('lote-1'),
+        loteId: new LoteId('19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3'),
         tipo: TxTipo.ACREDITACION,
         cantidad: new CantidadPuntos(75),
       }),
@@ -142,8 +142,8 @@ describe('CreateOperacionService', () => {
     expect(result.lotesAfectados).toEqual([loteEntity]);
     expect(result.transacciones).toEqual([
       expect.objectContaining({
-        id: 'tx-123',
-        loteId: 'lote-1',
+        id: '19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3',
+        loteId: '19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3',
         tipo: TxTipo.ACREDITACION,
         cantidad: 75,
       }),
@@ -155,8 +155,8 @@ describe('CreateOperacionService', () => {
     const now = new Date('2025-06-23T12:00:00Z');
     const origen = new OrigenOperacion('PLEX');
     const loteEntity = new Lote(
-      new LoteId('lote-1'),
-      'client-1',
+      new LoteId('19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3'),
+      '19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3',
       new CantidadPuntos(150),
       new CantidadPuntos(150),
       BatchEstado.DISPONIBLE,
@@ -166,7 +166,7 @@ describe('CreateOperacionService', () => {
       undefined,
     );
     const req: CreateOperacionRequest = {
-      clienteId: 'client-1',
+      clienteId: '19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3',
       tipo: OpTipo.COMPRA,
       origenTipo: origen,
       puntos: 100,
@@ -180,9 +180,9 @@ describe('CreateOperacionService', () => {
     reglaEngine.procesar.mockResolvedValue(reglaResult);
 
     const txEntity = Transaccion.createOrphan({
-      id: new TransaccionId('tx-124'),
+      id: new TransaccionId('19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3'),
       operationId: OperacionId.create(),
-      loteId: new LoteId('lote-1'),
+      loteId: new LoteId('19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3'),
       tipo: TxTipo.GASTO,
       cantidad: new CantidadPuntos(100),
       createdAt: now,
@@ -198,7 +198,7 @@ describe('CreateOperacionService', () => {
     // Assert: txFactory called with a DTO matching lote-1
     expect(txFactory.createFromDto).toHaveBeenCalledWith(
       expect.objectContaining({
-        loteId: new LoteId('lote-1'),
+        loteId: new LoteId('19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3'),
         tipo: TxTipo.GASTO,
         cantidad: new CantidadPuntos(100),
       }),
@@ -208,11 +208,13 @@ describe('CreateOperacionService', () => {
 
     // Response structure
     expect(result.operacionId).toEqual(expect.any(Number));
-    expect(result.lotesAfectados).toEqual([new LoteId('lote-1')]);
+    expect(result.lotesAfectados).toEqual([
+      new LoteId('19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3'),
+    ]);
     expect(result.transacciones).toEqual([
       expect.objectContaining({
-        id: 'tx-124',
-        loteId: 'lote-1',
+        id: '19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3',
+        loteId: '19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3',
         tipo: TxTipo.GASTO,
         cantidad: 100,
       }),
@@ -224,8 +226,8 @@ describe('CreateOperacionService', () => {
     const now = new Date('2025-06-25T12:00:00Z');
     const origen = new OrigenOperacion('PLEX');
     const initialLote = new Lote(
-      new LoteId('lote-1'),
-      'client-1',
+      new LoteId('19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3'),
+      '19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3',
       new CantidadPuntos(200),
       new CantidadPuntos(200),
       BatchEstado.DISPONIBLE,
@@ -237,7 +239,7 @@ describe('CreateOperacionService', () => {
     loteRepo.findByCliente.mockResolvedValue([initialLote]);
 
     const req: CreateOperacionRequest = {
-      clienteId: 'client-1',
+      clienteId: '19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3',
       tipo: OpTipo.COMPRA,
       origenTipo: origen,
       puntos: 100,
@@ -253,8 +255,8 @@ describe('CreateOperacionService', () => {
 
     // Stub credit lote
     const creditLote = new Lote(
-      new LoteId('lote-2'),
-      'client-1',
+      new LoteId('19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3'),
+      '19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3',
       new CantidadPuntos(30),
       new CantidadPuntos(30),
       BatchEstado.DISPONIBLE,
@@ -267,18 +269,18 @@ describe('CreateOperacionService', () => {
 
     // Stub transactions: first debit, then credit
     const txDebit = Transaccion.createOrphan({
-      id: new TransaccionId('tx-debit'),
+      id: new TransaccionId('19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3'),
       operationId: OperacionId.create(),
-      loteId: new LoteId('lote-1'),
+      loteId: new LoteId('19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3'),
       tipo: TxTipo.GASTO,
       cantidad: new CantidadPuntos(100),
       createdAt: now,
       referenciaId: undefined,
     });
     const txCredit = Transaccion.createOrphan({
-      id: new TransaccionId('tx-credit'),
+      id: new TransaccionId('19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3'),
       operationId: OperacionId.create(),
-      loteId: new LoteId('lote-2'),
+      loteId: new LoteId('19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3'),
       tipo: TxTipo.ACREDITACION,
       cantidad: new CantidadPuntos(30),
       createdAt: now,
@@ -296,7 +298,7 @@ describe('CreateOperacionService', () => {
     // Assert: credit lote created and saved
     expect(loteFactory.crear).toHaveBeenCalledWith(
       expect.objectContaining({
-        clienteId: 'client-1',
+        clienteId: '19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3',
         cantidad: new CantidadPuntos(30),
         origen,
       }),
@@ -308,7 +310,7 @@ describe('CreateOperacionService', () => {
     expect(txFactory.createFromDto).toHaveBeenNthCalledWith(
       1,
       expect.objectContaining({
-        loteId: new LoteId('lote-1'),
+        loteId: new LoteId('19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3'),
         tipo: TxTipo.GASTO,
         cantidad: new CantidadPuntos(100),
       }),
@@ -316,7 +318,7 @@ describe('CreateOperacionService', () => {
     expect(txFactory.createFromDto).toHaveBeenNthCalledWith(
       2,
       expect.objectContaining({
-        loteId: new LoteId('lote-2'),
+        loteId: new LoteId('19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3'),
         tipo: TxTipo.ACREDITACION,
         cantidad: new CantidadPuntos(30),
       }),
@@ -328,12 +330,12 @@ describe('CreateOperacionService', () => {
     expect(result.lotesAfectados).toEqual([initialLote.id, creditLote]);
     expect(result.transacciones).toEqual([
       expect.objectContaining({
-        id: 'tx-debit',
+        id: '19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3',
         tipo: TxTipo.GASTO,
         cantidad: 100,
       }),
       expect.objectContaining({
-        id: 'tx-credit',
+        id: '19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3',
         tipo: TxTipo.ACREDITACION,
         cantidad: 30,
       }),
@@ -347,8 +349,8 @@ describe('CreateOperacionService', () => {
 
     // Tres lotes iniciales en el saldo
     const lote1 = new Lote(
-      new LoteId('lote-1'),
-      'client-1',
+      new LoteId('19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3'),
+      '19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3',
       new CantidadPuntos(150),
       new CantidadPuntos(150),
       BatchEstado.DISPONIBLE,
@@ -358,8 +360,8 @@ describe('CreateOperacionService', () => {
       undefined,
     );
     const lote2 = new Lote(
-      new LoteId('lote-2'),
-      'client-1',
+      new LoteId('19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3'),
+      '19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3',
       new CantidadPuntos(250),
       new CantidadPuntos(250),
       BatchEstado.DISPONIBLE,
@@ -369,8 +371,8 @@ describe('CreateOperacionService', () => {
       undefined,
     );
     const lote3 = new Lote(
-      new LoteId('lote-3'),
-      'client-1',
+      new LoteId('19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3'),
+      '19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3',
       new CantidadPuntos(200),
       new CantidadPuntos(200),
       BatchEstado.DISPONIBLE,
@@ -382,7 +384,7 @@ describe('CreateOperacionService', () => {
     loteRepo.findByCliente.mockResolvedValue([lote1, lote2, lote3]);
 
     const req: CreateOperacionRequest = {
-      clienteId: 'client-1',
+      clienteId: '19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3',
       tipo: OpTipo.COMPRA,
       origenTipo: origen,
       puntos: 500,
@@ -396,27 +398,27 @@ describe('CreateOperacionService', () => {
 
     // Stubs de transacciones para cada débito
     const tx1 = Transaccion.createOrphan({
-      id: new TransaccionId('tx-1'),
+      id: new TransaccionId('19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3'),
       operationId: OperacionId.create(),
-      loteId: new LoteId('lote-1'),
+      loteId: new LoteId('19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3'),
       tipo: TxTipo.GASTO,
       cantidad: new CantidadPuntos(150),
       createdAt: now,
       referenciaId: undefined,
     });
     const tx2 = Transaccion.createOrphan({
-      id: new TransaccionId('tx-2'),
+      id: new TransaccionId('19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3'),
       operationId: OperacionId.create(),
-      loteId: new LoteId('lote-2'),
+      loteId: new LoteId('19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3'),
       tipo: TxTipo.GASTO,
       cantidad: new CantidadPuntos(250),
       createdAt: now,
       referenciaId: undefined,
     });
     const tx3 = Transaccion.createOrphan({
-      id: new TransaccionId('tx-3'),
+      id: new TransaccionId('19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3'),
       operationId: OperacionId.create(),
-      loteId: new LoteId('lote-3'),
+      loteId: new LoteId('19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3'),
       tipo: TxTipo.GASTO,
       cantidad: new CantidadPuntos(100),
       createdAt: now,
@@ -441,7 +443,7 @@ describe('CreateOperacionService', () => {
     expect(txFactory.createFromDto).toHaveBeenNthCalledWith(
       1,
       expect.objectContaining({
-        loteId: new LoteId('lote-1'),
+        loteId: new LoteId('19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3'),
         tipo: TxTipo.GASTO,
         cantidad: new CantidadPuntos(150),
       }),
@@ -449,7 +451,7 @@ describe('CreateOperacionService', () => {
     expect(txFactory.createFromDto).toHaveBeenNthCalledWith(
       2,
       expect.objectContaining({
-        loteId: new LoteId('lote-2'),
+        loteId: new LoteId('19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3'),
         tipo: TxTipo.GASTO,
         cantidad: new CantidadPuntos(250),
       }),
@@ -457,7 +459,7 @@ describe('CreateOperacionService', () => {
     expect(txFactory.createFromDto).toHaveBeenNthCalledWith(
       3,
       expect.objectContaining({
-        loteId: new LoteId('lote-3'),
+        loteId: new LoteId('19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3'),
         tipo: TxTipo.GASTO,
         cantidad: new CantidadPuntos(100),
       }),
@@ -468,26 +470,26 @@ describe('CreateOperacionService', () => {
 
     // Response contiene los IDs de lotes gastados y transacciones
     expect(result.lotesAfectados).toEqual([
-      new LoteId('lote-1'),
-      new LoteId('lote-2'),
-      new LoteId('lote-3'),
+      new LoteId('19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3'),
+      new LoteId('19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3'),
+      new LoteId('19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3'),
     ]);
     expect(result.transacciones).toEqual([
       expect.objectContaining({
-        id: 'tx-1',
-        loteId: 'lote-1',
+        id: '19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3',
+        loteId: '19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3',
         tipo: TxTipo.GASTO,
         cantidad: 150,
       }),
       expect.objectContaining({
-        id: 'tx-2',
-        loteId: 'lote-2',
+        id: '19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3',
+        loteId: '19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3',
         tipo: TxTipo.GASTO,
         cantidad: 250,
       }),
       expect.objectContaining({
-        id: 'tx-3',
-        loteId: 'lote-3',
+        id: '19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3',
+        loteId: '19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3',
         tipo: TxTipo.GASTO,
         cantidad: 100,
       }),
@@ -501,8 +503,8 @@ describe('CreateOperacionService', () => {
 
     // 1️⃣ Lote inicial con remaining 60 de original 100
     const loteEntity = new Lote(
-      new LoteId('lote-1'),
-      'client-1',
+      new LoteId('19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3'),
+      '19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3',
       new CantidadPuntos(100),
       new CantidadPuntos(60),
       BatchEstado.DISPONIBLE,
@@ -518,9 +520,9 @@ describe('CreateOperacionService', () => {
     const purchaseOpId = OperacionId.create();
     //    — Y la transacción de GASTO que dejó el lote en remaining 60
     const purchaseTx = Transaccion.createOrphan({
-      id: new TransaccionId('tx-purchase-1'),
+      id: new TransaccionId('19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3'),
       operationId: purchaseOpId,
-      loteId: new LoteId('lote-1'),
+      loteId: new LoteId('19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3'),
       tipo: TxTipo.GASTO,
       cantidad: new CantidadPuntos(40),
       createdAt: now,
@@ -531,7 +533,7 @@ describe('CreateOperacionService', () => {
 
     // 3️⃣ Petición de devolución, usando el mismo operationId
     const req: CreateOperacionRequest = {
-      clienteId: 'client-1',
+      clienteId: '19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3',
       tipo: OpTipo.DEVOLUCION,
       origenTipo: origen,
       puntos: 40,
@@ -548,9 +550,9 @@ describe('CreateOperacionService', () => {
 
     // 5️⃣ Stub para la creación de la transacción de devolución
     const txEntity = Transaccion.createOrphan({
-      id: new TransaccionId('tx-refund'),
+      id: new TransaccionId('19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3'),
       operationId: OperacionId.create(),
-      loteId: new LoteId('lote-1'),
+      loteId: new LoteId('19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3'),
       tipo: TxTipo.DEVOLUCION,
       cantidad: new CantidadPuntos(40),
       createdAt: now,
@@ -568,7 +570,7 @@ describe('CreateOperacionService', () => {
     // Assert: se crea y guarda la tx de devolución
     expect(txFactory.createFromDto).toHaveBeenCalledWith(
       expect.objectContaining({
-        loteId: new LoteId('lote-1'),
+        loteId: new LoteId('19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3'),
         tipo: TxTipo.DEVOLUCION,
         cantidad: new CantidadPuntos(40),
       }),
@@ -576,11 +578,13 @@ describe('CreateOperacionService', () => {
     expect(txRepo.save).toHaveBeenCalledWith(txEntity);
 
     // Assert: respuesta correcta
-    expect(result.lotesAfectados).toEqual([new LoteId('lote-1')]);
+    expect(result.lotesAfectados).toEqual([
+      new LoteId('19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3'),
+    ]);
     expect(result.transacciones).toEqual([
       expect.objectContaining({
-        id: 'tx-refund',
-        loteId: 'lote-1',
+        id: '19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3',
+        loteId: '19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3',
         tipo: TxTipo.DEVOLUCION,
         cantidad: 40,
       }),

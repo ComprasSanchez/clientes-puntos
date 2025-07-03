@@ -1,10 +1,11 @@
 // @regla/infrastructure/ReglaEngineAdapter.ts
 import { Injectable, Inject } from '@nestjs/common';
-import { EXECUTE_RULES_USE_CASE } from '../tokens/tokens';
-import { ExecuteRulesUseCase } from '../../application/use-cases/ProcessRules';
+import { EXECUTE_RULES_USE_CASE } from '../../core/tokens/tokens';
+
 import { RuleEngineContract } from '../../application/dtos/RuleEngineContract';
 import { ExecuteRulesRequestDto } from '../../application/dtos/RunRuleRequest.dto';
 import { ExecuteRulesResponseDto } from '../../application/dtos/RunRuleResponse.dto';
+import { ExecuteRulesUseCase } from '@regla/application/use-cases/ReglaProcessRules/ProcessRules';
 
 @Injectable()
 export class ReglaEngineAdapter implements RuleEngineContract {
