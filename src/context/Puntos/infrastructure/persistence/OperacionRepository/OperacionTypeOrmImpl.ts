@@ -1,4 +1,3 @@
-// src/infrastructure/persistence/OperacionRepository/TypeOrmOperacionRepository.ts
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -6,13 +5,20 @@ import { OperacionEntity } from '../../entities/operacion.entity';
 import { OperacionRepository } from '@puntos/core/repository/OperacionRepository';
 import { Operacion } from '@puntos/core/entities/Operacion';
 import { OperacionId } from '@puntos/core/value-objects/OperacionId';
+import { TransactionContext } from '@shared/core/interfaces/TransactionContext';
+import { TypeOrmBaseRepository } from '@shared/infrastructure/transaction/TypeOrmBaseRepository';
 
 @Injectable()
-export class TypeOrmOperacionRepository implements OperacionRepository {
+export class TypeOrmOperacionRepository
+  extends TypeOrmBaseRepository
+  implements OperacionRepository
+{
   constructor(
     @InjectRepository(OperacionEntity)
     private readonly ormRepo: Repository<OperacionEntity>,
-  ) {}
+  ) {
+    super();
+  }
 
   async findAll(): Promise<Operacion[]> {
     const entities = await this.ormRepo.find();
@@ -36,12 +42,22 @@ export class TypeOrmOperacionRepository implements OperacionRepository {
     return entities.map((e) => e.toDomain());
   }
 
-  async save(operacion: Operacion): Promise<void> {
+  async save(operacion: Operacion, ctx?: TransactionContext): Promise<void> {
     const entity = OperacionEntity.fromDomain(operacion);
-    await this.ormRepo.save(entity);
+    const manager = this.extractManager(ctx);
+    if (manager) {
+      await manager.save(OperacionEntity, entity);
+    } else {
+      await this.ormRepo.save(entity);
+    }
   }
 
-  async delete(id: OperacionId): Promise<void> {
-    await this.ormRepo.delete({ id: id.value });
+  async delete(id: OperacionId, ctx?: TransactionContext): Promise<void> {
+    const manager = this.extractManager(ctx);
+    if (manager) {
+      await manager.delete(OperacionEntity, { id: id.value });
+    } else {
+      await this.ormRepo.delete({ id: id.value });
+    }
   }
 }

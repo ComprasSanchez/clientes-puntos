@@ -1,6 +1,7 @@
 import { LoteId } from '../value-objects/LoteId';
 import { BatchEstado } from '../enums/BatchEstado';
 import { Lote } from '../entities/Lote';
+import { TransactionContext } from '../../../../shared/core/interfaces/TransactionContext';
 
 /**
  * Puerto de repositorio para la entidad Lote (batch de puntos).
@@ -32,17 +33,17 @@ export interface LoteRepository {
    * Persiste un lote nuevo en el repositorio.
    * @param lote  Lote a guardar
    */
-  save(lote: Lote): Promise<void>;
+  save(lote: Lote, ctx?: TransactionContext): Promise<void>;
 
   /**
    * Actualiza un lote existente (e.g., remaining, estado).
    * @param lote  Lote con cambios
    */
-  update(lote: Lote): Promise<void>;
+  update(lote: Lote, ctx?: TransactionContext): Promise<void>;
 
   /**
    * Elimina (o marca como eliminado) un lote.
    * @param id  Identificador del lote
    */
-  delete(id: LoteId): Promise<void>;
+  delete(id: LoteId, ctx?: TransactionContext): Promise<void>;
 }

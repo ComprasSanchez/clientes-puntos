@@ -1,4 +1,3 @@
-// src/infrastructure/controllers/OperacionController.ts
 import { Controller, Get, Post, Body, Param } from '@nestjs/common';
 import { OperacionResponseDto } from '../dtos/OperacionResponseDto';
 import { OperacionId } from '../../core/value-objects/OperacionId';
@@ -11,6 +10,7 @@ import { DevolucionUseCase } from '@puntos/application/use-cases/Devolucion/Devo
 import { AnulacionUseCase } from '@puntos/application/use-cases/Anulacion/Anulacion';
 import { OperacionDto } from '@puntos/application/dtos/OperacionDto';
 import { CreateOperacionResponse } from '@puntos/application/dtos/CreateOperacionResponse';
+import { TransactionalRunner } from '@shared/infrastructure/transaction/TransactionalRunner';
 
 @Controller('operacion')
 export class OperacionController {
@@ -22,6 +22,7 @@ export class OperacionController {
     private readonly compraUseCase: CompraUseCase,
     private readonly devolucionUseCase: DevolucionUseCase,
     private readonly anulacionUseCase: AnulacionUseCase,
+    private readonly transactionalRunner: TransactionalRunner, // <--- Inyecta el runner
   ) {}
 
   @Get()
@@ -57,18 +58,24 @@ export class OperacionController {
   // --- Operaciones POST ---
   @Post('compra')
   async compra(@Body() dto: OperacionDto): Promise<CreateOperacionResponse> {
-    return this.compraUseCase.run(dto);
+    return this.transactionalRunner.runInTransaction((ctx) =>
+      this.compraUseCase.run(dto, ctx),
+    );
   }
 
   @Post('devolucion')
   async devolucion(
     @Body() dto: OperacionDto,
   ): Promise<CreateOperacionResponse> {
-    return this.devolucionUseCase.run(dto);
+    return this.transactionalRunner.runInTransaction((ctx) =>
+      this.devolucionUseCase.run(dto, ctx),
+    );
   }
 
   @Post('anulacion')
   async anulacion(@Body() dto: OperacionDto): Promise<CreateOperacionResponse> {
-    return this.anulacionUseCase.run(dto);
+    return this.transactionalRunner.runInTransaction((ctx) =>
+      this.anulacionUseCase.run(dto, ctx),
+    );
   }
 }

@@ -1,4 +1,5 @@
 // @puntos/domain/repositories/TransaccionRepository.ts
+import { TransactionContext } from '@shared/core/interfaces/TransactionContext';
 import { Transaccion } from '../entities/Transaccion';
 import { LoteId } from '../value-objects/LoteId';
 import { TransaccionId } from '../value-objects/TransaccionId';
@@ -47,11 +48,11 @@ export interface TransaccionRepository {
    * Persiste una nueva transacción en el ledger.
    * @param transaccion Transacción a guardar
    */
-  save(transaccion: Transaccion): Promise<void>;
+  save(transaccion: Transaccion, ctx?: TransactionContext): Promise<void>;
 
   /**
    * Elimina (o marca como eliminada) una transacción.
    * @param id Identificador de la transacción
    */
-  delete(id: TransaccionId): Promise<void>;
+  delete(id: TransaccionId, ctx?: TransactionContext): Promise<void>;
 }

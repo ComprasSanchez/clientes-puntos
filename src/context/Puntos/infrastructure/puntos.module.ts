@@ -42,6 +42,7 @@ import { SaldoHandler } from '@puntos/application/services/SaldoHandler';
 import { LoteFactory } from '@puntos/core/factories/LoteFactory';
 import { UUIDv4Generator } from '@shared/infrastructure/uuid/UuidV4Generator';
 import { UUIDGenerator } from '@shared/core/uuid/UuidGenerator';
+import { TransactionalRunner } from '@shared/infrastructure/transaction/TransactionalRunner';
 
 @Module({
   imports: [
@@ -77,6 +78,8 @@ import { UUIDGenerator } from '@shared/core/uuid/UuidGenerator';
       useClass: PuntosServiceInMemory, // la implementación
     },
 
+    TransactionalRunner,
+
     // Casos de uso
     CompraUseCase,
     DevolucionUseCase,
@@ -98,6 +101,7 @@ import { UUIDGenerator } from '@shared/core/uuid/UuidGenerator';
   exports: [
     PuntosPersistenceModule,
     DatabaseModule,
+    TransactionalRunner,
     OBTENER_SALDO_SERVICE,
     TX_FACTORY,
     SALDO_HANDLER,

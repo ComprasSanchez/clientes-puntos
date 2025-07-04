@@ -10,3 +10,4 @@ export const LOTE_FACTORY = Symbol('LoteFactory');
 export const SALDO_HANDLER = Symbol('SaldoHandler');
 export const EXECUTE_RULES_USE_CASE = Symbol('ExecuteRulesUseCase');
 export const OBTENER_SALDO_SERVICE = Symbol('ObtenerSaldoService');
+export const DATA_SOURCE = Symbol('DataSource');

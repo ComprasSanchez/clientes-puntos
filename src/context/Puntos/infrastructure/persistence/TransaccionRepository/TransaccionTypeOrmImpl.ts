@@ -6,13 +6,20 @@ import { TransaccionEntity } from '../../entities/transaccion.entity';
 import { Transaccion } from '@puntos/core/entities/Transaccion';
 import { TransaccionId } from '@puntos/core/value-objects/TransaccionId';
 import { LoteId } from '@puntos/core/value-objects/LoteId';
+import { TransactionContext } from '@shared/core/interfaces/TransactionContext';
+import { TypeOrmBaseRepository } from '@shared/infrastructure/transaction/TypeOrmBaseRepository';
 
 @Injectable()
-export class TypeOrmTransaccionRepository implements TransaccionRepository {
+export class TypeOrmTransaccionRepository
+  extends TypeOrmBaseRepository
+  implements TransaccionRepository
+{
   constructor(
     @InjectRepository(TransaccionEntity)
     private readonly repo: Repository<TransaccionEntity>,
-  ) {}
+  ) {
+    super();
+  }
 
   async findAll(): Promise<Transaccion[]> {
     const entities: TransaccionEntity[] = await this.repo.find();
@@ -31,7 +38,6 @@ export class TypeOrmTransaccionRepository implements TransaccionRepository {
   }
 
   async findByCliente(clienteId: string): Promise<Transaccion[]> {
-    // Assuming a query across relations or via lote join; simple example:
     const entities: TransaccionEntity[] = await this.repo
       .createQueryBuilder('t')
       .innerJoin('lotes', 'l', 'l.id = t.loteId')
@@ -54,11 +60,25 @@ export class TypeOrmTransaccionRepository implements TransaccionRepository {
     return entities.map((e) => e.toDomain());
   }
 
-  async save(transaccion: Transaccion): Promise<void> {
-    await this.repo.save(TransaccionEntity.fromDomain(transaccion));
+  async save(
+    transaccion: Transaccion,
+    ctx?: TransactionContext,
+  ): Promise<void> {
+    const entity = TransaccionEntity.fromDomain(transaccion);
+    const manager = this.extractManager(ctx);
+    if (manager) {
+      await manager.save(TransaccionEntity, entity);
+    } else {
+      await this.repo.save(entity);
+    }
   }
 
-  async delete(id: TransaccionId): Promise<void> {
-    await this.repo.delete({ id: id.value });
+  async delete(id: TransaccionId, ctx?: TransactionContext): Promise<void> {
+    const manager = this.extractManager(ctx);
+    if (manager) {
+      await manager.delete(TransaccionEntity, { id: id.value });
+    } else {
+      await this.repo.delete({ id: id.value });
+    }
   }
 }

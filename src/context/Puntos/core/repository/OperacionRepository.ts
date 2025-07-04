@@ -1,4 +1,5 @@
 // @puntos/domain/repositories/OperacionRepository.ts
+import { TransactionContext } from '@shared/core/interfaces/TransactionContext';
 import { Operacion } from '../entities/Operacion';
 import { OperacionId } from '../value-objects/OperacionId';
 
@@ -34,11 +35,11 @@ export interface OperacionRepository {
    * Persiste una nueva operación en el sistema.
    * @param operacion Operación a guardar
    */
-  save(operacion: Operacion): Promise<void>;
+  save(operacion: Operacion, ctx?: TransactionContext): Promise<void>;
 
   /**
    * Elimina (o marca como eliminada) una operación.
    * @param id Identificador de la operación
    */
-  delete(id: OperacionId): Promise<void>;
+  delete(id: OperacionId, ctx?: TransactionContext): Promise<void>;
 }

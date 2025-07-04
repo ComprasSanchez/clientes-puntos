@@ -8,6 +8,7 @@ import { ReferenciaMovimiento } from '@puntos/core/value-objects/ReferenciaMovim
 import { OperacionId } from '@puntos/core/value-objects/OperacionId';
 import { Inject, Injectable } from '@nestjs/common';
 import { CREATE_OPERACION_SERVICE } from '@puntos/core/tokens/tokens';
+import { TransactionContext } from '@shared/core/interfaces/TransactionContext';
 
 @Injectable()
 export class DevolucionUseCase {
@@ -16,7 +17,10 @@ export class DevolucionUseCase {
     private readonly service: CreateOperacionService,
   ) {}
 
-  async run(input: OperacionDto): Promise<CreateOperacionResponse> {
+  async run(
+    input: OperacionDto,
+    ctx?: TransactionContext,
+  ): Promise<CreateOperacionResponse> {
     // 1️⃣ Validar/conversiones de primitivos a VOs
     const origenVO = new OrigenOperacion(input.origenTipo);
     const referenciaVO = input.referencia
@@ -39,6 +43,6 @@ export class DevolucionUseCase {
     };
 
     // 3️⃣ Delegar al service
-    return this.service.execute(req);
+    return this.service.execute(req, ctx);
   }
 }

@@ -27,6 +27,7 @@ import {
 } from '@puntos/core/tokens/tokens';
 import { REGLA_ENGINE_ADAPTER } from '@regla/core/tokens/tokens';
 import { OperacionRepository } from '@puntos/core/repository/OperacionRepository';
+import { TransactionContext } from '@shared/core/interfaces/TransactionContext';
 
 @Injectable()
 export class CreateOperacionService {
@@ -45,7 +46,10 @@ export class CreateOperacionService {
     private readonly saldoHandler: SaldoHandler,
   ) {}
 
-  async execute(req: CreateOperacionRequest): Promise<CreateOperacionResponse> {
+  async execute(
+    req: CreateOperacionRequest,
+    ctx?: TransactionContext,
+  ): Promise<CreateOperacionResponse> {
     // 1️⃣ Cargar lotes, transacciones y construir Saldo
     const lotes = await this.loteRepo.findByCliente(req.clienteId);
     const saldo = new Saldo(req.clienteId, lotes);
@@ -110,12 +114,12 @@ export class CreateOperacionService {
 
     for (const lote of lotesOrdenados) {
       if (nuevoLote && lote.id.value === nuevoLote.id.value) continue;
-      await this.loteRepo.update(lote);
+      await this.loteRepo.update(lote, ctx);
     }
 
     // Guardar SOLO el lote nuevo
     if (nuevoLote) {
-      await this.loteRepo.save(nuevoLote);
+      await this.loteRepo.save(nuevoLote, ctx);
     }
 
     // 6️⃣ Registrar transacciones basadas en consumo y crédito
@@ -160,12 +164,12 @@ export class CreateOperacionService {
         reglasAplicadas: cambio.reglasAplicadas,
       };
       const tx = this.txFactory.createFromDto(dto);
-      await this.txRepo.save(tx);
+      await this.txRepo.save(tx, ctx);
       txs.push(tx);
     }
 
     // Persistir operación
-    await this.operacionRepo.save(oper);
+    await this.operacionRepo.save(oper, ctx);
 
     // 7️⃣ Armar respuesta
     const lotesAfectados = [

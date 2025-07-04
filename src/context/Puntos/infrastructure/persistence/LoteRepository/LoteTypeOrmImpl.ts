@@ -6,13 +6,20 @@ import { LoteEntity } from '../../entities/lote.entity';
 import { Lote } from '@puntos/core/entities/Lote';
 import { LoteId } from '@puntos/core/value-objects/LoteId';
 import { BatchEstado } from '@puntos/core/enums/BatchEstado';
+import { TransactionContext } from '@shared/core/interfaces/TransactionContext';
+import { TypeOrmBaseRepository } from '@shared/infrastructure/transaction/TypeOrmBaseRepository';
 
 @Injectable()
-export class TypeOrmLoteRepository implements LoteRepository {
+export class TypeOrmLoteRepository
+  extends TypeOrmBaseRepository
+  implements LoteRepository
+{
   constructor(
     @InjectRepository(LoteEntity)
     private readonly repo: Repository<LoteEntity>,
-  ) {}
+  ) {
+    super();
+  }
 
   async findAll(): Promise<Lote[]> {
     const entities = await this.repo.find();
@@ -37,15 +44,32 @@ export class TypeOrmLoteRepository implements LoteRepository {
     return entities.map((e) => e.toDomain());
   }
 
-  async save(lote: Lote): Promise<void> {
-    await this.repo.insert(LoteEntity.fromDomain(lote));
+  async save(lote: Lote, ctx?: TransactionContext): Promise<void> {
+    const entity = LoteEntity.fromDomain(lote);
+    const manager = this.extractManager(ctx);
+    if (manager) {
+      await manager.insert(LoteEntity, entity);
+    } else {
+      await this.repo.insert(entity);
+    }
   }
 
-  async update(lote: Lote): Promise<void> {
-    await this.repo.save(LoteEntity.fromDomain(lote));
+  async update(lote: Lote, ctx?: TransactionContext): Promise<void> {
+    const entity = LoteEntity.fromDomain(lote);
+    const manager = this.extractManager(ctx);
+    if (manager) {
+      await manager.save(LoteEntity, entity);
+    } else {
+      await this.repo.save(entity);
+    }
   }
 
-  async delete(id: LoteId): Promise<void> {
-    await this.repo.delete({ id: id.value });
+  async delete(id: LoteId, ctx?: TransactionContext): Promise<void> {
+    const manager = this.extractManager(ctx);
+    if (manager) {
+      await manager.delete(LoteEntity, { id: id.value });
+    } else {
+      await this.repo.delete({ id: id.value });
+    }
   }
 }
