@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
@@ -65,11 +66,11 @@ describe('ClienteGetProfile', () => {
   it('mapea correctamente un Cliente y devuelve ClienteProfileDto', async () => {
     // 1️⃣ Construyo un Cliente de dominio con sólo los VOs obligatorios
     const categoriaDom = new Categoria(
-      new CategoriaId('cat-1'),
+      new CategoriaId('42d27718-7c8f-4f15-a8df-d4bfe45bcd54'),
       new CategoriaNombre('Gold'),
     );
     const clienteDom = new Cliente(
-      new ClienteId('c-123'),
+      new ClienteId('42d27718-7c8f-4f15-a8df-d4bfe45bcd54'),
       new ClienteDni('12345678'),
       new ClienteNombre('Juan'),
       new ClienteApellido('Pérez'),
@@ -95,7 +96,7 @@ describe('ClienteGetProfile', () => {
 
     // 2️⃣ Compruebo campos estáticos
     expect(result).toMatchObject<Partial<ClienteProfileDto>>({
-      id: 'c-123',
+      id: '42d27718-7c8f-4f15-a8df-d4bfe45bcd54',
       dni: '12345678',
       nombre: 'Juan',
       apellido: 'Pérez',
@@ -124,7 +125,11 @@ describe('ClienteGetProfile', () => {
     expect(result.createdAt).toEqual(result.updatedAt);
 
     // Y que llamó a las dependencias con los parámetros correctos
-    expect(repoMock.findById).toHaveBeenCalledWith(new ClienteId('c-123'));
-    expect(puntosMock.obtenerSaldoActual).toHaveBeenCalledWith('c-123');
+    expect(repoMock.findById).toHaveBeenCalledWith(
+      new ClienteId('42d27718-7c8f-4f15-a8df-d4bfe45bcd54'),
+    );
+    expect(puntosMock.obtenerSaldoActual).toHaveBeenCalledWith(
+      '42d27718-7c8f-4f15-a8df-d4bfe45bcd54',
+    );
   });
 });

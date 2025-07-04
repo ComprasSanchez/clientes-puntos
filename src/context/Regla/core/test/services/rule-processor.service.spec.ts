@@ -16,7 +16,17 @@ describe('RuleProcessor', () => {
 
   it('devuelve { debitAmount: 0 } para una lista vacía', () => {
     const result = processor.process([], context);
-    expect(result).toEqual<ReglaEngineResult>({ debitAmount: 0 });
+    expect(result).toEqual<ReglaEngineResult>({
+      debitAmount: 0,
+      reglasAplicadas: {
+        'regla-1': [
+          {
+            id: '19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3',
+            nombre: 'Regla de bonificación',
+          },
+        ],
+      },
+    });
   });
 
   it('acumula débitos y asigna sólo el primer crédito, sin excluyentes', () => {

@@ -21,10 +21,12 @@ import { TransaccionId } from '@puntos/core/value-objects/TransaccionId';
 import { SaldoHandler } from '@puntos/application/services/SaldoHandler';
 import { LoteFactory } from '@puntos/core/factories/LoteFactory';
 import { TransaccionFactory } from '@puntos/core/factories/TransaccionFactory';
+import { OperacionRepository } from '@puntos/core/repository/OperacionRepository';
 
 describe('CreateOperacionService', () => {
   let loteRepo: jest.Mocked<LoteRepository>;
   let txRepo: jest.Mocked<TransaccionRepository>;
+  let opRepo: jest.Mocked<OperacionRepository>;
   let reglaEngine: jest.Mocked<IReglaEngine>;
   let loteFactory: LoteFactory;
   let txFactory: TransaccionFactory;
@@ -58,11 +60,21 @@ describe('CreateOperacionService', () => {
       save: jest.fn(),
       delete: jest.fn(),
     };
+
+    opRepo = {
+      findAll: jest.fn(),
+      findById: jest.fn(),
+      findByCliente: jest.fn(),
+      findByReferencia: jest.fn(),
+      save: jest.fn(),
+      delete: jest.fn(),
+    };
     reglaEngine = { procesar: jest.fn() };
 
     service = new CreateOperacionService(
       loteRepo,
       txRepo,
+      opRepo,
       reglaEngine,
       txFactory,
       sHandler,

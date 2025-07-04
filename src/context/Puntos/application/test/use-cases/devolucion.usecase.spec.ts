@@ -25,7 +25,7 @@ describe('CompraUseCase', () => {
     const origen = 'TEST';
     const ref = 'ref-2';
     const input: OperacionDto = {
-      clienteId: 'client-2',
+      clienteId: '42d27718-7c8f-4f15-a8df-d4bfe45bcd54',
       origenTipo: origen,
       puntos: 5,
       montoMoneda: 50,
@@ -35,7 +35,7 @@ describe('CompraUseCase', () => {
     };
     const fakeResp: CreateOperacionResponse = {
       operacionId: Number(OperacionId.create()),
-      lotesAfectados: [new LoteId('I2')],
+      lotesAfectados: [new LoteId('42d27718-7c8f-4f15-a8df-d4bfe45bcd54')],
       transacciones: [],
     };
     service.execute.mockResolvedValue(fakeResp);
@@ -43,7 +43,7 @@ describe('CompraUseCase', () => {
     const result = await useCase.run(input);
 
     expect(service.execute).toHaveBeenCalledWith({
-      clienteId: 'client-2',
+      clienteId: '42d27718-7c8f-4f15-a8df-d4bfe45bcd54',
       tipo: OpTipo.DEVOLUCION,
       origenTipo: new OrigenOperacion(origen),
       puntos: 5,

@@ -29,7 +29,11 @@ describe('ExecuteRulesUseCase', () => {
       saldoActual: 100,
     };
     // El orquestador devuelve sólo debitAmount
-    (orchestration.execute as jest.Mock).mockResolvedValue({ debitAmount: 42 });
+    (orchestration.execute as jest.Mock).mockResolvedValue({
+      debitAmount: 42,
+      credito: undefined,
+      reglasAplicadas: [],
+    });
 
     const result = await useCase.execute(dto);
 
@@ -63,6 +67,14 @@ describe('ExecuteRulesUseCase', () => {
     const engineResult = {
       debitAmount: 15,
       credito: { cantidad: 5, expiraEn: expDate },
+      reglasAplicadas: {
+        'regla-1': [
+          {
+            id: '19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3',
+            nombre: 'Regla de bonificación',
+          },
+        ],
+      },
     };
     (orchestration.execute as jest.Mock).mockResolvedValue(engineResult);
 
