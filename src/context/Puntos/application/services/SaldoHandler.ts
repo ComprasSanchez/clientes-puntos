@@ -11,6 +11,9 @@ import { Transaccion } from '@puntos/core/entities/Transaccion';
 import { Inject, Injectable } from '@nestjs/common';
 import { LOTE_FACTORY } from '@puntos/core/tokens/tokens';
 import { TxTipo } from '@puntos/core/enums/TxTipo';
+import { TransaccionesNotFoundError } from '@puntos/core/exceptions/Transaccion/TransaccionesNotFoundError';
+import { MontoNotFoundError } from '@puntos/core/exceptions/Saldo/MontoNotFoundError';
+import { ReferenciaoNotFoundError } from '@puntos/core/exceptions/Operacion/ReferenciaRequiredError';
 
 export interface AplicacionCambioResult {
   detallesDebito: Array<{ loteId: LoteId; cantidad: CantidadPuntos }>;
@@ -97,17 +100,13 @@ export class SaldoHandler {
       [];
 
     if (!txs || txs.length === 0) {
-      throw new Error(
-        `Operación de tipo ${operacion.tipo} requiere transacciones originales`,
-      );
+      throw new TransaccionesNotFoundError(operacion.id.value.toString());
     }
 
     if (operacion.monto) {
       // DEVOLUCIÓN de compra en dinero: "gasta" puntos equivalentes, pero NO acredita lote nuevo
       if (!credito || credito.cantidad.value <= 0)
-        throw new Error(
-          'La devolución de compra en dinero requiere el valor a descontar',
-        );
+        throw new MontoNotFoundError();
 
       // Desgastar puntos SOLO de los lotes y cantidades indicadas por las transacciones originales
       let remaining = credito.cantidad.value;
@@ -138,9 +137,7 @@ export class SaldoHandler {
       // DEVOLUCIÓN de compra con puntos: revertir los puntos realmente devueltos
       const cantidadADevolver = totalDebito ?? credito?.cantidad;
       if (!cantidadADevolver || cantidadADevolver.value <= 0)
-        throw new Error(
-          'La devolución de compra con puntos requiere la cantidad a acreditar',
-        );
+        throw new MontoNotFoundError();
 
       let remaining = cantidadADevolver.value;
 
@@ -177,9 +174,7 @@ export class SaldoHandler {
     txs?: Transaccion[],
   ): AplicacionCambioResult {
     if (!txs) {
-      throw new Error(
-        `Operación de tipo ${operacion.tipo} requiere refAnulacion`,
-      );
+      throw new ReferenciaoNotFoundError();
     }
 
     for (const tx of txs) {
