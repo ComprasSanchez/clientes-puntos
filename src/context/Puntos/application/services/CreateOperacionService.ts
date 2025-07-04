@@ -20,11 +20,13 @@ import { RefundError } from '../../core/exceptions/Operacion/RefundError';
 import { Inject, Injectable } from '@nestjs/common';
 import {
   LOTE_REPO,
+  OPERACION_REPO,
   SALDO_HANDLER,
   TX_FACTORY,
   TX_REPO,
 } from '@puntos/core/tokens/tokens';
 import { REGLA_ENGINE_ADAPTER } from '@regla/core/tokens/tokens';
+import { OperacionRepository } from '@puntos/core/repository/OperacionRepository';
 
 @Injectable()
 export class CreateOperacionService {
@@ -33,6 +35,8 @@ export class CreateOperacionService {
     private readonly loteRepo: LoteRepository,
     @Inject(TX_REPO)
     private readonly txRepo: TransaccionRepository,
+    @Inject(OPERACION_REPO)
+    private readonly operacionRepo: OperacionRepository,
     @Inject(REGLA_ENGINE_ADAPTER)
     private readonly reglaEngine: IReglaEngine,
     @Inject(TX_FACTORY)
@@ -57,6 +61,7 @@ export class CreateOperacionService {
       } else if (req.referencia && req.referencia != null) {
         // Caso devolución por referencia de movimiento
         txsOriginal = await this.txRepo.findByReferencia(req.referencia.value!);
+        req.operacionId = txsOriginal[0]?.operationId; // Asignar el ID de la operación original
       } else {
         // Ni operacionId ni referencia → no sé qué debo revertir
         throw new RefundError();
@@ -96,8 +101,14 @@ export class CreateOperacionService {
     );
 
     // 5️⃣ Persistir cambios en lotes
-    for (const lote of saldo.getLotes()) {
-      // Si el lote ES el nuevo, no lo actualices (porque lo vas a guardar abajo)
+    const lotesOrdenados = saldo
+      .getLotes()
+      .sort(
+        (a, b) =>
+          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+      );
+
+    for (const lote of lotesOrdenados) {
       if (nuevoLote && lote.id.value === nuevoLote.id.value) continue;
       await this.loteRepo.update(lote);
     }
@@ -118,7 +129,12 @@ export class CreateOperacionService {
     for (const d of detallesDebito) {
       registros.push({
         loteId: d.loteId,
-        tipo: req.tipo !== OpTipo.COMPRA ? TxTipo.DEVOLUCION : TxTipo.GASTO,
+        tipo:
+          req.tipo !== OpTipo.COMPRA
+            ? req.tipo === OpTipo.ANULACION
+              ? TxTipo.ANULACION
+              : TxTipo.DEVOLUCION
+            : TxTipo.GASTO,
         cantidad: d.cantidad,
       });
     }
@@ -147,6 +163,9 @@ export class CreateOperacionService {
       await this.txRepo.save(tx);
       txs.push(tx);
     }
+
+    // Persistir operación
+    await this.operacionRepo.save(oper);
 
     // 7️⃣ Armar respuesta
     const lotesAfectados = [

@@ -30,7 +30,10 @@ export class TypeOrmLoteRepository implements LoteRepository {
   ): Promise<Lote[]> {
     const where: FindOptionsWhere<LoteEntity> = { clienteId };
     if (estado) where.estado = estado;
-    const entities = await this.repo.find({ where });
+    const entities = await this.repo.find({
+      where,
+      order: { createdAt: 'ASC' },
+    });
     return entities.map((e) => e.toDomain());
   }
 

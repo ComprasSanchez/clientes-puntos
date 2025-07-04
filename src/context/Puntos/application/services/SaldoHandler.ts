@@ -11,6 +11,7 @@ import { FechaExpiracion } from '@puntos/core/value-objects/FechaExpiracion';
 import { Transaccion } from '@puntos/core/entities/Transaccion';
 import { Inject, Injectable } from '@nestjs/common';
 import { LOTE_FACTORY } from '@puntos/core/tokens/tokens';
+import { TxTipo } from '@puntos/core/enums/TxTipo';
 
 export interface AplicacionCambioResult {
   detallesDebito: Array<{ loteId: LoteId; cantidad: CantidadPuntos }>;
@@ -53,8 +54,40 @@ export class SaldoHandler {
       }
 
       // Revierto cada lote en orden inverso
-      for (const { loteId, cantidad } of txs) {
-        saldo.revertirLinea(loteId.value, cantidad);
+      for (const tx of txs) {
+        const { loteId, cantidad, tipo, createdAt } = tx;
+        if (
+          operacion.tipo === OpTipo.ANULACION &&
+          createdAt.getDate() !== new Date().getDate()
+        )
+          throw new Error('solo se puede anular una transaccion del mismo dia');
+
+        const lote = saldo.obtenerLote(loteId.value);
+        if (!lote) continue;
+
+        if (tipo === TxTipo.ACREDITACION) {
+          // ¿Cuántos puntos quedan sin usar?
+          const puntosDisponibles = lote.remaining.value;
+          if (puntosDisponibles >= cantidad.value) {
+            // Se puede anular completamente
+            saldo.gastarLinea(loteId.value, cantidad); // método que descuente puntos del lote (simula gasto)
+          } else if (puntosDisponibles > 0) {
+            // Solo se puede anular parcialmente
+            saldo.gastarLinea(
+              loteId.value,
+              new CantidadPuntos(puntosDisponibles),
+            );
+            // O lanzar un error/aviso
+          } else {
+            // No se puede anular, ya se gastaron todos los puntos de ese lote
+            throw new Error(
+              `No quedan puntos disponibles para anular en el lote ${loteId.value}`,
+            );
+          }
+        } else if (tipo === TxTipo.GASTO) {
+          // Caso clásico: devolver los puntos a los lotes de origen
+          saldo.revertirLinea(loteId.value, cantidad);
+        }
       }
 
       // Y guardo esos mismos puntos como “débitos” a efectos de transacción

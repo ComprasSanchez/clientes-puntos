@@ -75,7 +75,7 @@ export class ConversionRule extends Regla {
     // 1. Débito: puntos solicitados (si vienen, o 0)
     const ptsReq = ctx.puntosSolicitados?.value ?? 0;
     if (ptsReq > 0) {
-      result.debitAmount = ptsReq * this.rateSpend.value;
+      result.debitAmount = ptsReq;
     }
 
     // 2. Crédito: monto monetario a puntos (si viene, o 0)

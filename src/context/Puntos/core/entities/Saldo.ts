@@ -73,15 +73,25 @@ export class Saldo {
     this.consumosPorOperacion.set(operacionId, detalle);
   }
 
+  public gastarLinea(loteId: string, cantidad: CantidadPuntos): void {
+    const lote = this.obtenerLote(loteId);
+    if (!lote) throw new LoteNotFoundError(loteId);
+    if (lote.remaining.value < cantidad.value) {
+      throw new Error(
+        `No hay suficientes puntos para gastar en el lote ${loteId}`,
+      );
+    }
+    lote.consumir(cantidad);
+  }
+
   // 3️⃣ Comportamiento puro de reversión
   /** Revierto X puntos directamente sobre el lote indicado */
   public revertirLinea(loteId: string, cantidad: CantidadPuntos): void {
     const lote = this.obtenerLote(loteId);
     if (!lote) throw new LoteNotFoundError(loteId);
-
     // Protejo de exceder el original
-    const posible = lote.remaining.value + cantidad.value;
-    if (posible > lote.cantidadOriginal.value) {
+    const gastados = lote.cantidadOriginal.value - lote.remaining.value;
+    if (cantidad.value > gastados) {
       throw new ReversionExcedidaError(loteId);
     }
 

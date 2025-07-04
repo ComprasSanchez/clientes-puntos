@@ -18,7 +18,7 @@ import { ReferenciaMovimiento } from '../../core/value-objects/ReferenciaMovimie
 
 @Entity({ name: 'operaciones' })
 export class OperacionEntity {
-  @PrimaryColumn('int')
+  @PrimaryColumn('bigint')
   id: number;
 
   @Column('uuid')
@@ -50,7 +50,7 @@ export class OperacionEntity {
   @Column('varchar', { length: 50, nullable: true })
   refOperacion: string | null;
 
-  @Column('int', { nullable: true })
+  @Column('bigint', { nullable: true })
   refAnulacion: number | null;
 
   @CreateDateColumn()
