@@ -84,7 +84,7 @@ export class OperacionEntity {
     entity.clienteId = operacion.clienteId;
     entity.tipo = operacion.tipo;
     entity.fecha = operacion.fecha.value;
-    entity.origenTipo = operacion.tipo;
+    entity.origenTipo = operacion.origenTipo.value;
     entity.puntos = operacion.puntos?.value ?? null;
     entity.monto = operacion.monto?.value ?? null;
     entity.moneda = operacion.moneda?.value ?? null;
