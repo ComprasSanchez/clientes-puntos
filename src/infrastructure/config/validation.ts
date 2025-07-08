@@ -11,4 +11,8 @@ export const configValidationSchema = Joi.object({
   DB_USER: Joi.string().default('postgres').required(),
   DB_PASS: Joi.string().default('secret').required(),
   DB_NAME: Joi.string().default('clientes_puntos').required(),
+  KEYCLOAK_URL: Joi.string().default('').required(),
+  KEYCLOAK_REALM: Joi.string().default('FSA').required(),
+  KEYCLOAK_CLIENT_ID: Joi.string().default('puntos-fsa').required(),
+  KEYCLOAK_CLIENT_SECRET: Joi.string().default('').required(),
 });

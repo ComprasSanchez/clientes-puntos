@@ -4,12 +4,15 @@ import { ReglaInfrastructureModule } from './context/Regla/infrastructure/regla.
 import { PuntosInfrastructureModule } from './context/Puntos/infrastructure/puntos.module';
 import { ConfigModule } from './infrastructure/config/config.module';
 import { SharedModule } from '@shared/shared.module';
-import { APP_FILTER } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { AppExceptionFilter } from '@shared/core/exceptions/AppExceptionFilter';
+import { KeycloakModule } from '@infrastructure/auth/keycloak.module';
+import { AuthGuard, ResourceGuard, RoleGuard } from 'nest-keycloak-connect';
 
 @Module({
   imports: [
     ConfigModule,
+    KeycloakModule,
     SharedModule,
     ClienteInfrastructureModule,
     ReglaInfrastructureModule,
@@ -17,6 +20,18 @@ import { AppExceptionFilter } from '@shared/core/exceptions/AppExceptionFilter';
   ],
   controllers: [],
   providers: [
+    {
+      provide: APP_GUARD,
+      useClass: AuthGuard, // 👈 Este es el guard base, obligatorio
+    },
+    {
+      provide: APP_GUARD,
+      useClass: ResourceGuard, // 👈 Solo si usás @Resource y @Scopes (opcional)
+    },
+    {
+      provide: APP_GUARD,
+      useClass: RoleGuard, // 👈 Solo si usás @Roles (muy recomendable)
+    },
     {
       provide: APP_FILTER,
       useClass: AppExceptionFilter,

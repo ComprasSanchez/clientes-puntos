@@ -26,6 +26,7 @@ import { CreateClienteDto } from '@cliente/application/dtos/ClienteCreateDto';
 import { UpdateClienteDto } from '@cliente/application/dtos/ClienteUpdateDto';
 import { ClienteProfileDto } from '@cliente/application/dtos/ClienteProfileDto';
 import { ClienteResponseDto } from '../../application/dtos/ClienteResponseDto';
+import { Roles } from 'nest-keycloak-connect';
 
 @ApiTags('Cliente')
 @Controller('cliente')
@@ -65,6 +66,7 @@ export class ClienteController {
     );
   }
 
+  @Roles({ roles: ['consultant', 'administrator'] })
   @ApiOperation({ summary: 'Obtener todos los clientes' })
   @ApiResponse({
     status: 200,

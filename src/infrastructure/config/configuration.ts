@@ -7,4 +7,8 @@ export default () => ({
   dbUser: process.env.DB_USER || 'postgres',
   dbPass: process.env.DB_PASS || 'secret',
   dbName: process.env.DB_NAME || 'clientes_puntos',
+  authServerUrl: process.env.KEYCLOAK_URL,
+  realm: process.env.KEYCLOAK_REALM,
+  clientId: process.env.KEYCLOAK_CLIENT_ID,
+  secret: process.env.KEYCLOAK_CLIENT_SECRET || 'secret',
 });
