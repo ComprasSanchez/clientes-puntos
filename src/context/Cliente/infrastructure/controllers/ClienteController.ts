@@ -7,6 +7,13 @@ import {
   Put,
   Delete,
 } from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiParam,
+  ApiBody,
+} from '@nestjs/swagger';
 import { CategoriaFindById } from '@cliente/application/use-cases/CategoriaFindById/CategoriaFindById';
 import { ClienteCreate } from '@cliente/application/use-cases/ClienteCreate/ClienteCreate';
 import { ClienteFindAll } from '@cliente/application/use-cases/ClienteFindAll/ClienteFindAll';
@@ -17,7 +24,10 @@ import { ClienteUpdate } from '@cliente/application/use-cases/ClienteUpdate/Clie
 import { ClienteDelete } from '@cliente/application/use-cases/ClienteDelete/ClienteDelete';
 import { CreateClienteDto } from '@cliente/application/dtos/ClienteCreateDto';
 import { UpdateClienteDto } from '@cliente/application/dtos/ClienteUpdateDto';
+import { ClienteProfileDto } from '@cliente/application/dtos/ClienteProfileDto';
+import { ClienteResponseDto } from '../../application/dtos/ClienteResponseDto';
 
+@ApiTags('Cliente')
 @Controller('cliente')
 export class ClienteController {
   constructor(
@@ -31,11 +41,12 @@ export class ClienteController {
     private readonly findCategoriaById: CategoriaFindById,
   ) {}
 
+  @ApiOperation({ summary: 'Crear un cliente' })
+  @ApiBody({ type: CreateClienteDto })
+  @ApiResponse({ status: 201, description: 'Cliente creado.' })
   @Post()
   async create(@Body() dto: CreateClienteDto): Promise<void> {
-    // Obtener la categoría como dominio
     const categoria = await this.findCategoriaById.run(dto.categoriaId);
-    // Ejecutar use-case de creación
     await this.createUseCase.run(
       dto.dni,
       dto.nombre,
@@ -54,83 +65,63 @@ export class ClienteController {
     );
   }
 
+  @ApiOperation({ summary: 'Obtener todos los clientes' })
+  @ApiResponse({
+    status: 200,
+    description: 'Lista de clientes.',
+    type: [ClienteResponseDto],
+  })
   @Get()
-  async findAll() {
+  async findAll(): Promise<ClienteResponseDto[] | null> {
     const clientes = await this.findAllUseCase.run();
-    return clientes.map((c) => ({
-      id: c.id.value,
-      dni: c.dni.value,
-      nombre: c.nombre.value,
-      apellido: c.apellido.value,
-      sexo: c.sexo.value,
-      fechaNacimiento: c.fechaNacimiento.value,
-      status: c.status.value,
-      categoria: c.categoria.nombre.value,
-      email: c.email.value,
-      telefono: c.telefono.value,
-      direccion: c.fullAdress.direccion.value,
-      codPostal: c.fullAdress.codPostal.value,
-      localidad: c.fullAdress.localidad.value,
-      provincia: c.fullAdress.provincia.value,
-      idFidely: c.fidelyStatus.idFidely.value,
-      tarjetaFidely: c.fidelyStatus.tarjetaFidely.value,
-      fechaBaja: c.fidelyStatus.fechaBaja.value?.toISOString() ?? null,
-    }));
+
+    return clientes;
   }
 
+  @ApiOperation({ summary: 'Buscar cliente por DNI' })
+  @ApiParam({ name: 'dni', type: String })
+  @ApiResponse({
+    status: 200,
+    description: 'Cliente encontrado.',
+    type: ClienteProfileDto,
+  })
   @Get('dni/:dni')
-  async findByDni(@Param('dni') dni: string) {
+  async findByDni(
+    @Param('dni') dni: string,
+  ): Promise<ClienteResponseDto | null> {
     const c = await this.findByDniUseCase.run(dni);
-    return {
-      id: c.id.value,
-      dni: c.dni.value,
-      nombre: c.nombre.value,
-      apellido: c.apellido.value,
-      sexo: c.sexo.value,
-      fechaNacimiento: c.fechaNacimiento.value,
-      status: c.status.value,
-      categoria: c.categoria.nombre.value,
-      email: c.email.value,
-      telefono: c.telefono.value,
-      direccion: c.fullAdress.direccion.value,
-      codPostal: c.fullAdress.codPostal.value,
-      localidad: c.fullAdress.localidad.value,
-      provincia: c.fullAdress.provincia.value,
-      idFidely: c.fidelyStatus.idFidely.value,
-      tarjetaFidely: c.fidelyStatus.tarjetaFidely.value,
-      fechaBaja: c.fidelyStatus.fechaBaja.value?.toISOString() ?? null,
-    };
+    return c;
   }
 
+  @ApiOperation({ summary: 'Buscar cliente por ID' })
+  @ApiParam({ name: 'id', type: String })
+  @ApiResponse({
+    status: 200,
+    description: 'Cliente encontrado.',
+    type: ClienteProfileDto,
+  })
   @Get(':id')
-  async findOne(@Param('id') id: string) {
+  async findOne(@Param('id') id: string): Promise<ClienteResponseDto | null> {
     const c = await this.findByIdUseCase.run(id);
-    return {
-      id: c.id.value,
-      dni: c.dni.value,
-      nombre: c.nombre.value,
-      apellido: c.apellido.value,
-      sexo: c.sexo.value,
-      fechaNacimiento: c.fechaNacimiento.value,
-      status: c.status.value,
-      categoria: c.categoria.nombre.value,
-      email: c.email.value,
-      telefono: c.telefono.value,
-      direccion: c.fullAdress.direccion.value,
-      codPostal: c.fullAdress.codPostal.value,
-      localidad: c.fullAdress.localidad.value,
-      provincia: c.fullAdress.provincia.value,
-      idFidely: c.fidelyStatus.idFidely.value,
-      tarjetaFidely: c.fidelyStatus.tarjetaFidely.value,
-      fechaBaja: c.fidelyStatus.fechaBaja.value?.toISOString() ?? null,
-    };
+    return c;
   }
 
+  @ApiOperation({ summary: 'Obtener perfil de cliente' })
+  @ApiParam({ name: 'id', type: String })
+  @ApiResponse({
+    status: 200,
+    description: 'Perfil del cliente.',
+    type: ClienteProfileDto,
+  })
   @Get(':id/profile')
   async profile(@Param('id') id: string) {
     return this.getProfileUseCase.run(id);
   }
 
+  @ApiOperation({ summary: 'Actualizar cliente' })
+  @ApiParam({ name: 'id', type: String })
+  @ApiBody({ type: UpdateClienteDto })
+  @ApiResponse({ status: 204, description: 'Cliente actualizado.' })
   @Put(':id')
   async update(
     @Param('id') id: string,
@@ -139,6 +130,9 @@ export class ClienteController {
     await this.updateUseCase.run({ id, ...dto });
   }
 
+  @ApiOperation({ summary: 'Eliminar cliente' })
+  @ApiParam({ name: 'id', type: String })
+  @ApiResponse({ status: 204, description: 'Cliente eliminado.' })
   @Delete(':id')
   async remove(@Param('id') id: string): Promise<void> {
     await this.deleteUseCase.run(id);

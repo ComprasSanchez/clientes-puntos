@@ -14,7 +14,7 @@ import {
   Put,
   Delete,
 } from '@nestjs/common';
-import { CategoriaResponseDto } from '../dtos/CategoriaResponseDto';
+import { CategoriaResponseDto } from '../../application/dtos/CategoriaResponseDto';
 
 @Controller('categoria')
 export class CategoriaController {

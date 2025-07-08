@@ -1,6 +1,7 @@
 // src/main.ts
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -13,6 +14,19 @@ async function bootstrap() {
     methods: ['GET', 'POST', 'PUT', 'DELETE'], // Métodos permitidos
     allowedHeaders: ['Content-Type', 'Authorization'], // Headers permitidos
   });
+
+  // Swagger config
+  const config = new DocumentBuilder()
+    .setTitle('Puntos FSA - API Docs')
+    .setDescription(
+      'Documentación completa de la API de Sistema de Puntos de Sanchez Antoniolli',
+    )
+    .setVersion('1.0')
+    .build();
+
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api', app, document);
+
   await app.listen(process.env.PORT ?? 3000);
 }
 

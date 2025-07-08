@@ -1,9 +1,6 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 // @cliente/application/use-cases/ClienteFindByDni.ts
 
-import { Cliente } from '@cliente/core/entities/Cliente';
+import { ClienteResponseDto } from '@cliente/application/dtos/ClienteResponseDto';
 import { ClienteNotFoundError } from '@cliente/core/exceptions/ClienteNotFoundError';
 import { ClienteRepository } from '@cliente/core/repository/ClienteRepository';
 import { CLIENTE_REPO } from '@cliente/core/tokens/tokens';
@@ -21,7 +18,7 @@ export class ClienteFindByDni {
    * Busca un Cliente por su DNI.
    * Lanza ClienteNotFoundError si no existe.
    */
-  async run(dni: string): Promise<Cliente> {
+  async run(dni: string): Promise<ClienteResponseDto> {
     const dniVo = new ClienteDni(dni);
     const cliente = await this.repository.findByDni(dniVo);
 
@@ -29,6 +26,28 @@ export class ClienteFindByDni {
       throw new ClienteNotFoundError(dni);
     }
 
-    return cliente;
+    const mapped: ClienteResponseDto = {
+      id: cliente.id.value,
+      dni: cliente.dni.value,
+      nombre: cliente.nombre.value,
+      apellido: cliente.apellido.value,
+      sexo: cliente.sexo.value,
+      fechaNacimiento: cliente.fechaNacimiento.value
+        ? cliente.fechaNacimiento.value.toISOString().split('T')[0]
+        : null, // O '', según lo que decidas para el tipo
+      status: cliente.status.value,
+      categoria: cliente.categoria.nombre.value,
+      email: cliente.email.value,
+      telefono: cliente.telefono.value,
+      direccion: cliente.fullAdress.direccion.value,
+      codPostal: cliente.fullAdress.codPostal.value,
+      localidad: cliente.fullAdress.localidad.value,
+      provincia: cliente.fullAdress.provincia.value,
+      idFidely: cliente.fidelyStatus.idFidely.value,
+      tarjetaFidely: cliente.fidelyStatus.tarjetaFidely.value,
+      fechaBaja: cliente.fidelyStatus.fechaBaja.value?.toISOString() ?? null,
+    };
+
+    return mapped;
   }
 }
