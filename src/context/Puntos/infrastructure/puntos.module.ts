@@ -12,12 +12,8 @@ import {
   SALDO_HANDLER,
   TX_FACTORY,
 } from '../core/tokens/tokens';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { LoteEntity } from './entities/lote.entity';
-import { TransaccionEntity } from './entities/transaccion.entity';
 import { DatabaseModule } from 'src/infrastructure/database/database.module';
 import { PuntosPersistenceModule } from './persistence/persistence.module';
-import { OperacionEntity } from './entities/operacion.entity';
 import { OperacionController } from './controllers/OperacionController';
 import { TransaccionController } from './controllers/TransaccionController';
 import { LoteController } from './controllers/LoteController';
@@ -47,7 +43,6 @@ import { TransactionalRunner } from '@shared/infrastructure/transaction/Transact
 @Module({
   imports: [
     forwardRef(() => ReglaInfrastructureModule),
-    TypeOrmModule.forFeature([LoteEntity, TransaccionEntity, OperacionEntity]),
     DatabaseModule,
     PuntosPersistenceModule,
   ],
