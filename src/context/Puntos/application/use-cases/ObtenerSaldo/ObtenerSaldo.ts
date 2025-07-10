@@ -1,7 +1,8 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Saldo } from '../../../core/entities/Saldo';
-import { LoteRepository } from '../../../core/repository/LoteRepository';
-import { LOTE_REPO } from '@puntos/core/tokens/tokens';
+import { SaldoRepository } from '@puntos/core/repository/SaldoRepository';
+import { SALDO_REPO } from '@puntos/core/tokens/tokens';
+import { CantidadPuntos } from '@puntos/core/value-objects/CantidadPuntos';
 
 /**
  * Servicio de dominio para operaciones sobre el agregado Saldo.
@@ -9,11 +10,13 @@ import { LOTE_REPO } from '@puntos/core/tokens/tokens';
  */
 @Injectable()
 export class ObtenerSaldo {
-  constructor(@Inject(LOTE_REPO) private readonly loteRepo: LoteRepository) {}
+  constructor(
+    @Inject(SALDO_REPO) private readonly saldoRepo: SaldoRepository,
+  ) {}
 
   async run(clienteId: string): Promise<number> {
-    const lotes = await this.loteRepo.findByCliente(clienteId);
-    const saldo = new Saldo(clienteId, lotes);
+    const saldoActual = await this.saldoRepo.findByClienteId(clienteId);
+    const saldo = new Saldo(clienteId, saldoActual ?? new CantidadPuntos(0));
     return saldo.getSaldoActual().value;
   }
 }

@@ -22,18 +22,22 @@ import {
   LOTE_REPO,
   OPERACION_REPO,
   SALDO_HANDLER,
+  SALDO_REPO,
   TX_FACTORY,
   TX_REPO,
 } from '@puntos/core/tokens/tokens';
 import { REGLA_ENGINE_ADAPTER } from '@regla/core/tokens/tokens';
 import { OperacionRepository } from '@puntos/core/repository/OperacionRepository';
 import { TransactionContext } from '@shared/core/interfaces/TransactionContext';
+import { SaldoRepository } from '@puntos/core/repository/SaldoRepository';
 
 @Injectable()
 export class CreateOperacionService {
   constructor(
     @Inject(LOTE_REPO)
     private readonly loteRepo: LoteRepository,
+    @Inject(SALDO_REPO)
+    private readonly saldoRepo: SaldoRepository,
     @Inject(TX_REPO)
     private readonly txRepo: TransaccionRepository,
     @Inject(OPERACION_REPO)
@@ -51,8 +55,11 @@ export class CreateOperacionService {
     ctx?: TransactionContext,
   ): Promise<CreateOperacionResponse> {
     // 1️⃣ Cargar lotes, transacciones y construir Saldo
+    const saldoActual =
+      (await this.saldoRepo.findByClienteId(req.clienteId)) ??
+      new CantidadPuntos(0);
     const lotes = await this.loteRepo.findByCliente(req.clienteId);
-    const saldo = new Saldo(req.clienteId, lotes);
+    const saldo = new Saldo(req.clienteId, saldoActual, lotes);
 
     let txsOriginal: Transaccion[] | undefined;
 
@@ -91,7 +98,7 @@ export class CreateOperacionService {
     const cambio = await oper.ejecutarEn(saldo, this.reglaEngine);
 
     // 4️⃣ Aplicar débito y crédito vía handler
-    const { detallesDebito, nuevoLote } = this.saldoHandler.aplicarCambio(
+    const { detallesDebito, nuevoLote } = await this.saldoHandler.aplicarCambio(
       saldo,
       oper,
       cambio.debitos[0]?.cantidad,

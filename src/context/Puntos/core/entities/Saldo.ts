@@ -10,10 +10,12 @@ import { ReversionExcedidaError } from '../exceptions/Lote/ReversionExcedidaErro
 
 export class Saldo {
   private readonly clienteId: string;
-  private readonly lotes: Lote[] = [];
+  private readonly saldoActual: CantidadPuntos;
+  private readonly lotes: Lote[];
 
   constructor(
     clienteId: string,
+    saldoActual: CantidadPuntos,
     lotes: Lote[] = [],
     private consumosPorOperacion = new Map<
       number,
@@ -21,10 +23,15 @@ export class Saldo {
     >(),
   ) {
     this.clienteId = clienteId;
+    this.saldoActual = saldoActual;
     this.lotes = lotes;
   }
 
   getSaldoActual(): CantidadPuntos {
+    return this.saldoActual;
+  }
+
+  getSaldoCalculado(): CantidadPuntos {
     const total = this.lotes
       .filter((l) => l.estado === BatchEstado.DISPONIBLE)
       .reduce((acc, lote) => acc + lote.remaining.value, 0);
