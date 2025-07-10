@@ -28,17 +28,11 @@ export class TypeOrmSaldoRepository implements SaldoRepository {
     await this.saldoRepo.save(saldo);
   }
 
-  async updateSaldo(
-    clienteId: string,
-    nuevoSaldo: number,
-    motivo?: string,
-    referenciaOperacion?: number,
-  ): Promise<void> {
+  async updateSaldo(clienteId: string, nuevoSaldo: number): Promise<void> {
     // Busca el saldo anterior
     const saldoActual = await this.saldoRepo.findOneBy({
       cliente_id: clienteId,
     });
-    const saldoAnterior = saldoActual?.saldo_total ?? 0;
 
     // Actualiza o crea saldo
     if (saldoActual) {
@@ -50,15 +44,6 @@ export class TypeOrmSaldoRepository implements SaldoRepository {
         saldo_total: nuevoSaldo,
       });
     }
-
-    // Registra en historial (referencia_operacion ahora es bigint)
-    await this.historialRepo.insert({
-      cliente_id: clienteId,
-      saldo_anterior: saldoAnterior,
-      saldo_nuevo: nuevoSaldo,
-      motivo: motivo ?? undefined,
-      referencia_operacion: referenciaOperacion ?? undefined,
-    });
   }
 
   async delete(clienteId: string): Promise<void> {

@@ -37,7 +37,6 @@ export class SaldoHandler {
     txs?: Transaccion[],
   ): Promise<AplicacionCambioResult> {
     let result: AplicacionCambioResult;
-
     switch (operacion.tipo) {
       case OpTipo.COMPRA:
         result = this.aplicarCompra(saldo, operacion, totalDebito, credito);
@@ -62,19 +61,14 @@ export class SaldoHandler {
     const saldoAnterior = await this.saldoRepo.findByClienteId(
       operacion.clienteId,
     );
-    const saldoActual = saldo.getSaldoActual().value;
+    const saldoActual = saldo.getSaldoCalculado().value;
 
     // 2️⃣ Actualiza saldo precalculado (y si no existe, lo crea)
-    await this.saldoRepo.updateSaldo(
-      operacion.clienteId,
-      saldoActual,
-      operacion.tipo, // motivo
-      operacion.id.value, // referenciaOperacion (number)
-    );
+    await this.saldoRepo.updateSaldo(operacion.clienteId, saldoActual);
 
     // 3️⃣ Guarda el historial explícitamente, si quieres lógica de dominio avanzada
     const historial = new HistorialSaldo(
-      '',
+      undefined,
       operacion.clienteId,
       new CantidadPuntos(saldoAnterior?.value ?? 0),
       new CantidadPuntos(saldoActual),
