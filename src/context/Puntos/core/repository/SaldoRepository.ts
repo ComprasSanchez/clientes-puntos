@@ -26,6 +26,7 @@ export interface SaldoRepository {
   updateSaldo(
     clienteId: string,
     nuevoSaldo: number,
+    ctx?: TransactionContext,
     motivo?: string,
     referenciaOperacion?: number,
   ): Promise<void>;

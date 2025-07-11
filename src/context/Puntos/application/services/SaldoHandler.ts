@@ -16,6 +16,7 @@ import { MontoNotFoundError } from '@puntos/core/exceptions/Saldo/MontoNotFoundE
 import { ReferenciaoNotFoundError } from '@puntos/core/exceptions/Operacion/ReferenciaRequiredError';
 import { SaldoRepository } from '@puntos/core/repository/SaldoRepository';
 import { HistorialSaldo } from '@puntos/core/entities/SaldoHistorial';
+import { TransactionContext } from '@shared/core/interfaces/TransactionContext';
 
 export interface AplicacionCambioResult {
   detallesDebito: Array<{ loteId: LoteId; cantidad: CantidadPuntos }>;
@@ -35,11 +36,21 @@ export class SaldoHandler {
     totalDebito?: CantidadPuntos,
     credito?: { cantidad: CantidadPuntos; expiraEn?: FechaExpiracion },
     txs?: Transaccion[],
+    ajusteTipo?: TxTipo,
+    ctx?: TransactionContext,
   ): Promise<AplicacionCambioResult> {
     let result: AplicacionCambioResult;
     switch (operacion.tipo) {
       case OpTipo.COMPRA:
         result = this.aplicarCompra(saldo, operacion, totalDebito, credito);
+        break;
+      case OpTipo.AJUSTE:
+        result = this.aplicarAjuste(
+          saldo,
+          operacion,
+          ajusteTipo!,
+          totalDebito!,
+        );
         break;
       case OpTipo.DEVOLUCION:
         result = this.aplicarDevolucion(
@@ -64,7 +75,7 @@ export class SaldoHandler {
     const saldoActual = saldo.getSaldoCalculado().value;
 
     // 2️⃣ Actualiza saldo precalculado (y si no existe, lo crea)
-    await this.saldoRepo.updateSaldo(operacion.clienteId, saldoActual);
+    await this.saldoRepo.updateSaldo(operacion.clienteId, saldoActual, ctx);
 
     // 3️⃣ Guarda el historial explícitamente, si quieres lógica de dominio avanzada
     const historial = new HistorialSaldo(
@@ -76,7 +87,7 @@ export class SaldoHandler {
       operacion.id,
       new Date(),
     );
-    await this.saldoRepo.saveHistorial(historial);
+    await this.saldoRepo.saveHistorial(historial, ctx);
 
     return result;
   }
@@ -112,6 +123,38 @@ export class SaldoHandler {
       });
       saldo.añadirLote(nuevoLote);
     }
+
+    return { detallesDebito, nuevoLote };
+  }
+
+  private aplicarAjuste(
+    saldo: Saldo,
+    operacion: Operacion,
+    ajusteTipo: TxTipo,
+    totalDebito: CantidadPuntos,
+  ): AplicacionCambioResult {
+    let detallesDebito: Array<{ loteId: LoteId; cantidad: CantidadPuntos }> =
+      [];
+    let nuevoLote: Lote | undefined = undefined;
+
+    // Debito (COMPRA con puntos)
+    if (totalDebito && totalDebito.value > 0) {
+      if (ajusteTipo === TxTipo.GASTO) {
+        saldo.consumirPuntos(operacion.id.value, totalDebito);
+        detallesDebito = saldo
+          .getDetalleConsumo(operacion.id.value)
+          .map((d) => ({ loteId: d.loteId, cantidad: d.cantidad }));
+      } else if (ajusteTipo === TxTipo.ACREDITACION) {
+        nuevoLote = this.loteFactory.crear({
+          clienteId: operacion.clienteId,
+          cantidad: totalDebito,
+          origen: operacion.origenTipo,
+          referencia: operacion.refOperacion,
+          expiraEn: undefined,
+        });
+        saldo.añadirLote(nuevoLote);
+      }
+    } else throw new MontoNotFoundError();
 
     return { detallesDebito, nuevoLote };
   }

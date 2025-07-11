@@ -53,6 +53,7 @@ export class CreateOperacionService {
   async execute(
     req: CreateOperacionRequest,
     ctx?: TransactionContext,
+    tipoAjuste?: TxTipo,
   ): Promise<CreateOperacionResponse> {
     // 1️⃣ Cargar lotes, transacciones y construir Saldo
     const saldoActual =
@@ -63,7 +64,7 @@ export class CreateOperacionService {
 
     let txsOriginal: Transaccion[] | undefined;
 
-    if (req.tipo != OpTipo.COMPRA) {
+    if (req.tipo != OpTipo.COMPRA && req.tipo != OpTipo.AJUSTE) {
       if (req.operacionId) {
         // Caso anulación: tengo el ID de la operación a revertir
         txsOriginal = await this.txRepo.findByOperationId(
@@ -109,6 +110,8 @@ export class CreateOperacionService {
           }
         : undefined,
       txsOriginal,
+      tipoAjuste,
+      ctx,
     );
 
     // 5️⃣ Persistir cambios en lotes
@@ -141,7 +144,7 @@ export class CreateOperacionService {
       registros.push({
         loteId: d.loteId,
         tipo:
-          req.tipo !== OpTipo.COMPRA
+          req.tipo !== OpTipo.COMPRA && req.tipo !== OpTipo.AJUSTE
             ? req.tipo === OpTipo.ANULACION
               ? TxTipo.ANULACION
               : TxTipo.DEVOLUCION
@@ -154,7 +157,7 @@ export class CreateOperacionService {
       registros.push({
         loteId: nuevoLote.id,
         tipo: TxTipo.ACREDITACION,
-        cantidad: cambio.creditos[0].cantidad,
+        cantidad: nuevoLote.cantidadOriginal,
       });
     }
 

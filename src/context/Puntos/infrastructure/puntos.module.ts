@@ -39,6 +39,8 @@ import { LoteFactory } from '@puntos/core/factories/LoteFactory';
 import { UUIDv4Generator } from '@shared/infrastructure/uuid/UuidV4Generator';
 import { UUIDGenerator } from '@shared/core/uuid/UuidGenerator';
 import { TransactionalRunner } from '@shared/infrastructure/transaction/TransactionalRunner';
+import { AjusteController } from './controllers/AjusteController';
+import { AjusteUseCase } from '@puntos/application/use-cases/Ajuste/Ajuste';
 
 @Module({
   imports: [
@@ -46,7 +48,12 @@ import { TransactionalRunner } from '@shared/infrastructure/transaction/Transact
     DatabaseModule,
     PuntosPersistenceModule,
   ],
-  controllers: [OperacionController, TransaccionController, LoteController],
+  controllers: [
+    OperacionController,
+    TransaccionController,
+    LoteController,
+    AjusteController,
+  ],
   providers: [
     { provide: UUIDGenerator, useClass: UUIDv4Generator },
     // Factories y servicios auxiliares
@@ -77,6 +84,7 @@ import { TransactionalRunner } from '@shared/infrastructure/transaction/Transact
 
     // Casos de uso
     CompraUseCase,
+    AjusteUseCase,
     DevolucionUseCase,
     AnulacionUseCase,
     FindAllLotesUseCase,

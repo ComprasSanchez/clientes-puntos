@@ -6,6 +6,7 @@ import { TypeOrmTransaccionRepository } from './TransaccionRepository/Transaccio
 import { LoteEntity } from '../entities/lote.entity';
 import { TypeOrmLoteRepository } from './LoteRepository/LoteTypeOrmImpl';
 import {
+  AJUSTE_REPO,
   LOTE_REPO,
   OPERACION_REPO,
   SALDO_REPO,
@@ -16,6 +17,8 @@ import { OperacionEntity } from '../entities/operacion.entity';
 import { SaldoCliente } from '../entities/saldo.entity';
 import { HistorialSaldoCliente } from '../entities/historial-saldo.entity';
 import { TypeOrmSaldoRepository } from './SaldoRepository/SaldoTypeOrmImpl';
+import { AjusteEntity } from '../entities/ajuste.entity';
+import { AjusteTypeOrmRepository } from './AjusteRepository/TypeOrmAjusteImpl';
 
 @Module({
   imports: [
@@ -25,6 +28,7 @@ import { TypeOrmSaldoRepository } from './SaldoRepository/SaldoTypeOrmImpl';
       OperacionEntity,
       SaldoCliente,
       HistorialSaldoCliente,
+      AjusteEntity,
     ]),
   ],
   providers: [
@@ -44,7 +48,11 @@ import { TypeOrmSaldoRepository } from './SaldoRepository/SaldoTypeOrmImpl';
       provide: SALDO_REPO, // <-- AGREGA TU TOKEN Y REPO
       useClass: TypeOrmSaldoRepository,
     },
+    {
+      provide: AJUSTE_REPO,
+      useClass: AjusteTypeOrmRepository,
+    },
   ],
-  exports: [TX_REPO, LOTE_REPO, SALDO_REPO, OPERACION_REPO], // exporta los repositorios para que puedan ser usados en otros módulos
+  exports: [TX_REPO, LOTE_REPO, SALDO_REPO, OPERACION_REPO, AJUSTE_REPO], // exporta los repositorios para que puedan ser usados en otros módulos
 })
 export class PuntosPersistenceModule {}
