@@ -56,7 +56,7 @@ export class Operacion {
   ) {
     // ——— Validaciones de invariante ———
     // 1) Debe venir al menos puntos o monto
-    if (!this._puntos && !this._monto) {
+    if (this._tipo !== OpTipo.ANULACION && !this._puntos && !this._monto) {
       throw new MonedaNotFoundError('Puntos - Monto');
     }
     // 2) Si se especifica monto, debe venir moneda
