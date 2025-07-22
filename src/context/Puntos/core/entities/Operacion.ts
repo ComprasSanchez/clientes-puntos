@@ -14,6 +14,8 @@ import {
 import { Saldo } from './Saldo';
 import { OrigenOperacion } from '../value-objects/OrigenOperacion';
 import { FechaExpiracion } from '../value-objects/FechaExpiracion';
+import { FieldRequiredError } from '@shared/core/exceptions/FieldRequiredError';
+import { MonedaNotFoundError } from '../exceptions/Operacion/MonedaNotFoundError';
 
 /**
  * Instrucción de débito: cantidad total de puntos a consumir.
@@ -51,7 +53,18 @@ export class Operacion {
     private readonly _moneda?: Moneda,
     private readonly _refOperacion?: ReferenciaMovimiento,
     private readonly _refAnulacion?: OperacionId,
-  ) {}
+  ) {
+    // ——— Validaciones de invariante ———
+    // 1) Debe venir al menos puntos o monto
+    if (!this._puntos && !this._monto) {
+      throw new MonedaNotFoundError('Puntos - Monto');
+    }
+    // 2) Si se especifica monto, debe venir moneda
+    if (this._monto && !this._moneda) {
+      throw new FieldRequiredError('Moneda');
+    }
+    // ——————————————————————————
+  }
 
   get id(): OperacionId {
     return this._id;
