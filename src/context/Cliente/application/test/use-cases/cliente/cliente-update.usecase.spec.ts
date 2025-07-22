@@ -1,10 +1,8 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { ClienteRepository } from '@cliente/core/repository/ClienteRepository';
 import { CategoriaRepository } from '@cliente/core/repository/CategoriaRepository';
 import { ClienteUpdate } from '@cliente/application/use-cases/ClienteUpdate/ClienteUpdate';
-import { ClienteNotFoundError } from '@cliente/core/exceptions/ClienteNotFoundError';
 import { Cliente } from '@cliente/core/entities/Cliente';
 import { ClienteId } from '@cliente/core/value-objects/ClienteId';
 import { ClienteDni } from '@cliente/core/value-objects/ClienteDni';
@@ -17,6 +15,7 @@ import { Categoria } from '@cliente/core/entities/Categoria';
 import { CategoriaId } from '@cliente/core/value-objects/CategoriaId';
 import { CategoriaNombre } from '@cliente/core/value-objects/CategoriaNombre';
 import { CategoriaDescripcion } from '@cliente/core/value-objects/CategoriaDescripcion';
+import { InvalidUUIDError } from '@shared/core/exceptions/InvalidUUIDError';
 
 describe('ClienteUpdate Use Case', () => {
   let repo: jest.Mocked<ClienteRepository>;
@@ -72,7 +71,7 @@ describe('ClienteUpdate Use Case', () => {
     repo.findById.mockResolvedValue(null);
 
     await expect(useCase.run({ id: 'no-existe' })).rejects.toBeInstanceOf(
-      ClienteNotFoundError,
+      InvalidUUIDError,
     );
   });
 

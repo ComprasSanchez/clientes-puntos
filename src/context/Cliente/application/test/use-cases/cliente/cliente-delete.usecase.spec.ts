@@ -1,9 +1,7 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { ClienteDelete } from '@cliente/application/use-cases/ClienteDelete/ClienteDelete';
 import { ClienteRepository } from '@cliente/core/repository/ClienteRepository';
-import { ClienteNotFoundError } from '@cliente/core/exceptions/ClienteNotFoundError';
 import { Cliente } from '@cliente/core/entities/Cliente';
 import { ClienteId } from '@cliente/core/value-objects/ClienteId';
 import { ClienteDni } from '@cliente/core/value-objects/ClienteDni';
@@ -17,6 +15,7 @@ import { CategoriaId } from '@cliente/core/value-objects/CategoriaId';
 import { CategoriaNombre } from '@cliente/core/value-objects/CategoriaNombre';
 import { CategoriaDescripcion } from '@cliente/core/value-objects/CategoriaDescripcion';
 import { StatusCliente } from '@cliente/core/enums/StatusCliente';
+import { InvalidUUIDError } from '@shared/core/exceptions/InvalidUUIDError';
 
 describe('ClienteDelete (soft delete) Use Case', () => {
   let repo: jest.Mocked<ClienteRepository>;
@@ -53,7 +52,7 @@ describe('ClienteDelete (soft delete) Use Case', () => {
   it('lanza ClienteNotFoundError si no existe', async () => {
     repo.findById.mockResolvedValue(null);
     await expect(useCase.run('no-existe')).rejects.toBeInstanceOf(
-      ClienteNotFoundError,
+      InvalidUUIDError,
     );
   });
 

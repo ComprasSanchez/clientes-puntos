@@ -18,14 +18,7 @@ describe('RuleProcessor', () => {
     const result = processor.process([], context);
     expect(result).toEqual<ReglaEngineResult>({
       debitAmount: 0,
-      reglasAplicadas: {
-        'regla-1': [
-          {
-            id: '19b7f2c5-1f4b-462e-b8b0-b8d01beeb7d3',
-            nombre: 'Regla de bonificación',
-          },
-        ],
-      },
+      reglasAplicadas: {},
     });
   });
 
@@ -91,18 +84,24 @@ describe('RuleProcessor', () => {
     const rule1 = {
       prioridad: { value: 0 },
       excluyente: { value: false },
+      id: { value: 'e0306319-172e-4cfd-9a12-570848ce2557' },
+      nombre: { value: 'regla' },
       apply: jest.fn().mockReturnValue({ debitAmount: 2 }),
     } as unknown as Regla;
 
     const rule2 = {
       prioridad: { value: 1 },
       excluyente: { value: true },
+      id: { value: 'e0306319-172e-4cfd-9a12-570848ce2557' },
+      nombre: { value: 'regla' },
       apply: jest.fn().mockReturnValue({ debitAmount: 4 }),
     } as unknown as Regla;
 
     const rule3 = {
       prioridad: { value: 2 },
       excluyente: { value: false },
+      id: { value: 'e0306319-172e-4cfd-9a12-570848ce2557' },
+      nombre: { value: 'regla' },
       apply: jest.fn().mockReturnValue({ debitAmount: 100 }),
     } as unknown as Regla;
 

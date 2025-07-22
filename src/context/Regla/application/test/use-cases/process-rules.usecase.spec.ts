@@ -50,7 +50,11 @@ describe('ExecuteRulesUseCase', () => {
     });
 
     // La respuesta sólo incluye debitAmount
-    expect(result).toEqual({ debitAmount: 42 });
+    expect(result).toEqual({
+      credito: undefined,
+      debitAmount: 42,
+      reglasAplicadas: [],
+    });
   });
 
   it('mapea todos los campos opcionales y formatea "credito"', async () => {

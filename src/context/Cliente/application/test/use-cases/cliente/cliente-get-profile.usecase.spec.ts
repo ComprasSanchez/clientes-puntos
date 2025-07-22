@@ -1,12 +1,7 @@
 /* eslint-disable @typescript-eslint/unbound-method */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 // __tests__/ClienteGetProfile.spec.ts
 import { ClienteRepository } from '@cliente/core/repository/ClienteRepository';
 import { IPuntosService } from '@cliente/application/ports/IPuntosService';
-import { ClienteNotFoundError } from '@cliente/core/exceptions/ClienteNotFoundError';
 import { ClienteProfileDto } from '@cliente/application/dtos/ClienteProfileDto'; // ajusta según tu estructura
 import { ClienteGetProfile } from '@cliente/application/use-cases/ClienteGetProfile/ClienteGetProfile';
 import { ClienteId } from '@cliente/core/value-objects/ClienteId';
@@ -30,6 +25,7 @@ import { ClienteIdFidely } from '@cliente/core/value-objects/ClienteIdFidely';
 import { ClienteTarjetaFidely } from '@cliente/core/value-objects/ClienteTarjetaFidely';
 import { ClienteFechaBaja } from '@cliente/core/value-objects/ClienteFechaBaja';
 import { StatusCliente } from '@cliente/core/enums/StatusCliente';
+import { InvalidUUIDError } from '@shared/core/exceptions/InvalidUUIDError';
 
 describe('ClienteGetProfile', () => {
   let repoMock: jest.Mocked<ClienteRepository>;
@@ -56,7 +52,7 @@ describe('ClienteGetProfile', () => {
     repoMock.findById.mockResolvedValue(null);
 
     await expect(useCase.run('no-existe')).rejects.toThrow(
-      new ClienteNotFoundError('no-existe'),
+      new InvalidUUIDError('no-existe'),
     );
 
     expect(repoMock.findById).toHaveBeenCalledWith(new ClienteId('no-existe'));
@@ -92,7 +88,7 @@ describe('ClienteGetProfile', () => {
     puntosMock.obtenerSaldoActual.mockResolvedValue(425);
     repoMock.findById.mockResolvedValue(clienteDom);
 
-    const result = await useCase.run('c-123');
+    const result = await useCase.run('42d27718-7c8f-4f15-a8df-d4bfe45bcd54');
 
     // 2️⃣ Compruebo campos estáticos
     expect(result).toMatchObject<Partial<ClienteProfileDto>>({

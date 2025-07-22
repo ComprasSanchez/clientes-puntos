@@ -47,6 +47,7 @@ describe('RulesOrchestrationService', () => {
     const fakeResult: ReglaEngineResult = {
       debitAmount: 100,
       credito: { cantidad: 20, expiraEn: new Date('2025-12-31T00:00:00Z') },
+      reglasAplicadas: {},
     };
     const processSpy = jest
       .spyOn(RuleProcessor.prototype, 'process')
@@ -72,7 +73,10 @@ describe('RulesOrchestrationService', () => {
       findByCriteria: jest.fn().mockResolvedValue([]),
     } as unknown as ReglaRepository;
 
-    const fakeResult: ReglaEngineResult = { debitAmount: 0 };
+    const fakeResult: ReglaEngineResult = {
+      debitAmount: 0,
+      reglasAplicadas: {},
+    };
     jest.spyOn(RuleProcessor.prototype, 'process').mockReturnValue(fakeResult);
 
     service = new RulesOrchestrationService(repo);

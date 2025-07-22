@@ -22,11 +22,13 @@ import { SaldoHandler } from '@puntos/application/services/SaldoHandler';
 import { LoteFactory } from '@puntos/core/factories/LoteFactory';
 import { TransaccionFactory } from '@puntos/core/factories/TransaccionFactory';
 import { OperacionRepository } from '@puntos/core/repository/OperacionRepository';
+import { SaldoRepository } from '@puntos/core/repository/SaldoRepository';
 
 describe('CreateOperacionService', () => {
   let loteRepo: jest.Mocked<LoteRepository>;
   let txRepo: jest.Mocked<TransaccionRepository>;
   let opRepo: jest.Mocked<OperacionRepository>;
+  let saldoRepo: jest.Mocked<SaldoRepository>;
   let reglaEngine: jest.Mocked<IReglaEngine>;
   let loteFactory: LoteFactory;
   let txFactory: TransaccionFactory;
@@ -37,9 +39,17 @@ describe('CreateOperacionService', () => {
   beforeEach(() => {
     idGen = new FakeUUIDGen();
 
+    saldoRepo = {
+      findByClienteId: jest.fn(),
+      updateSaldo: jest.fn(),
+      delete: jest.fn(),
+      saveHistorial: jest.fn(),
+      findHistorialByClienteId: jest.fn(),
+    };
+
     loteFactory = new LoteFactory(idGen);
     txFactory = new TransaccionFactory(idGen);
-    sHandler = new SaldoHandler(loteFactory);
+    sHandler = new SaldoHandler(loteFactory, saldoRepo);
 
     loteRepo = {
       findAll: jest.fn(),
@@ -73,6 +83,7 @@ describe('CreateOperacionService', () => {
 
     service = new CreateOperacionService(
       loteRepo,
+      saldoRepo,
       txRepo,
       opRepo,
       reglaEngine,
@@ -153,7 +164,7 @@ describe('CreateOperacionService', () => {
       }),
     );
     // Assert: repo.save called with the lote entity
-    expect(loteRepo.save).toHaveBeenCalledWith(loteEntity);
+    expect(loteRepo.save).toHaveBeenCalledWith(loteEntity, undefined);
     // Assert: txFactory called with a DTO matching lote-1
     expect(txFactory.createFromDto).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -238,7 +249,7 @@ describe('CreateOperacionService', () => {
     const result = await service.execute(req);
 
     // Assert: repo.save called with the lote entity
-    expect(loteRepo.update).toHaveBeenCalledWith(loteEntity);
+    expect(loteRepo.update).toHaveBeenCalledWith(loteEntity, undefined);
     // Assert: txFactory called with a DTO matching lote-1
     expect(txFactory.createFromDto).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -361,7 +372,7 @@ describe('CreateOperacionService', () => {
     const result = await service.execute(req);
 
     // Assert: initial lote updated
-    expect(loteRepo.update).toHaveBeenCalledWith(initialLote);
+    expect(loteRepo.update).toHaveBeenCalledWith(initialLote, undefined);
 
     // Assert: credit lote created and saved
     expect(loteFactory.crear).toHaveBeenCalledWith(
@@ -371,7 +382,7 @@ describe('CreateOperacionService', () => {
         origen,
       }),
     );
-    expect(loteRepo.save).toHaveBeenCalledWith(creditLote);
+    expect(loteRepo.save).toHaveBeenCalledWith(creditLote, undefined);
 
     // Assert: transactions created
     expect(txFactory.createFromDto).toHaveBeenCalledTimes(2);
@@ -534,9 +545,9 @@ describe('CreateOperacionService', () => {
     const result = await service.execute(req);
 
     // Assert: se consumen los tres lotes
-    expect(loteRepo.update).toHaveBeenCalledWith(lote1);
-    expect(loteRepo.update).toHaveBeenCalledWith(lote2);
-    expect(loteRepo.update).toHaveBeenCalledWith(lote3);
+    expect(loteRepo.update).toHaveBeenCalledWith(lote1, undefined);
+    expect(loteRepo.update).toHaveBeenCalledWith(lote2, undefined);
+    expect(loteRepo.update).toHaveBeenCalledWith(lote3, undefined);
 
     // Assert: se crean tres transacciones de gasto
     expect(txFactory.createFromDto).toHaveBeenCalledTimes(3);
@@ -651,8 +662,9 @@ describe('CreateOperacionService', () => {
 
     // 4️⃣ El engine de reglas nos dice que hay que debitar 40
     const reglaResult = {
-      debitos: [{ cantidad: new CantidadPuntos(40) }],
-      creditos: [],
+      debitAmount: 40,
+      credito: undefined,
+      reglasAplicadas: {},
     };
     (reglaEngine.procesar as jest.Mock).mockResolvedValue(reglaResult);
 

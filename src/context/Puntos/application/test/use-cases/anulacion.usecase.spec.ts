@@ -10,7 +10,7 @@ import { LoteId } from '@puntos/core/value-objects/LoteId';
 import { OrigenOperacion } from '@puntos/core/value-objects/OrigenOperacion';
 import { ReferenciaMovimiento } from '@puntos/core/value-objects/ReferenciaMovimiento';
 
-describe('CompraUseCase', () => {
+describe('AnulacionUseCase', () => {
   let service: jest.Mocked<CreateOperacionService>;
   let useCase: AnulacionUseCase;
 
