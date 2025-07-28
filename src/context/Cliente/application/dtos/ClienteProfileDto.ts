@@ -43,11 +43,11 @@ export class ClienteProfileDto {
   @ApiProperty({ nullable: true })
   provincia: string | null;
 
-  @ApiProperty({ nullable: true })
-  idFidely: string | null;
+  @ApiProperty({ nullable: false })
+  idFidely: number;
 
-  @ApiProperty({ nullable: true })
-  tarjetaFidely: string | null;
+  @ApiProperty({ nullable: false })
+  tarjetaFidely: string;
 
   @ApiProperty({ type: String, example: '2024-07-08' })
   fechaAlta: string;

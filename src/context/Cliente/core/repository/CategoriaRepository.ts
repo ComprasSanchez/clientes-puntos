@@ -5,6 +5,8 @@ export interface CategoriaRepository {
   /** Lista todas las categorías existentes. */
   findAll(): Promise<Categoria[]>;
 
+  findDefault(): Promise<Categoria | undefined>;
+
   /** Busca una categoría por su ID. */
   findById(id: CategoriaId): Promise<Categoria | null>;
 

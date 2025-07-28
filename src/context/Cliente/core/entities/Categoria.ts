@@ -6,6 +6,7 @@ export class Categoria {
   private readonly _id: CategoriaId;
   private _nombre: CategoriaNombre;
   private _descripcion: CategoriaDescripcion;
+  private _default: boolean;
   private _createdAt: Date;
   private _updatedAt: Date;
 
@@ -13,10 +14,12 @@ export class Categoria {
     id: CategoriaId,
     nombre: CategoriaNombre,
     descripcion?: CategoriaDescripcion,
+    isDefault?: boolean,
   ) {
     this._id = id;
     this._nombre = nombre;
     this._descripcion = descripcion ?? new CategoriaDescripcion(null);
+    this._default = isDefault ?? false; // Default to false unless specified otherwise
     this._createdAt = new Date();
     this._updatedAt = new Date();
   }
@@ -33,6 +36,10 @@ export class Categoria {
     return this._descripcion;
   }
 
+  get isDefault(): boolean {
+    return this._default;
+  }
+
   get timestamp(): { createdAt: Date; updatedAt: Date } {
     return {
       createdAt: this._createdAt,
@@ -47,6 +54,11 @@ export class Categoria {
 
   cambiarDescripcion(nuevaDescripcion: CategoriaDescripcion): void {
     this._descripcion = nuevaDescripcion;
+    this.touch();
+  }
+
+  cambiarDefault(isDefault: boolean): void {
+    this._default = isDefault;
     this.touch();
   }
 

@@ -55,14 +55,14 @@ export class ClienteController {
       dto.sexo,
       new Date(dto.fechaNacimiento),
       categoria,
+      dto.idFidely,
+      dto.tarjetaFidely,
       dto.email ?? undefined,
       dto.telefono ?? undefined,
       dto.direccion ?? undefined,
       dto.codPostal ?? undefined,
       dto.localidad ?? undefined,
       dto.provincia ?? undefined,
-      dto.idFidely ?? undefined,
-      dto.tarjetaFidely ?? undefined,
     );
   }
 

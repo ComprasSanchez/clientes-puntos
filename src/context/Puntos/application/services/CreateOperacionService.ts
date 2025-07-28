@@ -187,17 +187,28 @@ export class CreateOperacionService {
       ...(nuevoLote ? [nuevoLote] : []),
     ];
 
+    const puntosDebito = (detallesDebito ?? []).reduce(
+      (total, detalle) => total + (detalle.cantidad?.value ?? 0),
+      0,
+    );
+
+    const puntosCredito = nuevoLote ? nuevoLote.cantidadOriginal.value : 0;
+
+    const txsResponse = txs.map((t) => ({
+      id: t.id.value,
+      operacionId: t.operationId.value,
+      loteId: t.loteId.value,
+      tipo: t.tipo,
+      cantidad: t.cantidad.value,
+      createdAt: t.createdAt,
+    }));
+
     return {
       operacionId: opId.value,
+      puntosDebito: puntosDebito,
+      puntosCredito: puntosCredito,
       lotesAfectados,
-      transacciones: txs.map((t) => ({
-        id: t.id.value,
-        operacionId: t.operationId.value,
-        loteId: t.loteId.value,
-        tipo: t.tipo,
-        cantidad: t.cantidad.value,
-        createdAt: t.createdAt,
-      })),
+      transacciones: txsResponse,
     };
   }
 }

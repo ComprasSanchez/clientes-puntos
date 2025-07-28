@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { CategoriaNotFoundError } from '@cliente/core/exceptions/CategoriaNotFoundError';
 import { CategoriaRepository } from '@cliente/core/repository/CategoriaRepository';
 import { CATEGORIA_REPO } from '@cliente/core/tokens/tokens';

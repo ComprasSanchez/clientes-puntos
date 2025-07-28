@@ -23,6 +23,7 @@ export class CategoriaCreate {
   async run(input: {
     nombre: string;
     descripcion?: string | null;
+    default?: boolean;
   }): Promise<void> {
     const idVo = new CategoriaId(this.idGen.generate());
     const nombreVo = new CategoriaNombre(input.nombre);
@@ -30,8 +31,9 @@ export class CategoriaCreate {
       input.descripcion !== undefined
         ? new CategoriaDescripcion(input.descripcion)
         : undefined;
+    const isDefault = input.default ?? false;
 
-    const categoria = new Categoria(idVo, nombreVo, descripcionVo);
+    const categoria = new Categoria(idVo, nombreVo, descripcionVo, isDefault);
     await this.repo.create(categoria);
   }
 }

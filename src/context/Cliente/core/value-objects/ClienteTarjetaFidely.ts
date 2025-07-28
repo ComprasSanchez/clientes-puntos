@@ -1,11 +1,10 @@
 import { InvalidFormatError } from '@shared/core/exceptions/InvalidFormatError';
 
 export class ClienteTarjetaFidely {
-  value: string | null;
+  value: string;
 
-  constructor(value?: string | null) {
-    const v = value != null && value.trim() !== '' ? value.trim() : null;
-    this.value = v;
+  constructor(value: string) {
+    this.value = value;
     this.validate();
   }
 

@@ -1,8 +1,9 @@
 import { Categoria } from '@cliente/core/entities/Categoria';
 import { Cliente } from '@cliente/core/entities/Cliente';
 import { StatusCliente } from '@cliente/core/enums/StatusCliente';
+import { CategoriaRepository } from '@cliente/core/repository/CategoriaRepository';
 import { ClienteRepository } from '@cliente/core/repository/ClienteRepository';
-import { CLIENTE_REPO } from '@cliente/core/tokens/tokens';
+import { CATEGORIA_REPO, CLIENTE_REPO } from '@cliente/core/tokens/tokens';
 import { ClienteApellido } from '@cliente/core/value-objects/ClienteApellido';
 import { ClienteCodigoPostal } from '@cliente/core/value-objects/ClienteCodPostal';
 import { ClienteDireccion } from '@cliente/core/value-objects/ClienteDireccion';
@@ -20,6 +21,7 @@ import { ClienteStatus } from '@cliente/core/value-objects/ClienteStatus';
 import { ClienteTarjetaFidely } from '@cliente/core/value-objects/ClienteTarjetaFidely';
 import { ClienteTelefono } from '@cliente/core/value-objects/ClienteTelefono';
 import { Inject, Injectable } from '@nestjs/common';
+import { CardGenerator } from '@shared/core/interfaces/CardGenerator';
 import { UUIDGenerator } from '@shared/core/uuid/UuidGenerator';
 
 @Injectable()
@@ -27,8 +29,12 @@ export class ClienteCreate {
   constructor(
     @Inject(CLIENTE_REPO)
     private repository: ClienteRepository,
+    @Inject(CATEGORIA_REPO)
+    private categoriaRepository: CategoriaRepository,
     @Inject(UUIDGenerator)
     private readonly idGen: UUIDGenerator,
+    @Inject(CardGenerator)
+    private readonly cardGen: CardGenerator,
   ) {}
 
   async run(
@@ -37,16 +43,23 @@ export class ClienteCreate {
     apellido: string,
     sexo: string,
     fechaNacimiento: Date,
-    categoria: Categoria,
+    categoria?: Categoria,
     email?: string,
     telefono?: string,
     direccion?: string,
     codPostal?: string,
     localidad?: string,
     provincia?: string,
-    idFidely?: string,
-    tarjetaFidely?: string,
   ): Promise<void> {
+    const newCard = await this.generateUniqueCard();
+
+    if (!categoria) {
+      categoria = await this.categoriaRepository.findDefault();
+      if (!categoria) {
+        throw new Error('No se encontró una categoría por defecto');
+      }
+    }
+
     const cliente = new Cliente(
       new ClienteId(this.idGen.generate()),
       new ClienteDni(dni),
@@ -55,17 +68,29 @@ export class ClienteCreate {
       new ClienteSexo(sexo),
       new ClienteFechaNacimiento(fechaNacimiento),
       new ClienteStatus(StatusCliente.Activo),
-      new Categoria(categoria.id, categoria.nombre, categoria.descripcion),
+      categoria,
+      new ClienteIdFidely(1), //Crear generador
+      new ClienteTarjetaFidely(newCard),
       new ClienteEmail(email || null),
       new ClienteTelefono(telefono || null),
       new ClienteDireccion(direccion || null),
       new ClienteCodigoPostal(codPostal || null),
       new ClienteLocalidad(localidad || null),
       new ClienteProvincia(provincia || null),
-      new ClienteIdFidely(idFidely || null),
-      new ClienteTarjetaFidely(tarjetaFidely || null),
       new ClienteFechaBaja(null),
     );
     await this.repository.create(cliente);
+  }
+
+  private async generateUniqueCard(): Promise<string> {
+    let intentos = 0;
+    let cardNumber: string;
+    do {
+      if (intentos++ > 10) {
+        throw new Error('No se pudo generar un número de tarjeta único');
+      }
+      cardNumber = this.cardGen.generate();
+    } while (await this.repository.existsByTarjetaFidely(cardNumber));
+    return cardNumber;
   }
 }

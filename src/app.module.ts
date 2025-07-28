@@ -8,6 +8,7 @@ import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { AppExceptionFilter } from '@shared/core/exceptions/AppExceptionFilter';
 import { KeycloakModule } from '@infrastructure/auth/keycloak.module';
 import { AuthGuard, ResourceGuard, RoleGuard } from 'nest-keycloak-connect';
+import { IntegrationsModule } from '@infrastructure/integrations/integrations.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { AuthGuard, ResourceGuard, RoleGuard } from 'nest-keycloak-connect';
     ClienteInfrastructureModule,
     ReglaInfrastructureModule,
     PuntosInfrastructureModule,
+    IntegrationsModule,
   ],
   controllers: [],
   providers: [

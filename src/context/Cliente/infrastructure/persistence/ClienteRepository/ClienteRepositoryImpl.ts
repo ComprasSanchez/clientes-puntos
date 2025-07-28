@@ -48,6 +48,15 @@ export class TypeOrmClienteRepository implements ClienteRepository {
     return entity ? this.toDomain(entity) : null;
   }
 
+  async findByNroTarjeta(
+    nroTarjeta: ClienteTarjetaFidely,
+  ): Promise<Cliente | null> {
+    const entity = await this.ormRepo.findOne({
+      where: { tarjetaFidely: nroTarjeta.value },
+    });
+    return entity ? this.toDomain(entity) : null;
+  }
+
   async create(cliente: Cliente): Promise<void> {
     const entity = this.toEntity(cliente);
     await this.ormRepo.insert(entity);
@@ -73,14 +82,14 @@ export class TypeOrmClienteRepository implements ClienteRepository {
       new ClienteFechaNacimiento(e.fecNacimiento),
       new ClienteStatus(e.status),
       catDom,
+      new ClienteIdFidely(e.idFidely),
+      new ClienteTarjetaFidely(e.tarjetaFidely),
       new ClienteEmail(e.email),
       new ClienteTelefono(e.telefono),
       new ClienteDireccion(e.direccion),
       new ClienteCodigoPostal(e.codPostal),
       new ClienteLocalidad(e.localidad),
       new ClienteProvincia(e.provincia),
-      new ClienteIdFidely(e.idFidely),
-      new ClienteTarjetaFidely(e.tarjetaFidely),
       e.fechaBaja ? new ClienteFechaBaja(e.fechaBaja) : undefined,
     );
   }
@@ -95,14 +104,14 @@ export class TypeOrmClienteRepository implements ClienteRepository {
     e.fecNacimiento = c.fechaNacimiento.value;
     e.status = c.status.value;
     e.categoria = { id: c.categoria.id.value } as CategoriaEntity;
+    e.idFidely = c.fidelyStatus.idFidely.value;
+    e.tarjetaFidely = c.fidelyStatus.tarjetaFidely.value;
     e.email = c.email.value;
     e.telefono = c.telefono.value;
     e.direccion = c.fullAdress.direccion.value;
     e.codPostal = c.fullAdress.codPostal.value;
     e.localidad = c.fullAdress.localidad.value;
     e.provincia = c.fullAdress.provincia.value;
-    e.idFidely = c.fidelyStatus.idFidely.value;
-    e.tarjetaFidely = c.fidelyStatus.tarjetaFidely.value;
     e.fechaBaja = c.fidelyStatus.fechaBaja.value ?? null;
     return e;
   }

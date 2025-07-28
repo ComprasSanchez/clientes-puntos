@@ -27,6 +27,10 @@ export interface CreateOperacionResponse {
   /** UUID de la operación creada */
   operacionId: number;
 
+  puntosDebito?: number;
+
+  puntosCredito?: number;
+
   /** Lista de IDs de lotes que fueron modificados o creados */
   lotesAfectados: (Lote | LoteId)[];
 

@@ -57,14 +57,14 @@ export class Cliente {
     fechaNacimiento: ClienteFechaNacimiento,
     status: ClienteStatus,
     categoria: Categoria,
+    idFidely: ClienteIdFidely,
+    tarjetaFidely: ClienteTarjetaFidely,
     email?: ClienteEmail,
     telefono?: ClienteTelefono,
     direccion?: ClienteDireccion,
     codPostal?: ClienteCodigoPostal,
     localidad?: ClienteLocalidad,
     provincia?: ClienteProvincia,
-    idFidely?: ClienteIdFidely,
-    tarjetaFidely?: ClienteTarjetaFidely,
     fechaBaja?: ClienteFechaBaja,
   ) {
     // Campos obligatorios
@@ -75,6 +75,8 @@ export class Cliente {
     this._sexo = sexo;
     this._fechaNacimiento = fechaNacimiento;
     this._status = status;
+    this._idFidely = idFidely;
+    this._tarjetaFidely = tarjetaFidely;
 
     // Auto-inicializados
     this._categoria = categoria;
@@ -89,8 +91,6 @@ export class Cliente {
     this._codPostal = codPostal ?? new ClienteCodigoPostal(null);
     this._localidad = localidad ?? new ClienteLocalidad(null);
     this._provincia = provincia ?? new ClienteProvincia(null);
-    this._idFidely = idFidely ?? new ClienteIdFidely(null);
-    this._tarjetaFidely = tarjetaFidely ?? new ClienteTarjetaFidely(null);
     this._fechaBaja = fechaBaja ?? new ClienteFechaBaja(null);
   }
 

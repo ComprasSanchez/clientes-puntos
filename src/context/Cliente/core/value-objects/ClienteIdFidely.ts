@@ -1,9 +1,8 @@
 export class ClienteIdFidely {
-  value: string | null;
+  value: number;
 
-  constructor(value?: string | null) {
-    const v = value != null && value.trim() !== '' ? value.trim() : null;
-    this.value = v;
+  constructor(value: number) {
+    this.value = value;
     this.validate();
   }
 
@@ -12,9 +11,5 @@ export class ClienteIdFidely {
       return;
     }
     // Validación básica de no vacío; extender si hay formato específico.
-  }
-
-  toString(): string {
-    return this.value ?? '';
   }
 }

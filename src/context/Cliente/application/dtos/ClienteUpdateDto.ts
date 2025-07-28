@@ -41,10 +41,10 @@ export class UpdateClienteDto {
   provincia?: string | null;
 
   @ApiPropertyOptional()
-  idFidely?: string | null;
+  idFidely: number;
 
   @ApiPropertyOptional()
-  tarjetaFidely?: string | null;
+  tarjetaFidely: string;
 
   @ApiPropertyOptional()
   fechaBaja?: string | null;

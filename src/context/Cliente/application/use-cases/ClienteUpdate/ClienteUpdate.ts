@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 import { CategoriaId } from '@cliente/core/value-objects/CategoriaId';
 import { ClienteNotFoundError } from '@cliente/core/exceptions/ClienteNotFoundError';
 import { ClienteRepository } from '@cliente/core/repository/ClienteRepository';
@@ -34,14 +31,14 @@ interface ClienteUpdateInput {
   fechaNacimiento?: string;
   status?: string;
   categoriaId?: string;
+  idFidely: number;
+  tarjetaFidely?: string;
   email?: string | null;
   telefono?: string | null;
   direccion?: string | null;
   codPostal?: string | null;
   localidad?: string | null;
   provincia?: string | null;
-  idFidely?: string | null;
-  tarjetaFidely?: string | null;
   fechaBaja?: string | null;
 }
 
@@ -83,6 +80,12 @@ export class ClienteUpdate {
 
       cliente.cambiarCategoria(categoria);
     }
+    if (input.idFidely !== undefined)
+      cliente.editarIdFidely(new ClienteIdFidely(input.idFidely));
+    if (input.tarjetaFidely !== undefined)
+      cliente.editarTarjetaFidely(
+        new ClienteTarjetaFidely(input.tarjetaFidely),
+      );
 
     // y lo mismo para los opcionales / nulos
     if (input.email !== undefined)
@@ -97,12 +100,6 @@ export class ClienteUpdate {
       cliente.editarLocalidad(new ClienteLocalidad(input.localidad));
     if (input.provincia !== undefined)
       cliente.editarProvincia(new ClienteProvincia(input.provincia));
-    if (input.idFidely !== undefined)
-      cliente.editarIdFidely(new ClienteIdFidely(input.idFidely));
-    if (input.tarjetaFidely !== undefined)
-      cliente.editarTarjetaFidely(
-        new ClienteTarjetaFidely(input.tarjetaFidely),
-      );
     if (input.fechaBaja !== undefined && input.fechaBaja !== null)
       cliente.editarFechaBaja(new ClienteFechaBaja(new Date(input.fechaBaja)));
 
