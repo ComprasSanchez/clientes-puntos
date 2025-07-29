@@ -60,8 +60,8 @@ export class ClienteEntity {
   @Column({ type: 'varchar', length: 100, nullable: true })
   provincia: string | null;
 
-  @Column({ name: 'id_fidely', type: 'varchar', length: 50 })
-  idFidely: string;
+  @Column({ name: 'id_fidely', type: 'int', nullable: true })
+  idFidely: number | null;
 
   @Column({
     name: 'tarjeta_fidely',

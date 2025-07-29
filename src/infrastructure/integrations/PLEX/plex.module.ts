@@ -13,11 +13,11 @@ import { PlexController } from './plex.controller';
   ],
   controllers: [PlexController],
   providers: [
-    TransactionalRunner,
     {
       provide: FIDELIZAR_VENTA_ADAPTER,
       useClass: FidelizarVentaPlexAdapter,
     },
+    TransactionalRunner,
   ],
   exports: [FIDELIZAR_VENTA_ADAPTER, TransactionalRunner],
 })

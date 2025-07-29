@@ -43,8 +43,8 @@ export class ClienteResponseDto {
   @ApiProperty({ type: String, nullable: true, example: 'Buenos Aires' })
   provincia: string | null;
 
-  @ApiProperty({ type: String, nullable: false, example: '123456' })
-  idFidely: number;
+  @ApiProperty({ type: 'int', nullable: true, example: '123456' })
+  idFidely: number | undefined;
 
   @ApiProperty({ type: String, nullable: false, example: 'TARJ987654' })
   tarjetaFidely: string;

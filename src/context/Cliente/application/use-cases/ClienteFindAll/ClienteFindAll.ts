@@ -29,14 +29,14 @@ export class ClienteFindAll {
         : null,
       status: c.status.value,
       categoria: c.categoria.nombre.value,
+      tarjetaFidely: c.fidelyStatus.tarjetaFidely.value,
+      idFidely: c.fidelyStatus.idFidely.value,
       email: c.email.value,
       telefono: c.telefono.value,
       direccion: c.fullAdress.direccion.value,
       codPostal: c.fullAdress.codPostal.value,
       localidad: c.fullAdress.localidad.value,
       provincia: c.fullAdress.provincia.value,
-      idFidely: c.fidelyStatus.idFidely.value,
-      tarjetaFidely: c.fidelyStatus.tarjetaFidely.value,
       fechaBaja: c.fidelyStatus.fechaBaja.value?.toISOString() ?? null,
     }));
 

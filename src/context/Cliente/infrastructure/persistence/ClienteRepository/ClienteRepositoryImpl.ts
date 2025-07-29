@@ -57,6 +57,13 @@ export class TypeOrmClienteRepository implements ClienteRepository {
     return entity ? this.toDomain(entity) : null;
   }
 
+  async existsByTarjetaFidely(numero: string): Promise<boolean> {
+    const count = await this.ormRepo.count({
+      where: { tarjetaFidely: numero },
+    });
+    return count > 0;
+  }
+
   async create(cliente: Cliente): Promise<void> {
     const entity = this.toEntity(cliente);
     await this.ormRepo.insert(entity);
@@ -82,8 +89,8 @@ export class TypeOrmClienteRepository implements ClienteRepository {
       new ClienteFechaNacimiento(e.fecNacimiento),
       new ClienteStatus(e.status),
       catDom,
-      new ClienteIdFidely(e.idFidely),
       new ClienteTarjetaFidely(e.tarjetaFidely),
+      new ClienteIdFidely(e.idFidely),
       new ClienteEmail(e.email),
       new ClienteTelefono(e.telefono),
       new ClienteDireccion(e.direccion),
@@ -104,8 +111,8 @@ export class TypeOrmClienteRepository implements ClienteRepository {
     e.fecNacimiento = c.fechaNacimiento.value;
     e.status = c.status.value;
     e.categoria = { id: c.categoria.id.value } as CategoriaEntity;
-    e.idFidely = c.fidelyStatus.idFidely.value;
     e.tarjetaFidely = c.fidelyStatus.tarjetaFidely.value;
+    e.idFidely = c.fidelyStatus.idFidely.value ?? null;
     e.email = c.email.value;
     e.telefono = c.telefono.value;
     e.direccion = c.fullAdress.direccion.value;

@@ -19,6 +19,9 @@ export class CategoriaEntity {
   @Column({ type: 'text', nullable: true })
   descripcion?: string;
 
+  @Column({ type: 'boolean', default: false })
+  isDefault: boolean;
+
   @CreateDateColumn()
   createdAt: Date;
 

@@ -9,7 +9,6 @@ import { ClienteEmail } from '@cliente/core/value-objects/ClienteEmail';
 import { ClienteFechaBaja } from '@cliente/core/value-objects/ClienteFechaBaja';
 import { ClienteFechaNacimiento } from '@cliente/core/value-objects/ClienteFechaNacimiento';
 import { ClienteId } from '@cliente/core/value-objects/ClienteId';
-import { ClienteIdFidely } from '@cliente/core/value-objects/ClienteIdFidely';
 import { ClienteLocalidad } from '@cliente/core/value-objects/ClienteLocalidad';
 import { ClienteNombre } from '@cliente/core/value-objects/ClienteNombre';
 import { ClienteProvincia } from '@cliente/core/value-objects/ClienteProvincia';
@@ -80,8 +79,6 @@ export class ClienteUpdate {
 
       cliente.cambiarCategoria(categoria);
     }
-    if (input.idFidely !== undefined)
-      cliente.editarIdFidely(new ClienteIdFidely(input.idFidely));
     if (input.tarjetaFidely !== undefined)
       cliente.editarTarjetaFidely(
         new ClienteTarjetaFidely(input.tarjetaFidely),

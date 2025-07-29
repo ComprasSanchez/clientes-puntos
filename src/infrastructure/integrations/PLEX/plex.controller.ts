@@ -1,11 +1,21 @@
-import { Body, Controller, Headers, Post, Req, Res } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Headers,
+  Inject,
+  Post,
+  Req,
+  Res,
+} from '@nestjs/common';
 import { Request, Response } from 'express';
 import { FidelizarVentaPlexAdapter } from './FidelizarVenta/adapters/fidelizar-venta.adapter';
 import { TransactionalRunner } from '@shared/infrastructure/transaction/TransactionalRunner';
+import { FIDELIZAR_VENTA_ADAPTER } from './tokens/tokens';
 
 @Controller('onzecrm')
 export class PlexController {
   constructor(
+    @Inject(FIDELIZAR_VENTA_ADAPTER)
     private readonly adapter: FidelizarVentaPlexAdapter,
     private readonly transactionalRunner: TransactionalRunner,
   ) {}

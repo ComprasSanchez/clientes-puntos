@@ -55,8 +55,6 @@ export class ClienteController {
       dto.sexo,
       new Date(dto.fechaNacimiento),
       categoria,
-      dto.idFidely,
-      dto.tarjetaFidely,
       dto.email ?? undefined,
       dto.telefono ?? undefined,
       dto.direccion ?? undefined,

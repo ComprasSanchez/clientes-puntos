@@ -28,6 +28,14 @@ export class TypeOrmCategoriaRepository implements CategoriaRepository {
     return this.toDomain(entity);
   }
 
+  async findDefault(): Promise<Categoria | undefined> {
+    const entity = await this.repository.findOne({
+      where: { isDefault: true },
+    });
+    if (!entity) return undefined;
+    return this.toDomain(entity);
+  }
+
   /** Crea una nueva categoría. */
   async create(categoria: Categoria): Promise<void> {
     const entity = this.toEntity(categoria);

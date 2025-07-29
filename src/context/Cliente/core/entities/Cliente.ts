@@ -42,7 +42,7 @@ export class Cliente {
   private _codPostal: ClienteCodigoPostal;
   private _localidad: ClienteLocalidad;
   private _provincia: ClienteProvincia;
-  private _idFidely: ClienteIdFidely;
+  private readonly _idFidely: ClienteIdFidely;
   private _tarjetaFidely: ClienteTarjetaFidely;
   private _fechaBaja: ClienteFechaBaja;
   private _createdAt: Date;
@@ -57,8 +57,8 @@ export class Cliente {
     fechaNacimiento: ClienteFechaNacimiento,
     status: ClienteStatus,
     categoria: Categoria,
-    idFidely: ClienteIdFidely,
     tarjetaFidely: ClienteTarjetaFidely,
+    idFidely?: ClienteIdFidely,
     email?: ClienteEmail,
     telefono?: ClienteTelefono,
     direccion?: ClienteDireccion,
@@ -75,8 +75,8 @@ export class Cliente {
     this._sexo = sexo;
     this._fechaNacimiento = fechaNacimiento;
     this._status = status;
-    this._idFidely = idFidely;
     this._tarjetaFidely = tarjetaFidely;
+    this._idFidely = idFidely ?? new ClienteIdFidely(undefined);
 
     // Auto-inicializados
     this._categoria = categoria;
@@ -242,11 +242,6 @@ export class Cliente {
 
   editarProvincia(nuevaProvincia: ClienteProvincia): void {
     this._provincia = nuevaProvincia;
-    this.touch();
-  }
-
-  editarIdFidely(nuevoIdFidely: ClienteIdFidely): void {
-    this._idFidely = nuevoIdFidely;
     this.touch();
   }
 

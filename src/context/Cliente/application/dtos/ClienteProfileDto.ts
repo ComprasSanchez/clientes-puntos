@@ -44,7 +44,7 @@ export class ClienteProfileDto {
   provincia: string | null;
 
   @ApiProperty({ nullable: false })
-  idFidely: number;
+  idFidely: number | undefined;
 
   @ApiProperty({ nullable: false })
   tarjetaFidely: string;

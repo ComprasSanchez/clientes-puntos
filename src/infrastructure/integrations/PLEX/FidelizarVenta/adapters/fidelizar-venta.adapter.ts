@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { AnulacionUseCase } from '@puntos/application/use-cases/Anulacion/Anulacion';
 import { CompraUseCase } from '@puntos/application/use-cases/Compra/Compra';
 import { DevolucionUseCase } from '@puntos/application/use-cases/Devolucion/Devolucion';
@@ -9,14 +9,21 @@ import { CreateOperacionResponse } from '@puntos/application/dtos/CreateOperacio
 import { ObtenerSaldo } from '@puntos/application/use-cases/ObtenerSaldo/ObtenerSaldo';
 import { ClienteFindByTarjeta } from '@cliente/application/use-cases/ClienteFindByTarjeta/ClienteFindByTarjeta';
 import { TransactionContext } from '@shared/core/interfaces/TransactionContext';
+import { OBTENER_SALDO_SERVICE } from '@puntos/core/tokens/tokens';
+import { CLIENTE_REPO } from '@cliente/core/tokens/tokens';
 
 @Injectable()
 export class FidelizarVentaPlexAdapter {
   constructor(
+    @Inject(CompraUseCase)
     private readonly compraUseCase: CompraUseCase,
+    @Inject(DevolucionUseCase)
     private readonly devolucionUseCase: DevolucionUseCase,
+    @Inject(AnulacionUseCase)
     private readonly anulacionUseCase: AnulacionUseCase,
+    @Inject(OBTENER_SALDO_SERVICE)
     private readonly obtenerSaldoCliente: ObtenerSaldo,
+    @Inject(CLIENTE_REPO)
     private readonly cliente: ClienteFindByTarjeta,
   ) {}
 

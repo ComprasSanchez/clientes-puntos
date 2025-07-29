@@ -1,6 +1,6 @@
 import { Categoria } from '@cliente/core/entities/Categoria';
-import { Cliente } from '@cliente/core/entities/Cliente';
 import { StatusCliente } from '@cliente/core/enums/StatusCliente';
+import { ClienteFactory } from '@cliente/core/factories/ClienteFactory';
 import { CategoriaRepository } from '@cliente/core/repository/CategoriaRepository';
 import { ClienteRepository } from '@cliente/core/repository/ClienteRepository';
 import { CATEGORIA_REPO, CLIENTE_REPO } from '@cliente/core/tokens/tokens';
@@ -12,7 +12,6 @@ import { ClienteEmail } from '@cliente/core/value-objects/ClienteEmail';
 import { ClienteFechaBaja } from '@cliente/core/value-objects/ClienteFechaBaja';
 import { ClienteFechaNacimiento } from '@cliente/core/value-objects/ClienteFechaNacimiento';
 import { ClienteId } from '@cliente/core/value-objects/ClienteId';
-import { ClienteIdFidely } from '@cliente/core/value-objects/ClienteIdFidely';
 import { ClienteLocalidad } from '@cliente/core/value-objects/ClienteLocalidad';
 import { ClienteNombre } from '@cliente/core/value-objects/ClienteNombre';
 import { ClienteProvincia } from '@cliente/core/value-objects/ClienteProvincia';
@@ -60,25 +59,25 @@ export class ClienteCreate {
       }
     }
 
-    const cliente = new Cliente(
-      new ClienteId(this.idGen.generate()),
-      new ClienteDni(dni),
-      new ClienteNombre(nombre),
-      new ClienteApellido(apellido),
-      new ClienteSexo(sexo),
-      new ClienteFechaNacimiento(fechaNacimiento),
-      new ClienteStatus(StatusCliente.Activo),
+    const cliente = ClienteFactory.crear({
+      id: new ClienteId(this.idGen.generate()),
+      dni: new ClienteDni(dni),
+      nombre: new ClienteNombre(nombre),
+      apellido: new ClienteApellido(apellido),
+      sexo: new ClienteSexo(sexo),
+      fechaNacimiento: new ClienteFechaNacimiento(fechaNacimiento),
+      status: new ClienteStatus(StatusCliente.Activo),
       categoria,
-      new ClienteIdFidely(1), //Crear generador
-      new ClienteTarjetaFidely(newCard),
-      new ClienteEmail(email || null),
-      new ClienteTelefono(telefono || null),
-      new ClienteDireccion(direccion || null),
-      new ClienteCodigoPostal(codPostal || null),
-      new ClienteLocalidad(localidad || null),
-      new ClienteProvincia(provincia || null),
-      new ClienteFechaBaja(null),
-    );
+      tarjetaFidely: new ClienteTarjetaFidely(newCard),
+      // idFidely: NO SE PASA (queda undefined)
+      email: new ClienteEmail(email || null),
+      telefono: new ClienteTelefono(telefono || null),
+      direccion: new ClienteDireccion(direccion || null),
+      codPostal: new ClienteCodigoPostal(codPostal || null),
+      localidad: new ClienteLocalidad(localidad || null),
+      provincia: new ClienteProvincia(provincia || null),
+      fechaBaja: new ClienteFechaBaja(null),
+    });
     await this.repository.create(cliente);
   }
 
