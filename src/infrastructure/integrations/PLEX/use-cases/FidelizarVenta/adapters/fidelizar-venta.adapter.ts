@@ -11,6 +11,8 @@ import { ClienteFindByTarjeta } from '@cliente/application/use-cases/ClienteFind
 import { TransactionContext } from '@shared/core/interfaces/TransactionContext';
 import { OBTENER_SALDO_SERVICE } from '@puntos/core/tokens/tokens';
 import { CLIENTE_REPO } from '@cliente/core/tokens/tokens';
+import { TipoMoneda } from '@shared/core/enums/TipoMoneda';
+import { codFidelizarVenta } from '@infrastructure/integrations/PLEX/enums/fidelizar-venta.enum';
 
 @Injectable()
 export class FidelizarVentaPlexAdapter {
@@ -43,21 +45,21 @@ export class FidelizarVentaPlexAdapter {
       puntos: plexDto.puntosCanjeados,
       montoMoneda: plexDto.importeTotal,
       origenTipo: 'PLEX',
-      moneda: 'ARS',
+      moneda: TipoMoneda.ARS,
       referencia: plexDto.nroComprobante,
       refOperacion: Number(plexDto.idMovimiento),
     };
 
     // 4. Elegir use case según codAccion
     let domainResponse: CreateOperacionResponse;
-    switch (plexDto.codAccion) {
-      case '200':
+    switch (plexDto.codAccion as codFidelizarVenta) {
+      case codFidelizarVenta.VENTA:
         domainResponse = await this.compraUseCase.run(domainRequest, ctx);
         break;
-      case '201':
+      case codFidelizarVenta.DEVOLUCION:
         domainResponse = await this.devolucionUseCase.run(domainRequest, ctx);
         break;
-      case '202':
+      case codFidelizarVenta.ANULACION:
         domainResponse = await this.anulacionUseCase.run(domainRequest, ctx);
         break;
       default:

@@ -8,7 +8,7 @@ import {
   Res,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
-import { FidelizarVentaPlexAdapter } from './FidelizarVenta/adapters/fidelizar-venta.adapter';
+import { FidelizarVentaPlexAdapter } from './use-cases/FidelizarVenta/adapters/fidelizar-venta.adapter';
 import { TransactionalRunner } from '@shared/infrastructure/transaction/TransactionalRunner';
 import { FIDELIZAR_VENTA_ADAPTER } from './tokens/tokens';
 
