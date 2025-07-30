@@ -1,12 +1,4 @@
-import {
-  Body,
-  Controller,
-  Headers,
-  Inject,
-  Post,
-  Req,
-  Res,
-} from '@nestjs/common';
+import { Controller, Headers, Inject, Post, Req, Res } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { FidelizarVentaPlexAdapter } from './use-cases/FidelizarVenta/adapters/fidelizar-venta.adapter';
 import { TransactionalRunner } from '@shared/infrastructure/transaction/TransactionalRunner';
@@ -20,7 +12,7 @@ export class PlexController {
     private readonly transactionalRunner: TransactionalRunner,
   ) {}
 
-  @Post('/fidelizar-venta')
+  @Post()
   async fidelizarVenta(
     @Req() req: Request,
     @Res() res: Response,

@@ -10,7 +10,6 @@ import { ObtenerSaldo } from '@puntos/application/use-cases/ObtenerSaldo/Obtener
 import { ClienteFindByTarjeta } from '@cliente/application/use-cases/ClienteFindByTarjeta/ClienteFindByTarjeta';
 import { TransactionContext } from '@shared/core/interfaces/TransactionContext';
 import { OBTENER_SALDO_SERVICE } from '@puntos/core/tokens/tokens';
-import { CLIENTE_REPO } from '@cliente/core/tokens/tokens';
 import { TipoMoneda } from '@shared/core/enums/TipoMoneda';
 import { codFidelizarVenta } from '@infrastructure/integrations/PLEX/enums/fidelizar-venta.enum';
 
@@ -25,7 +24,7 @@ export class FidelizarVentaPlexAdapter {
     private readonly anulacionUseCase: AnulacionUseCase,
     @Inject(OBTENER_SALDO_SERVICE)
     private readonly obtenerSaldoCliente: ObtenerSaldo,
-    @Inject(CLIENTE_REPO)
+    @Inject(ClienteFindByTarjeta)
     private readonly cliente: ClienteFindByTarjeta,
   ) {}
 

@@ -57,6 +57,13 @@ export class TypeOrmClienteRepository implements ClienteRepository {
     return entity ? this.toDomain(entity) : null;
   }
 
+  async findByIdFidely(idFidely: ClienteIdFidely): Promise<Cliente | null> {
+    const entity = await this.ormRepo.findOne({
+      where: { idFidely: idFidely.value },
+    });
+    return entity ? this.toDomain(entity) : null;
+  }
+
   async existsByTarjetaFidely(numero: string): Promise<boolean> {
     const count = await this.ormRepo.count({
       where: { tarjetaFidely: numero },

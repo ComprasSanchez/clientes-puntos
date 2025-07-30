@@ -20,14 +20,18 @@ import { CategoriaRepository } from '@cliente/core/repository/CategoriaRepositor
 import { CategoriaNotFoundError } from '@cliente/core/exceptions/CategoriaNotFoundError';
 import { Inject, Injectable } from '@nestjs/common';
 import { CATEGORIA_REPO, CLIENTE_REPO } from '@cliente/core/tokens/tokens';
+import { uniqueCardGenerator } from '@cliente/application/services/CardGenerator';
+import { TransactionContext } from '@shared/core/interfaces/TransactionContext';
+import { Cliente } from '@cliente/core/entities/Cliente';
+import { ClienteIdFidely } from '@cliente/core/value-objects/ClienteIdFidely';
 
 interface ClienteUpdateInput {
-  id: string; // siempre obligatorio
+  id?: string;
   dni?: string;
   nombre?: string;
   apellido?: string;
   sexo?: string;
-  fechaNacimiento?: string;
+  fechaNacimiento?: Date;
   status?: string;
   categoriaId?: string;
   idFidely: number;
@@ -48,12 +52,27 @@ export class ClienteUpdate {
     private readonly repository: ClienteRepository,
     @Inject(CATEGORIA_REPO)
     private readonly categoriaRepo: CategoriaRepository,
+    @Inject(uniqueCardGenerator)
+    private readonly cardGen: uniqueCardGenerator,
   ) {}
 
-  async run(input: ClienteUpdateInput): Promise<void> {
+  async run(
+    input: ClienteUpdateInput,
+    ctx?: TransactionContext,
+  ): Promise<Cliente> {
     // 1) Recupero el Cliente existente
-    const cliente = await this.repository.findById(new ClienteId(input.id));
-    if (!cliente) throw new ClienteNotFoundError(input.id);
+    let cliente: Cliente | null;
+    if (input.id) {
+      cliente = await this.repository.findById(new ClienteId(input.id));
+      if (!cliente || cliente === null)
+        throw new ClienteNotFoundError(input.id);
+    } else {
+      cliente = await this.repository.findByIdFidely(
+        new ClienteIdFidely(input.idFidely),
+      );
+      if (!cliente || cliente === null)
+        throw new ClienteNotFoundError(input.dni!);
+    }
 
     // 2) Aplico sólo los campos que vienen
     if (input.dni !== undefined) cliente.editarDni(new ClienteDni(input.dni));
@@ -65,7 +84,7 @@ export class ClienteUpdate {
       cliente.editarSexo(new ClienteSexo(input.sexo));
     if (input.fechaNacimiento !== undefined)
       cliente.editarFechaNacimiento(
-        new ClienteFechaNacimiento(new Date(input.fechaNacimiento)),
+        new ClienteFechaNacimiento(input.fechaNacimiento),
       );
     if (input.status !== undefined)
       cliente.editarStatus(new ClienteStatus(input.status));
@@ -79,11 +98,10 @@ export class ClienteUpdate {
 
       cliente.cambiarCategoria(categoria);
     }
-    if (input.tarjetaFidely !== undefined)
-      cliente.editarTarjetaFidely(
-        new ClienteTarjetaFidely(input.tarjetaFidely),
-      );
-
+    if (input.tarjetaFidely !== undefined) {
+      const newCard = await this.cardGen.generate();
+      cliente.editarTarjetaFidely(new ClienteTarjetaFidely(newCard));
+    }
     // y lo mismo para los opcionales / nulos
     if (input.email !== undefined)
       cliente.editarEmail(new ClienteEmail(input.email));
@@ -103,6 +121,11 @@ export class ClienteUpdate {
     cliente.touch();
 
     // 3) Persisto
-    await this.repository.update(cliente);
+    await this.repository.update(cliente, ctx);
+    const result = await this.repository.findById(cliente.id);
+    if (!result) {
+      throw new Error('Cliente no encontrado después de crear');
+    }
+    return result;
   }
 }

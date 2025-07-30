@@ -1,4 +1,3 @@
-import { Categoria } from '@cliente/core/entities/Categoria';
 import { StatusCliente } from '@cliente/core/enums/StatusCliente';
 import { ClienteFactory } from '@cliente/core/factories/ClienteFactory';
 import { CategoriaRepository } from '@cliente/core/repository/CategoriaRepository';
@@ -19,9 +18,27 @@ import { ClienteSexo } from '@cliente/core/value-objects/ClienteSexo';
 import { ClienteStatus } from '@cliente/core/value-objects/ClienteStatus';
 import { ClienteTarjetaFidely } from '@cliente/core/value-objects/ClienteTarjetaFidely';
 import { ClienteTelefono } from '@cliente/core/value-objects/ClienteTelefono';
+import { uniqueCardGenerator } from '@cliente/application/services/CardGenerator';
 import { Inject, Injectable } from '@nestjs/common';
-import { CardGenerator } from '@shared/core/interfaces/CardGenerator';
 import { UUIDGenerator } from '@shared/core/uuid/UuidGenerator';
+import { Cliente } from '@cliente/core/entities/Cliente';
+import { TransactionContext } from '@shared/core/interfaces/TransactionContext';
+import { CategoriaNotFoundError } from '@cliente/core/exceptions/CategoriaNotFoundError';
+
+export interface ClienteCreateInput {
+  dni: string;
+  nombre: string;
+  apellido: string;
+  sexo: string;
+  fechaNacimiento: Date;
+  categoria?: string;
+  email?: string;
+  telefono?: string;
+  direccion?: string;
+  codPostal?: string;
+  localidad?: string;
+  provincia?: string;
+}
 
 @Injectable()
 export class ClienteCreate {
@@ -32,64 +49,51 @@ export class ClienteCreate {
     private categoriaRepository: CategoriaRepository,
     @Inject(UUIDGenerator)
     private readonly idGen: UUIDGenerator,
-    @Inject(CardGenerator)
-    private readonly cardGen: CardGenerator,
+    @Inject(uniqueCardGenerator)
+    private readonly cardGen: uniqueCardGenerator,
   ) {}
 
   async run(
-    dni: string,
-    nombre: string,
-    apellido: string,
-    sexo: string,
-    fechaNacimiento: Date,
-    categoria?: Categoria,
-    email?: string,
-    telefono?: string,
-    direccion?: string,
-    codPostal?: string,
-    localidad?: string,
-    provincia?: string,
-  ): Promise<void> {
-    const newCard = await this.generateUniqueCard();
+    input: ClienteCreateInput,
+    tarjetaConDni: boolean,
+    ctx?: TransactionContext,
+  ): Promise<Cliente> {
+    let newCard: string;
+    if (tarjetaConDni) {
+      newCard = input.dni;
+    } else {
+      newCard = await this.cardGen.generate();
+    }
+    const categoria = await this.categoriaRepository.findDefault();
 
     if (!categoria) {
-      categoria = await this.categoriaRepository.findDefault();
-      if (!categoria) {
-        throw new Error('No se encontró una categoría por defecto');
-      }
+      throw new CategoriaNotFoundError(input.categoria || 'default');
     }
 
     const cliente = ClienteFactory.crear({
       id: new ClienteId(this.idGen.generate()),
-      dni: new ClienteDni(dni),
-      nombre: new ClienteNombre(nombre),
-      apellido: new ClienteApellido(apellido),
-      sexo: new ClienteSexo(sexo),
-      fechaNacimiento: new ClienteFechaNacimiento(fechaNacimiento),
+      dni: new ClienteDni(input.dni),
+      nombre: new ClienteNombre(input.nombre),
+      apellido: new ClienteApellido(input.apellido),
+      sexo: new ClienteSexo(input.sexo),
+      fechaNacimiento: new ClienteFechaNacimiento(input.fechaNacimiento),
       status: new ClienteStatus(StatusCliente.Activo),
-      categoria,
+      categoria: categoria,
       tarjetaFidely: new ClienteTarjetaFidely(newCard),
       // idFidely: NO SE PASA (queda undefined)
-      email: new ClienteEmail(email || null),
-      telefono: new ClienteTelefono(telefono || null),
-      direccion: new ClienteDireccion(direccion || null),
-      codPostal: new ClienteCodigoPostal(codPostal || null),
-      localidad: new ClienteLocalidad(localidad || null),
-      provincia: new ClienteProvincia(provincia || null),
+      email: new ClienteEmail(input.email || null),
+      telefono: new ClienteTelefono(input.telefono || null),
+      direccion: new ClienteDireccion(input.direccion || null),
+      codPostal: new ClienteCodigoPostal(input.codPostal || null),
+      localidad: new ClienteLocalidad(input.localidad || null),
+      provincia: new ClienteProvincia(input.provincia || null),
       fechaBaja: new ClienteFechaBaja(null),
     });
-    await this.repository.create(cliente);
-  }
-
-  private async generateUniqueCard(): Promise<string> {
-    let intentos = 0;
-    let cardNumber: string;
-    do {
-      if (intentos++ > 10) {
-        throw new Error('No se pudo generar un número de tarjeta único');
-      }
-      cardNumber = this.cardGen.generate();
-    } while (await this.repository.existsByTarjetaFidely(cardNumber));
-    return cardNumber;
+    await this.repository.create(cliente, ctx);
+    const result = await this.repository.findById(cliente.id);
+    if (!result) {
+      throw new Error('Cliente no encontrado después de crear');
+    }
+    return result;
   }
 }

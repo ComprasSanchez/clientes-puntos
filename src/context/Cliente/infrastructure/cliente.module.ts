@@ -20,6 +20,8 @@ import { ClienteFindByDni } from '@cliente/application/use-cases/ClienteFindByDn
 import { ClienteFindById } from '@cliente/application/use-cases/ClienteFindbyId/ClienteFindById';
 import { ClienteController } from './controllers/ClienteController';
 import { PuntosInfrastructureModule } from '@puntos/infrastructure/puntos.module';
+import { ClienteFindByTarjeta } from '@cliente/application/use-cases/ClienteFindByTarjeta/ClienteFindByTarjeta';
+import { uniqueCardGenerator } from '@cliente/application/services/CardGenerator';
 
 const providers: Provider[] = [
   // 1) Repo puro
@@ -30,6 +32,7 @@ const providers: Provider[] = [
   ClienteFindByDni,
   ClienteFindById,
   ClienteGetProfile,
+  ClienteFindByTarjeta,
   { provide: CLIENTE_REPO, useClass: TypeOrmClienteRepository },
 
   CategoriaCreate,
@@ -38,6 +41,8 @@ const providers: Provider[] = [
   CategoriaUpdate,
   CategoriaDelete,
   { provide: CATEGORIA_REPO, useClass: TypeOrmCategoriaRepository },
+
+  uniqueCardGenerator,
 ];
 
 @Module({
