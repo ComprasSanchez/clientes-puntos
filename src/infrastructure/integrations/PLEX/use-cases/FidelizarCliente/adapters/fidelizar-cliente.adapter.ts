@@ -1,7 +1,7 @@
 import { ClienteCreate } from '@cliente/application/use-cases/ClienteCreate/ClienteCreate';
 import { Inject, Injectable } from '@nestjs/common';
 import { TransactionContext } from '@shared/core/interfaces/TransactionContext';
-import { js2xml, xml2js } from 'xml-js';
+import { XMLBuilder, XMLParser } from 'fast-xml-parser';
 import { PlexFidelizarClienteRequestMapper } from '../dtos/fidelizar-cliente.request.dto';
 import { codFidelizarCliente } from '@infrastructure/integrations/PLEX/enums/fidelizar-cliente.enum';
 import { Cliente } from '@cliente/core/entities/Cliente';
@@ -18,56 +18,81 @@ export class FidelizarClientePlexAdapter {
   ) {}
 
   async handle(xml: string, ctx?: TransactionContext): Promise<string> {
-    // 1. Parseo XML
-    const parsedObj = xml2js(xml, { compact: true });
+    const parser = new XMLParser({
+      ignoreAttributes: false,
+      trimValues: true,
+    });
+    const parsedObj = parser.parse(xml) as unknown;
 
-    // 2. DTO integración
     const plexDto = PlexFidelizarClienteRequestMapper.fromXml(parsedObj);
-
-    const clienteRequest = {
-      idFidely: Number(plexDto.idClienteFidely),
-      tarjetaFidely:
-        (plexDto.codAccion as codFidelizarCliente) ===
-        codFidelizarCliente.REEMPLAZAR_TARJETA
-          ? plexDto.nroTarjetaAnterior
-          : plexDto.nroTarjeta,
-      dni: plexDto.dni,
-      nombre: plexDto.nombre,
-      apellido: plexDto.apellido,
-      sexo: plexDto.sexo!,
-      fechaNacimiento: new Date(plexDto.fecNac!),
-      categoria: plexDto.categoria,
-      email: plexDto.email,
-      telefono: plexDto.telefono,
-      direccion: plexDto.direccion,
-      codPostal: plexDto.codPostal,
-      localidad: plexDto.localidad,
-      provincia: plexDto.provincia,
-    };
 
     let domainResponse: Cliente;
 
     switch (plexDto.codAccion as codFidelizarCliente) {
       case codFidelizarCliente.NUEVO:
+      case codFidelizarCliente.TARJETA_VIRTUAL: {
+        // NO pases idFidely (no lo requiere el input de create)
+        const clienteRequest = {
+          // NO idFidely aquí
+          tarjetaFidely:
+            (plexDto.codAccion as codFidelizarCliente) ===
+            codFidelizarCliente.REEMPLAZAR_TARJETA
+              ? plexDto.nroTarjetaAnterior
+              : plexDto.nroTarjeta,
+          dni: plexDto.dni,
+          nombre: plexDto.nombre,
+          apellido: plexDto.apellido,
+          sexo: plexDto.sexo!,
+          fechaNacimiento: new Date(plexDto.fecNac!),
+          categoria: plexDto.categoria,
+          email: plexDto.email,
+          telefono: plexDto.telefono,
+          direccion: plexDto.direccion,
+          codPostal: plexDto.codPostal,
+          localidad: plexDto.localidad,
+          provincia: plexDto.provincia,
+        };
         domainResponse = await this.clienteCreate.run(
           clienteRequest,
-          false,
+          (plexDto.codAccion as codFidelizarCliente) ===
+            codFidelizarCliente.TARJETA_VIRTUAL,
           ctx,
         );
         break;
+      }
+
       case codFidelizarCliente.MODIFICAR:
+      case codFidelizarCliente.REEMPLAZAR_TARJETA: {
+        if (!plexDto.idClienteFidely) {
+          throw new Error(
+            'IDClienteFidely es requerido para modificar o reemplazar tarjeta',
+          );
+        }
+        // idFidely es requerido y seguro en este caso
+        const clienteRequest = {
+          idFidely: Number(plexDto.idClienteFidely),
+          tarjetaFidely:
+            (plexDto.codAccion as codFidelizarCliente) ===
+            codFidelizarCliente.REEMPLAZAR_TARJETA
+              ? plexDto.nroTarjetaAnterior
+              : plexDto.nroTarjeta,
+          dni: plexDto.dni,
+          nombre: plexDto.nombre,
+          apellido: plexDto.apellido,
+          sexo: plexDto.sexo!,
+          fechaNacimiento: new Date(plexDto.fecNac!),
+          categoria: plexDto.categoria,
+          email: plexDto.email,
+          telefono: plexDto.telefono,
+          direccion: plexDto.direccion,
+          codPostal: plexDto.codPostal,
+          localidad: plexDto.localidad,
+          provincia: plexDto.provincia,
+        };
         domainResponse = await this.clienteUpdate.run(clienteRequest, ctx);
         break;
-      case codFidelizarCliente.REEMPLAZAR_TARJETA:
-        domainResponse = await this.clienteUpdate.run(clienteRequest, ctx);
-        break;
-      case codFidelizarCliente.TARJETA_VIRTUAL:
-        domainResponse = await this.clienteCreate.run(
-          clienteRequest,
-          true,
-          ctx,
-        );
-        break;
+      }
+
       default:
         throw new Error(`CodAccion desconocido: ${plexDto.codAccion}`);
     }
@@ -77,11 +102,14 @@ export class FidelizarClientePlexAdapter {
       nroTarjeta: domainResponse.fidelyStatus.tarjetaFidely.value,
     });
 
-    const xmlResponse = PlexFidelizarClienteResponseMapper.toXml(response);
+    const xmlResponseObj = PlexFidelizarClienteResponseMapper.toXml(response);
 
-    return js2xml(xmlResponse, {
-      compact: true,
-      spaces: 2,
+    const builder = new XMLBuilder({
+      ignoreAttributes: false,
+      format: true,
     });
+    const xmlString = builder.build(xmlResponseObj);
+
+    return `<?xml version="1.0" encoding="utf-8"?>\n${xmlString}`;
   }
 }

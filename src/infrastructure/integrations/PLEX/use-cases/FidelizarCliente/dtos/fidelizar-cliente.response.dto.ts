@@ -24,11 +24,11 @@ export class PlexFidelizarClienteResponseMapper {
   static toXml(dto: PlexFidelizarClienteResponseDto) {
     return {
       RespuestaFidelyGb: {
-        RespCode: { _text: dto.respCode },
-        RespMsg: { _text: dto.respMsg },
+        RespCode: dto.respCode,
+        RespMsg: dto.respMsg,
         Cliente: {
-          IDClienteFidely: { _text: dto.idClienteFidely.toString() },
-          NroTarjeta: { _text: dto.nroTarjeta.toString() },
+          IDClienteFidely: dto.idClienteFidely.toString(),
+          NroTarjeta: dto.nroTarjeta.toString(),
         },
       },
     };
