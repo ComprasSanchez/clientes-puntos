@@ -1,6 +1,11 @@
-// plex-fidelizar-venta.request.dto.ts
+import { PlexFidelizarVentaFXPParsed } from '../interfaces/fidelizar-venta-parsed.interface';
 
-import { PlexFidelizarVentaParsed } from '../interfaces/fidelizar-venta-parsed.interface';
+type ProductoParsed = {
+  IdProducto?: string;
+  Cantidad?: string | number;
+  Precio?: string | number;
+  IdComprobanteRef?: string;
+};
 
 export class PlexFidelizarVentaRequestDto {
   codAccion: string; // 200 = Venta, 201 = Devolución, 202 = Anular
@@ -20,30 +25,48 @@ export class PlexFidelizarVentaRequestDto {
   }>;
 
   static fromXml(obj: unknown): PlexFidelizarVentaRequestDto {
-    // Asegurate de que obj es del tipo esperado:
-    const { MensajeFidelyGb } = obj as PlexFidelizarVentaParsed;
-    const venta = MensajeFidelyGb.Venta;
+    const { MensajeFidelyGb } = obj as PlexFidelizarVentaFXPParsed;
+    const venta = MensajeFidelyGb?.Venta || {};
 
-    // normalizá productos a array
-    const productosArr = Array.isArray(venta.Productos)
-      ? venta.Productos
-      : [venta.Productos];
+    let productosArr: ProductoParsed[] = [];
+    if (Array.isArray(venta.Productos)) {
+      productosArr = venta.Productos;
+    } else if (venta.Productos) {
+      productosArr = [venta.Productos];
+    }
+
+    const safeNumber = (val: any, def = 0) => {
+      const n = Number(val);
+      return isNaN(n) ? def : n;
+    };
 
     return {
-      codAccion: MensajeFidelyGb.CodAccion?._text ?? '',
-      idMovimiento: venta.idMovimiento?._text,
-      nroTarjeta: venta.NroTarjeta?._text ?? '',
-      importeTotal: parseFloat(venta.ImporteTotal?._text ?? '0'),
-      valorCanjePunto: parseFloat(venta.ValorCanjePunto?._text ?? '0'),
-      puntosCanjeados: parseInt(venta.PuntosCanjeados?._text ?? '0'),
-      idComprobante: venta.IdComprobante?._text ?? '',
-      nroComprobante: venta.NroComprobante?._text ?? '',
-      fechaComprobante: venta.FechaComprobante?._text ?? '',
+      codAccion: MensajeFidelyGb?.CodAccion
+        ? String(MensajeFidelyGb.CodAccion).trim()
+        : '',
+      idMovimiento: venta.IdMovimiento
+        ? String(venta.IdMovimiento).trim()
+        : undefined,
+      nroTarjeta: venta.NroTarjeta ? String(venta.NroTarjeta).trim() : '',
+      importeTotal: safeNumber(venta.ImporteTotal),
+      valorCanjePunto: safeNumber(venta.ValorCanjePunto),
+      puntosCanjeados: safeNumber(venta.PuntosCanjeados),
+      idComprobante: venta.IdComprobante
+        ? String(venta.IdComprobante).trim()
+        : '',
+      nroComprobante: venta.NroComprobante
+        ? String(venta.NroComprobante).trim()
+        : '',
+      fechaComprobante: venta.FechaComprobante
+        ? String(venta.FechaComprobante).trim()
+        : '',
       productos: productosArr.map((p) => ({
-        idProducto: p.IdProducto?._text ?? '',
-        cantidad: parseInt(p.Cantidad?._text ?? '0'),
-        precio: parseFloat(p.Precio?._text ?? '0'),
-        idComprobanteRef: p.IdComprobanteRef?._text ?? '',
+        idProducto: p.IdProducto ? String(p.IdProducto).trim() : '',
+        cantidad: safeNumber(p.Cantidad),
+        precio: safeNumber(p.Precio),
+        idComprobanteRef: p.IdComprobanteRef
+          ? String(p.IdComprobanteRef).trim()
+          : '',
       })),
     };
   }

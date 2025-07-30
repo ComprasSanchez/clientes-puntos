@@ -49,10 +49,10 @@ export class PlexController {
           const parser = new XMLParser();
           // Tipar el parseo
           const json = parser.parse(xml) as MensajeFidelyGb;
-          const codAccionRaw = json?.MensajeFidelyGb?.codAccion;
+          const codAccionRaw = json?.MensajeFidelyGb?.CodAccion;
           // Validación explícita y casteo
           const codAccion =
-            typeof codAccionRaw === 'string' ? codAccionRaw : undefined;
+            codAccionRaw !== undefined ? String(codAccionRaw) : undefined;
           if (!codAccion) {
             throw new Error('codAccion no encontrado en el XML');
           }

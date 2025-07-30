@@ -28,7 +28,7 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
 
-  app.use('/plex/fidelizar-venta', express.raw({ type: 'application/xml' }));
+  app.use('/onzecrm', express.raw({ type: 'application/xml' }));
 
   await app.listen(process.env.PORT ?? 3000);
 }

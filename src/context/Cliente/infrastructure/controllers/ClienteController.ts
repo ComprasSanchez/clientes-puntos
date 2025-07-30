@@ -48,20 +48,21 @@ export class ClienteController {
   @Post()
   async create(@Body() dto: CreateClienteDto): Promise<void> {
     const categoria = await this.findCategoriaById.run(dto.categoriaId);
-    await this.createUseCase.run(
-      dto.dni,
-      dto.nombre,
-      dto.apellido,
-      dto.sexo,
-      new Date(dto.fechaNacimiento),
-      categoria,
-      dto.email ?? undefined,
-      dto.telefono ?? undefined,
-      dto.direccion ?? undefined,
-      dto.codPostal ?? undefined,
-      dto.localidad ?? undefined,
-      dto.provincia ?? undefined,
-    );
+    const clienteData = {
+      dni: dto.dni,
+      nombre: dto.nombre,
+      apellido: dto.apellido,
+      sexo: dto.sexo,
+      fechaNacimiento: new Date(dto.fechaNacimiento),
+      categoria: categoria.id.value,
+      email: dto.email ?? undefined,
+      telefono: dto.telefono ?? undefined,
+      direccion: dto.direccion ?? undefined,
+      codPostal: dto.codPostal ?? undefined,
+      localidad: dto.localidad ?? undefined,
+      provincia: dto.provincia ?? undefined,
+    };
+    await this.createUseCase.run(clienteData, true);
   }
 
   @Roles({ roles: ['consultant', 'administrator'] })
@@ -127,7 +128,14 @@ export class ClienteController {
     @Param('id') id: string,
     @Body() dto: UpdateClienteDto,
   ): Promise<void> {
-    await this.updateUseCase.run({ id, ...dto });
+    const data = {
+      ...dto,
+      id,
+      fechaNacimiento: dto.fechaNacimiento
+        ? new Date(dto.fechaNacimiento)
+        : undefined,
+    };
+    await this.updateUseCase.run(data);
   }
 
   @ApiOperation({ summary: 'Eliminar cliente' })

@@ -36,7 +36,7 @@ export class OperacionEntity {
   @Column('int', { nullable: true })
   puntos: number | null;
 
-  @Column('int', { nullable: true })
+  @Column('numeric', { nullable: true })
   monto: number | null;
 
   @Column({

@@ -53,6 +53,13 @@ const providers: Provider[] = [
   ],
   controllers: [CategoriaController, ClienteController],
   providers,
-  exports: [ClienteGetProfile, DatabaseModule, ClientePersistenceModule],
+  exports: [
+    ClienteCreate,
+    ClienteUpdate,
+    ClienteGetProfile,
+    ClienteFindByTarjeta,
+    DatabaseModule,
+    ClientePersistenceModule,
+  ],
 })
 export class ClienteInfrastructureModule {}

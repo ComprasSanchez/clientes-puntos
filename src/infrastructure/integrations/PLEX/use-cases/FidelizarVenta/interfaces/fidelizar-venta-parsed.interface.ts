@@ -1,29 +1,29 @@
-// utils/plex-fidelizar-venta-parsed.interface.ts
+// utils/plex-fidelizar-venta-fxp.interface.ts
 
-export interface PlexFidelizarVentaParsed {
+export interface PlexFidelizarVentaFXPParsed {
   MensajeFidelyGb: {
-    CodAccion?: { _text: string };
-    Venta: {
-      idMovimiento?: { _text: string };
-      NroTarjeta?: { _text: string };
-      ImporteTotal?: { _text: string };
-      ValorCanjePunto?: { _text: string };
-      PuntosCanjeados?: { _text: string };
-      IdComprobante?: { _text: string };
-      NroComprobante?: { _text: string };
-      FechaComprobante?: { _text: string };
-      Productos:
+    CodAccion?: string;
+    Venta?: {
+      IdMovimiento?: string;
+      NroTarjeta?: string;
+      ImporteTotal?: string | number;
+      ValorCanjePunto?: string | number;
+      PuntosCanjeados?: string | number;
+      IdComprobante?: string;
+      NroComprobante?: string;
+      FechaComprobante?: string;
+      Productos?:
         | Array<{
-            IdProducto?: { _text: string };
-            Cantidad?: { _text: string };
-            Precio?: { _text: string };
-            IdComprobanteRef?: { _text: string };
+            IdProducto?: string;
+            Cantidad?: string | number;
+            Precio?: string | number;
+            IdComprobanteRef?: string;
           }>
         | {
-            IdProducto?: { _text: string };
-            Cantidad?: { _text: string };
-            Precio?: { _text: string };
-            IdComprobanteRef?: { _text: string };
+            IdProducto?: string;
+            Cantidad?: string | number;
+            Precio?: string | number;
+            IdComprobanteRef?: string;
           };
     };
   };
