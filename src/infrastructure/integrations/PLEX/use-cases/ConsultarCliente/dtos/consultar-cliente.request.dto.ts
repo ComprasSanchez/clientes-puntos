@@ -9,8 +9,8 @@ export class PlexConsultarClienteRequestMapper {
   static fromXml(obj: unknown): PlexConsultarClienteRequestDto {
     const { MensajeFidelyGb } = obj as PlexConsultarClienteParsed;
     return {
-      codAccion: MensajeFidelyGb.CodAccion?._text ?? '',
-      nroTarjeta: MensajeFidelyGb.NroTarjeta?._text ?? '',
+      codAccion: MensajeFidelyGb.CodAccion ?? '',
+      nroTarjeta: MensajeFidelyGb.NroTarjeta ?? '',
     };
   }
 }

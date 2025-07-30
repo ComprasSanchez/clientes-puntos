@@ -44,6 +44,18 @@ export class TypeOrmReglaRepository implements ReglaRepository {
     return entities.map((e) => e.toDomain());
   }
 
+  async findCotizacion(): Promise<ConversionRule> {
+    const entity = await this.conversionRuleRepo.findOne({
+      where: { tipo: TipoRegla.CONVERSION },
+    });
+    if (!entity) {
+      throw new Error('Cotización no encontrada');
+    }
+
+    const rule = entity.toDomain();
+    return rule;
+  }
+
   async save(regla: ReglaDomain): Promise<void> {
     let ent: ReglaEntity;
     switch (regla.tipo.value) {

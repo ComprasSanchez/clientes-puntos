@@ -1,7 +1,7 @@
 export interface PlexConsultarClienteParsed {
   MensajeFidelyGb: {
-    Proveedor?: { _text: string };
-    CodAccion?: { _text: string }; // "300"
-    NroTarjeta?: { _text: string };
+    Proveedor?: string;
+    CodAccion?: string; // "300"
+    NroTarjeta?: string;
   };
 }

@@ -29,6 +29,7 @@ import { ReglaUpdate } from '@regla/application/use-cases/ReglaUpdate/Update';
 import { ReglaDelete } from '@regla/application/use-cases/ReglaDelete/Delete';
 import { ReglaController } from './controllers/ReglaController';
 import { ConversionRuleEntity } from './entities/rule-conversion.entity';
+import { ReglaFindCotizacion } from '@regla/application/use-cases/ReglaFindCotizacion/FindCotizacion';
 
 @Module({
   imports: [
@@ -59,6 +60,7 @@ import { ConversionRuleEntity } from './entities/rule-conversion.entity';
     // Use cases
     ReglaFindAll,
     ReglaFindById,
+    ReglaFindCotizacion,
     ReglaCreate,
     ReglaUpdate,
     ReglaDelete,
@@ -72,6 +74,7 @@ import { ConversionRuleEntity } from './entities/rule-conversion.entity';
     EXECUTE_RULES_USE_CASE,
     ReglaPersistenceModule,
     DatabaseModule,
+    ReglaFindCotizacion,
   ],
 })
 export class ReglaInfrastructureModule {}

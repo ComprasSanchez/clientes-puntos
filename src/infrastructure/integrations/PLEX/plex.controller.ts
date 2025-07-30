@@ -3,6 +3,7 @@ import { Request, Response } from 'express';
 import { FidelizarVentaPlexAdapter } from './use-cases/FidelizarVenta/adapters/fidelizar-venta.adapter';
 import { TransactionalRunner } from '@shared/infrastructure/transaction/TransactionalRunner';
 import {
+  CONSULTAR_CLIENTE_ADAPTER,
   FIDELIZAR_CLIENTE_ADAPTER,
   FIDELIZAR_VENTA_ADAPTER,
 } from './tokens/tokens';
@@ -10,6 +11,8 @@ import { FidelizarClientePlexAdapter } from './use-cases/FidelizarCliente/adapte
 import { XMLParser } from 'fast-xml-parser';
 import { codFidelizarVenta } from './enums/fidelizar-venta.enum';
 import { codFidelizarCliente } from './enums/fidelizar-cliente.enum';
+import { ConsultarClientePlexAdapter } from './use-cases/ConsultarCliente/adapters/consultar-cliente.adapter';
+import { codConsultarCliente } from './enums/consultar-cliente.enum';
 
 // Tipo explícito para parseo seguro
 interface MensajeFidelyGb {
@@ -26,6 +29,8 @@ export class PlexController {
     private readonly ventaAdapter: FidelizarVentaPlexAdapter,
     @Inject(FIDELIZAR_CLIENTE_ADAPTER)
     private readonly clienteAdapter: FidelizarClientePlexAdapter,
+    @Inject(CONSULTAR_CLIENTE_ADAPTER)
+    private readonly consultarClienteAdapter: ConsultarClientePlexAdapter,
     private readonly transactionalRunner: TransactionalRunner,
   ) {}
 
@@ -72,6 +77,13 @@ export class PlexController {
             )
           ) {
             return this.clienteAdapter.handle(xml, ctx);
+          }
+          if (
+            (Object.values(codConsultarCliente) as string[]).includes(
+              accionValue,
+            )
+          ) {
+            return this.consultarClienteAdapter.handle(xml);
           }
 
           throw new Error('codAccion inválido o no soportado');

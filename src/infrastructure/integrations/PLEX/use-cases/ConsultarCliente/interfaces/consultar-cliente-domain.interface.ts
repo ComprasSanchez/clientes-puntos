@@ -6,16 +6,16 @@ export interface ConsultarClienteDomainResponse {
   categoria: string;
   nombre: string;
   apellido: string;
-  fecNac: string;
+  fecNac: string | null;
   dni: string;
-  telefono: string;
-  celular: string;
-  direccion: string;
-  email: string;
-  sexo: string;
-  codPostal: string;
+  telefono: string | null;
+  celular: string | null;
+  direccion: string | null;
+  email: string | null;
+  sexo: string | null;
+  codPostal: string | null;
   puntos: number;
   valorPunto: number;
-  porcentualCompra: number;
-  porcentualPunto: number;
+  porcentualCompra: number | null;
+  porcentualPunto: number | null;
 }
