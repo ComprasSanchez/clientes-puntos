@@ -9,7 +9,9 @@ import {
   CREATE_OPERACION_SERVICE,
   LOTE_FACTORY,
   OBTENER_SALDO_SERVICE,
+  OP_FACTORY,
   SALDO_HANDLER,
+  TX_BUILDER,
   TX_FACTORY,
 } from '../core/tokens/tokens';
 import { DatabaseModule } from 'src/infrastructure/database/database.module';
@@ -34,13 +36,15 @@ import { FindOperacionesByReferenciaUseCase } from '@puntos/application/use-case
 import { IPUNTOS_SERVICE } from '@cliente/core/tokens/tokens';
 import { PuntosServiceInMemory } from './adapters/PuntosServiceInMemory/PuntosServiceInMemory';
 import { TransaccionFactory } from '@puntos/core/factories/TransaccionFactory';
-import { SaldoHandler } from '@puntos/application/services/SaldoHandler';
+import { SaldoHandler } from '@puntos/application/handlers/SaldoHandler';
 import { LoteFactory } from '@puntos/core/factories/LoteFactory';
 import { UUIDv4Generator } from '@shared/infrastructure/uuid/UuidV4Generator';
 import { UUIDGenerator } from '@shared/core/uuid/UuidGenerator';
 import { TransactionalRunner } from '@shared/infrastructure/transaction/TransactionalRunner';
 import { AjusteController } from './controllers/AjusteController';
 import { AjusteUseCase } from '@puntos/application/use-cases/Ajuste/Ajuste';
+import { OperacionFactory } from '@puntos/core/factories/OperacionFactory';
+import { TransaccionBuilder } from '@puntos/application/services/Transaccionbuilder';
 
 @Module({
   imports: [
@@ -62,12 +66,17 @@ import { AjusteUseCase } from '@puntos/application/use-cases/Ajuste/Ajuste';
       useFactory: (idGen: UUIDGenerator) => new LoteFactory(idGen),
       inject: [UUIDGenerator],
     },
-
+    {
+      provide: OP_FACTORY,
+      useClass: OperacionFactory,
+    },
     {
       provide: TX_FACTORY,
       useFactory: (idGen: UUIDGenerator) => new TransaccionFactory(idGen),
       inject: [UUIDGenerator],
     },
+
+    { provide: TX_BUILDER, useClass: TransaccionBuilder },
 
     { provide: SALDO_HANDLER, useClass: SaldoHandler },
 

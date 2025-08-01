@@ -29,71 +29,9 @@ export class SaldoHandler {
     @Inject(SALDO_REPO) private readonly saldoRepo: SaldoRepository,
   ) {}
 
-  async aplicarCambio(
-    saldo: Saldo,
-    operacion: Operacion,
-    totalDebito?: CantidadPuntos,
-    credito?: { cantidad: CantidadPuntos; expiraEn?: FechaExpiracion },
-    txs?: Transaccion[],
-    ajusteTipo?: TxTipo,
-    ctx?: TransactionContext,
-  ): Promise<AplicacionCambioResult> {
-    let result: AplicacionCambioResult;
-    switch (operacion.tipo) {
-      case OpTipo.COMPRA:
-        result = this.aplicarCompra(saldo, operacion, totalDebito, credito);
-        break;
-      case OpTipo.AJUSTE:
-        result = this.aplicarAjuste(
-          saldo,
-          operacion,
-          ajusteTipo!,
-          totalDebito!,
-        );
-        break;
-      case OpTipo.DEVOLUCION:
-        result = this.aplicarDevolucion(
-          saldo,
-          operacion,
-          totalDebito,
-          credito,
-          txs,
-        );
-        break;
-      case OpTipo.ANULACION:
-        result = this.aplicarAnulacion(saldo, operacion, txs);
-        break;
-      default:
-        throw new Error(`Tipo de operación no soportado`);
-    }
-
-    // 1️⃣ Calcula el saldo actual después del cambio
-    const saldoAnterior = await this.saldoRepo.findByClienteId(
-      operacion.clienteId,
-    );
-    const saldoActual = saldo.getSaldoCalculado().value;
-
-    // 2️⃣ Actualiza saldo precalculado (y si no existe, lo crea)
-    await this.saldoRepo.updateSaldo(operacion.clienteId, saldoActual, ctx);
-
-    // 3️⃣ Guarda el historial explícitamente, si quieres lógica de dominio avanzada
-    const historial = new HistorialSaldo(
-      undefined,
-      operacion.clienteId,
-      new CantidadPuntos(saldoAnterior?.value ?? 0),
-      new CantidadPuntos(saldoActual),
-      operacion.tipo,
-      operacion.id,
-      new Date(),
-    );
-    await this.saldoRepo.saveHistorial(historial, ctx);
-
-    return result;
-  }
-
   // --- Métodos privados por tipo de operación ---
 
-  private aplicarCompra(
+  aplicarCompra(
     saldo: Saldo,
     operacion: Operacion,
     totalDebito?: CantidadPuntos,
@@ -126,7 +64,7 @@ export class SaldoHandler {
     return { detallesDebito, nuevoLote };
   }
 
-  private aplicarAjuste(
+  aplicarAjuste(
     saldo: Saldo,
     operacion: Operacion,
     ajusteTipo: TxTipo,
@@ -158,7 +96,7 @@ export class SaldoHandler {
     return { detallesDebito, nuevoLote };
   }
 
-  private aplicarDevolucion(
+  aplicarDevolucion(
     saldo: Saldo,
     operacion: Operacion,
     totalDebito?: CantidadPuntos,
@@ -242,7 +180,7 @@ export class SaldoHandler {
     return { detallesDebito };
   }
 
-  private aplicarAnulacion(
+  aplicarAnulacion(
     saldo: Saldo,
     operacion: Operacion,
     txs?: Transaccion[],
@@ -287,5 +225,31 @@ export class SaldoHandler {
     }));
 
     return { detallesDebito };
+  }
+
+  async persistirCambiosDeSaldo(
+    operacion: Operacion,
+    saldo: Saldo,
+    ctx?: TransactionContext,
+  ): Promise<void> {
+    const saldoAnterior = await this.saldoRepo.findByClienteId(
+      operacion.clienteId,
+    );
+    const saldoActual = saldo.getSaldoCalculado().value;
+
+    // Actualiza saldo
+    await this.saldoRepo.updateSaldo(operacion.clienteId, saldoActual, ctx);
+
+    // Guarda historial
+    const historial = new HistorialSaldo(
+      undefined,
+      operacion.clienteId,
+      new CantidadPuntos(saldoAnterior?.value ?? 0),
+      new CantidadPuntos(saldoActual),
+      operacion.tipo,
+      operacion.id,
+      new Date(),
+    );
+    await this.saldoRepo.saveHistorial(historial, ctx);
   }
 }

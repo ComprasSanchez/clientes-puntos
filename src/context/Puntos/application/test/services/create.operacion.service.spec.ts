@@ -18,7 +18,7 @@ import { FakeUUIDGen } from '@shared/core/uuid/test/stubs/FakeUUIDGenerator';
 import { BatchEstado } from '@puntos/core/enums/BatchEstado';
 import { Transaccion } from '@puntos/core/entities/Transaccion';
 import { TransaccionId } from '@puntos/core/value-objects/TransaccionId';
-import { SaldoHandler } from '@puntos/application/services/SaldoHandler';
+import { SaldoHandler } from '@puntos/application/handlers/SaldoHandler';
 import { LoteFactory } from '@puntos/core/factories/LoteFactory';
 import { TransaccionFactory } from '@puntos/core/factories/TransaccionFactory';
 import { OperacionRepository } from '@puntos/core/repository/OperacionRepository';
