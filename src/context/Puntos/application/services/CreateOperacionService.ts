@@ -20,6 +20,10 @@ import { AjusteHandler } from '../handlers/AjusteHandler';
 import { DevolucionHandler } from '../handlers/DevolucionHandler';
 import { AnulacionHandler } from '../handlers/AnulacionHandler';
 import {
+  AJUSTE_HANDLER,
+  ANULACION_HANDLER,
+  COMPRA_HANDLER,
+  DEVOLUCION_HANDLER,
   LOTE_REPO,
   OPERACION_REPO,
   SALDO_REPO,
@@ -40,11 +44,11 @@ export class CreateOperacionService {
     @Inject(OPERACION_REPO)
     private readonly operacionRepo: OperacionRepository,
     // Handlers:
-    @Inject(CompraHandler) private readonly compraHandler: CompraHandler,
-    @Inject(AjusteHandler) private readonly ajusteHandler: AjusteHandler,
-    @Inject(DevolucionHandler)
+    @Inject(COMPRA_HANDLER) private readonly compraHandler: CompraHandler,
+    @Inject(AJUSTE_HANDLER) private readonly ajusteHandler: AjusteHandler,
+    @Inject(DEVOLUCION_HANDLER)
     private readonly devolucionHandler: DevolucionHandler,
-    @Inject(AnulacionHandler)
+    @Inject(ANULACION_HANDLER)
     private readonly anulacionHandler: AnulacionHandler,
   ) {}
 

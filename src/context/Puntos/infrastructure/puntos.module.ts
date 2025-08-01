@@ -6,7 +6,11 @@ import { DevolucionUseCase } from '../application/use-cases/Devolucion/Devolucio
 import { AnulacionUseCase } from '../application/use-cases/Anulacion/Anulacion';
 import { ReglaInfrastructureModule } from '@regla/infrastructure/regla.module';
 import {
+  AJUSTE_HANDLER,
+  ANULACION_HANDLER,
+  COMPRA_HANDLER,
   CREATE_OPERACION_SERVICE,
+  DEVOLUCION_HANDLER,
   LOTE_FACTORY,
   OBTENER_SALDO_SERVICE,
   OP_FACTORY,
@@ -45,6 +49,10 @@ import { AjusteController } from './controllers/AjusteController';
 import { AjusteUseCase } from '@puntos/application/use-cases/Ajuste/Ajuste';
 import { OperacionFactory } from '@puntos/core/factories/OperacionFactory';
 import { TransaccionBuilder } from '@puntos/application/services/Transaccionbuilder';
+import { CompraHandler } from '@puntos/application/handlers/CompraHandler';
+import { AjusteHandler } from '@puntos/application/handlers/AjusteHandler';
+import { DevolucionHandler } from '@puntos/application/handlers/DevolucionHandler';
+import { AnulacionHandler } from '@puntos/application/handlers/AnulacionHandler';
 
 @Module({
   imports: [
@@ -79,6 +87,10 @@ import { TransaccionBuilder } from '@puntos/application/services/Transaccionbuil
     { provide: TX_BUILDER, useClass: TransaccionBuilder },
 
     { provide: SALDO_HANDLER, useClass: SaldoHandler },
+    { provide: COMPRA_HANDLER, useClass: CompraHandler },
+    { provide: AJUSTE_HANDLER, useClass: AjusteHandler },
+    { provide: DEVOLUCION_HANDLER, useClass: DevolucionHandler },
+    { provide: ANULACION_HANDLER, useClass: AnulacionHandler },
 
     // Servicio de aplicación y adapter de regla
     { provide: CREATE_OPERACION_SERVICE, useClass: CreateOperacionService },
