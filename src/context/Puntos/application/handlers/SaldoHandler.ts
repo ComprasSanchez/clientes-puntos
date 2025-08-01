@@ -29,73 +29,61 @@ export class SaldoHandler {
     @Inject(SALDO_REPO) private readonly saldoRepo: SaldoRepository,
   ) {}
 
-  // --- Métodos privados por tipo de operación ---
-
+  // --- COMPRA ---
+  /**
+   * Aplica una compra: puede debitar puntos y/o acreditar nuevos puntos (nuevo lote).
+   */
   aplicarCompra(
     saldo: Saldo,
     operacion: Operacion,
     totalDebito?: CantidadPuntos,
     credito?: { cantidad: CantidadPuntos; expiraEn?: FechaExpiracion },
   ): AplicacionCambioResult {
-    let detallesDebito: Array<{ loteId: LoteId; cantidad: CantidadPuntos }> =
-      [];
-    let nuevoLote: Lote | undefined = undefined;
-
-    // Debito (COMPRA con puntos)
-    if (totalDebito && totalDebito.value > 0) {
-      saldo.consumirPuntos(operacion.id.value, totalDebito);
-      detallesDebito = saldo
-        .getDetalleConsumo(operacion.id.value)
-        .map((d) => ({ loteId: d.loteId, cantidad: d.cantidad }));
-    }
-
-    // Crédito (COMPRA con dinero): SOLO aquí se permite crear un nuevo lote
-    if (credito && credito.cantidad.value > 0) {
-      nuevoLote = this.loteFactory.crear({
-        clienteId: operacion.clienteId,
-        cantidad: credito.cantidad,
-        origen: operacion.origenTipo,
-        referencia: operacion.refOperacion,
-        expiraEn: credito.expiraEn,
-      });
-      saldo.añadirLote(nuevoLote);
-    }
-
+    const detallesDebito = this.consumirSiCorresponde(
+      saldo,
+      operacion,
+      totalDebito,
+    );
+    const nuevoLote = this.acreditarSiCorresponde(saldo, operacion, credito);
     return { detallesDebito, nuevoLote };
   }
 
+  // --- AJUSTE ---
+  /**
+   * Aplica un ajuste: puede ser un gasto o una acreditación directa.
+   */
   aplicarAjuste(
     saldo: Saldo,
     operacion: Operacion,
     ajusteTipo: TxTipo,
     totalDebito: CantidadPuntos,
   ): AplicacionCambioResult {
-    let detallesDebito: Array<{ loteId: LoteId; cantidad: CantidadPuntos }> =
-      [];
-    let nuevoLote: Lote | undefined = undefined;
+    if (!totalDebito || totalDebito.value <= 0) throw new MontoNotFoundError();
 
-    // Debito (COMPRA con puntos)
-    if (totalDebito && totalDebito.value > 0) {
-      if (ajusteTipo === TxTipo.GASTO) {
-        saldo.consumirPuntos(operacion.id.value, totalDebito);
-        detallesDebito = saldo
-          .getDetalleConsumo(operacion.id.value)
-          .map((d) => ({ loteId: d.loteId, cantidad: d.cantidad }));
-      } else if (ajusteTipo === TxTipo.ACREDITACION) {
-        nuevoLote = this.loteFactory.crear({
-          clienteId: operacion.clienteId,
-          cantidad: totalDebito,
-          origen: operacion.origenTipo,
-          referencia: operacion.refOperacion,
-          expiraEn: undefined,
-        });
-        saldo.añadirLote(nuevoLote);
-      }
-    } else throw new MontoNotFoundError();
+    if (ajusteTipo === TxTipo.GASTO) {
+      const detallesDebito = this.consumirSiCorresponde(
+        saldo,
+        operacion,
+        totalDebito,
+      );
+      return { detallesDebito };
+    }
 
-    return { detallesDebito, nuevoLote };
+    if (ajusteTipo === TxTipo.ACREDITACION) {
+      const nuevoLote = this.acreditarSiCorresponde(saldo, operacion, {
+        cantidad: totalDebito,
+        expiraEn: undefined,
+      });
+      return { detallesDebito: [], nuevoLote };
+    }
+
+    throw new Error('Tipo de ajuste no soportado');
   }
 
+  // --- DEVOLUCIÓN ---
+  /**
+   * Aplica una devolución. Puede o no tener transacciones originales.
+   */
   aplicarDevolucion(
     saldo: Saldo,
     operacion: Operacion,
@@ -103,119 +91,71 @@ export class SaldoHandler {
     credito?: { cantidad: CantidadPuntos; expiraEn?: FechaExpiracion },
     txs?: Transaccion[],
   ): AplicacionCambioResult {
-    const detallesDebito: Array<{ loteId: LoteId; cantidad: CantidadPuntos }> =
-      [];
-
     if (!txs || txs.length === 0) {
       if (!credito || credito.cantidad.value <= 0)
         throw new MontoNotFoundError();
-      // Gasto puntos por el valor devuelto, con cotización de canje
-      saldo.consumirPuntos(operacion.id.value, credito.cantidad);
-      detallesDebito.push(...saldo.getDetalleConsumo(operacion.id.value));
-      return { detallesDebito };
+      return {
+        detallesDebito: this.consumirSiCorresponde(
+          saldo,
+          operacion,
+          credito.cantidad,
+        ),
+      };
     }
 
     if (operacion.monto) {
-      // DEVOLUCIÓN de compra en dinero: "gasta" puntos equivalentes, pero NO acredita lote nuevo
+      // Devolución de compra en dinero: solo gasta puntos de los lotes y cantidades de las transacciones originales
       if (!credito || credito.cantidad.value <= 0)
         throw new MontoNotFoundError();
-
-      // Desgastar puntos SOLO de los lotes y cantidades indicadas por las transacciones originales
-      let remaining = credito.cantidad.value;
-
-      for (const tx of txs) {
-        const lote = saldo.obtenerLote(tx.loteId.value);
-        if (!lote || remaining <= 0) continue;
-
-        // Tomar la mínima cantidad entre lo pendiente y lo disponible en el lote
-        const cantidadAGastar = Math.min(
-          remaining,
-          tx.cantidad.value,
-          lote.remaining.value,
-        );
-        if (cantidadAGastar > 0) {
-          saldo.gastarLinea(
-            tx.loteId.value,
-            new CantidadPuntos(cantidadAGastar),
-          );
-          detallesDebito.push({
-            loteId: tx.loteId,
-            cantidad: new CantidadPuntos(cantidadAGastar),
-          });
-          remaining -= cantidadAGastar;
-        }
-      }
-    } else {
-      // DEVOLUCIÓN de compra con puntos: revertir los puntos realmente devueltos
-      const cantidadADevolver = totalDebito ?? credito?.cantidad;
-      if (!cantidadADevolver || cantidadADevolver.value <= 0)
-        throw new MontoNotFoundError();
-
-      let remaining = cantidadADevolver.value;
-
-      for (const tx of txs) {
-        const lote = saldo.obtenerLote(tx.loteId.value);
-        if (!lote || remaining <= 0) continue;
-
-        // Se puede devolver hasta la cantidad gastada en ese lote originalmente
-        const cantidadARevertir = Math.min(
-          remaining,
-          tx.cantidad.value,
-          lote.cantidadOriginal.value - lote.remaining.value,
-        );
-        if (cantidadARevertir > 0) {
-          saldo.revertirLinea(
-            tx.loteId.value,
-            new CantidadPuntos(cantidadARevertir),
-          );
-          detallesDebito.push({
-            loteId: tx.loteId,
-            cantidad: new CantidadPuntos(cantidadARevertir),
-          });
-          remaining -= cantidadARevertir;
-        }
-      }
+      return {
+        detallesDebito: this.gastarDeLotesOriginales(
+          saldo,
+          credito.cantidad,
+          txs,
+        ),
+      };
     }
 
-    return { detallesDebito };
+    // Devolución con puntos: revierte los puntos realmente devueltos
+    const cantidadADevolver = totalDebito ?? credito?.cantidad;
+    if (!cantidadADevolver || cantidadADevolver.value <= 0)
+      throw new MontoNotFoundError();
+    return {
+      detallesDebito: this.revertirDeLotesOriginales(
+        saldo,
+        cantidadADevolver,
+        txs,
+      ),
+    };
   }
 
+  // --- ANULACIÓN ---
+  /**
+   * Aplica una anulación: revierte los efectos de una operación anterior.
+   */
   aplicarAnulacion(
     saldo: Saldo,
     operacion: Operacion,
     txs?: Transaccion[],
   ): AplicacionCambioResult {
-    if (!txs) {
-      throw new ReferenciaoNotFoundError();
-    }
+    if (!txs) throw new ReferenciaoNotFoundError();
 
     for (const tx of txs) {
-      const { loteId, cantidad, tipo, createdAt } = tx;
       if (
         operacion.tipo === OpTipo.ANULACION &&
-        createdAt.getDate() !== new Date().getDate()
-      )
+        !this.mismaFecha(tx.createdAt, new Date())
+      ) {
         throw new Error('Solo se puede anular una transacción del mismo día');
-
-      const lote = saldo.obtenerLote(loteId.value);
+      }
+      const lote = saldo.obtenerLote(tx.loteId.value);
       if (!lote) continue;
 
-      if (tipo === TxTipo.ACREDITACION) {
-        const puntosDisponibles = lote.remaining.value;
-        if (puntosDisponibles >= cantidad.value) {
-          saldo.gastarLinea(loteId.value, cantidad);
-        } else if (puntosDisponibles > 0) {
-          saldo.gastarLinea(
-            loteId.value,
-            new CantidadPuntos(puntosDisponibles),
-          );
-        } else {
-          throw new Error(
-            `No quedan puntos disponibles para anular en el lote ${loteId.value}`,
-          );
-        }
-      } else if (tipo === TxTipo.GASTO) {
-        saldo.revertirLinea(loteId.value, cantidad);
+      if (tx.tipo === TxTipo.ACREDITACION) {
+        // Revierto la acreditación (quito puntos disponibles)
+        this.gastarPuntosDeLote(lote, tx.cantidad);
+      } else if (tx.tipo === TxTipo.GASTO) {
+        // Revierto el gasto (devuelvo puntos)
+        saldo.revertirLinea(tx.loteId.value, tx.cantidad);
       }
     }
 
@@ -223,10 +163,133 @@ export class SaldoHandler {
       loteId: d.loteId,
       cantidad: d.cantidad,
     }));
-
     return { detallesDebito };
   }
 
+  // --- Helpers privados ---
+
+  private consumirSiCorresponde(
+    saldo: Saldo,
+    operacion: Operacion,
+    cantidad?: CantidadPuntos,
+  ): Array<{ loteId: LoteId; cantidad: CantidadPuntos }> {
+    if (cantidad && cantidad.value > 0) {
+      saldo.consumirPuntos(operacion.id.value, cantidad);
+      return saldo.getDetalleConsumo(operacion.id.value).map((d) => ({
+        loteId: d.loteId,
+        cantidad: d.cantidad,
+      }));
+    }
+    return [];
+  }
+
+  private acreditarSiCorresponde(
+    saldo: Saldo,
+    operacion: Operacion,
+    credito?: { cantidad: CantidadPuntos; expiraEn?: FechaExpiracion },
+  ): Lote | undefined {
+    if (credito && credito.cantidad.value > 0) {
+      const nuevoLote = this.loteFactory.crear({
+        clienteId: operacion.clienteId,
+        cantidad: credito.cantidad,
+        origen: operacion.origenTipo,
+        referencia: operacion.refOperacion,
+        expiraEn: credito.expiraEn,
+      });
+      saldo.añadirLote(nuevoLote);
+      return nuevoLote;
+    }
+    return undefined;
+  }
+
+  private gastarDeLotesOriginales(
+    saldo: Saldo,
+    cantidad: CantidadPuntos,
+    txs: Transaccion[],
+  ): Array<{ loteId: LoteId; cantidad: CantidadPuntos }> {
+    let remaining = cantidad.value;
+    const detalles: Array<{ loteId: LoteId; cantidad: CantidadPuntos }> = [];
+
+    for (const tx of txs) {
+      if (remaining <= 0) break;
+      const lote = saldo.obtenerLote(tx.loteId.value);
+      if (!lote) continue;
+
+      const cantidadAGastar = Math.min(
+        remaining,
+        tx.cantidad.value,
+        lote.remaining.value,
+      );
+      if (cantidadAGastar > 0) {
+        saldo.gastarLinea(tx.loteId.value, new CantidadPuntos(cantidadAGastar));
+        detalles.push({
+          loteId: tx.loteId,
+          cantidad: new CantidadPuntos(cantidadAGastar),
+        });
+        remaining -= cantidadAGastar;
+      }
+    }
+    return detalles;
+  }
+
+  private revertirDeLotesOriginales(
+    saldo: Saldo,
+    cantidadADevolver: CantidadPuntos,
+    txs: Transaccion[],
+  ): Array<{ loteId: LoteId; cantidad: CantidadPuntos }> {
+    let remaining = cantidadADevolver.value;
+    const detalles: Array<{ loteId: LoteId; cantidad: CantidadPuntos }> = [];
+
+    for (const tx of txs) {
+      if (remaining <= 0) break;
+      const lote = saldo.obtenerLote(tx.loteId.value);
+      if (!lote) continue;
+      // Se puede devolver hasta la cantidad gastada en ese lote originalmente
+      const cantidadARevertir = Math.min(
+        remaining,
+        tx.cantidad.value,
+        lote.cantidadOriginal.value - lote.remaining.value,
+      );
+      if (cantidadARevertir > 0) {
+        saldo.revertirLinea(
+          tx.loteId.value,
+          new CantidadPuntos(cantidadARevertir),
+        );
+        detalles.push({
+          loteId: tx.loteId,
+          cantidad: new CantidadPuntos(cantidadARevertir),
+        });
+        remaining -= cantidadARevertir;
+      }
+    }
+    return detalles;
+  }
+
+  private gastarPuntosDeLote(lote: Lote, cantidad: CantidadPuntos): void {
+    // Si hay suficientes puntos, los gasta; si no, gasta lo que hay
+    const puntosDisponibles = lote.remaining.value;
+    if (puntosDisponibles >= cantidad.value) {
+      lote.consumir(cantidad);
+    } else if (puntosDisponibles > 0) {
+      lote.consumir(new CantidadPuntos(puntosDisponibles));
+    } else {
+      throw new Error(
+        `No quedan puntos disponibles para anular en el lote ${lote.id.value}`,
+      );
+    }
+  }
+
+  private mismaFecha(dateA: Date, dateB: Date): boolean {
+    return (
+      dateA.getFullYear() === dateB.getFullYear() &&
+      dateA.getMonth() === dateB.getMonth() &&
+      dateA.getDate() === dateB.getDate()
+    );
+  }
+
+  /**
+   * Persiste los cambios en saldo y el historial correspondiente.
+   */
   async persistirCambiosDeSaldo(
     operacion: Operacion,
     saldo: Saldo,
@@ -237,10 +300,8 @@ export class SaldoHandler {
     );
     const saldoActual = saldo.getSaldoCalculado().value;
 
-    // Actualiza saldo
     await this.saldoRepo.updateSaldo(operacion.clienteId, saldoActual, ctx);
 
-    // Guarda historial
     const historial = new HistorialSaldo(
       undefined,
       operacion.clienteId,
