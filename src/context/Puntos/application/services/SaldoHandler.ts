@@ -11,7 +11,6 @@ import { Transaccion } from '@puntos/core/entities/Transaccion';
 import { Inject, Injectable } from '@nestjs/common';
 import { LOTE_FACTORY, SALDO_REPO } from '@puntos/core/tokens/tokens';
 import { TxTipo } from '@puntos/core/enums/TxTipo';
-import { TransaccionesNotFoundError } from '@puntos/core/exceptions/Transaccion/TransaccionesNotFoundError';
 import { MontoNotFoundError } from '@puntos/core/exceptions/Saldo/MontoNotFoundError';
 import { ReferenciaoNotFoundError } from '@puntos/core/exceptions/Operacion/ReferenciaRequiredError';
 import { SaldoRepository } from '@puntos/core/repository/SaldoRepository';
@@ -170,7 +169,12 @@ export class SaldoHandler {
       [];
 
     if (!txs || txs.length === 0) {
-      throw new TransaccionesNotFoundError(operacion.id.value.toString());
+      if (!credito || credito.cantidad.value <= 0)
+        throw new MontoNotFoundError();
+      // Gasto puntos por el valor devuelto, con cotización de canje
+      saldo.consumirPuntos(operacion.id.value, credito.cantidad);
+      detallesDebito.push(...saldo.getDetalleConsumo(operacion.id.value));
+      return { detallesDebito };
     }
 
     if (operacion.monto) {

@@ -74,8 +74,7 @@ export class CreateOperacionService {
         // Caso devolución por referencia de movimiento
         txsOriginal = await this.txRepo.findByReferencia(req.referencia.value!);
         req.operacionId = txsOriginal[0]?.operationId; // Asignar el ID de la operación original
-      } else {
-        // Ni operacionId ni referencia → no sé qué debo revertir
+      } else if (req.tipo === OpTipo.ANULACION) {
         throw new RefundError();
       }
     }
