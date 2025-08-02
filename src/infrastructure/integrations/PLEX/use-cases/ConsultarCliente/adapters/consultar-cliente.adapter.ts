@@ -9,6 +9,7 @@ import { OBTENER_SALDO_SERVICE } from '@puntos/core/tokens/tokens';
 import { ReglaFindCotizacion } from '@regla/application/use-cases/ReglaFindCotizacion/FindCotizacion';
 import { valorPuntoEnPesos } from '@shared/core/utils/puntoToMoneda';
 import { PlexConsultarClienteResponseMapper } from '../dtos/consultar-cliente.response.dto';
+import { UseCaseResponse } from '@infrastructure/integrations/PLEX/dto/usecase-response.dto';
 
 @Injectable()
 export class ConsultarClientePlexAdapter {
@@ -21,7 +22,7 @@ export class ConsultarClientePlexAdapter {
     private readonly getCotizacion: ReglaFindCotizacion,
   ) {}
 
-  async handle(xml: string): Promise<string> {
+  async handle(xml: string): Promise<UseCaseResponse> {
     const parser = new XMLParser({
       ignoreAttributes: false,
       trimValues: true,
@@ -76,6 +77,9 @@ export class ConsultarClientePlexAdapter {
     });
     const xmlString = builder.build(xmlObj);
 
-    return `<?xml version="1.0" encoding="utf-8"?>\n${xmlString}`;
+    return {
+      response: `<?xml version="1.0" encoding="utf-8"?>\n${xmlString}`,
+      dto: dto,
+    };
   }
 }

@@ -3,6 +3,8 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
 import { ConfigModule } from '../config/config.module';
+import { IntegracionMovimientoEntity } from './entities/integracion-movimiento.entity';
+import { IntegracionMovimientoService } from './services/IntegracionMovimientoService';
 
 @Module({
   imports: [
@@ -20,6 +22,9 @@ import { ConfigModule } from '../config/config.module';
         synchronize: cfg.get<string>('nodeEnv') !== 'production',
       }),
     }),
+    TypeOrmModule.forFeature([IntegracionMovimientoEntity]),
   ],
+  providers: [IntegracionMovimientoService],
+  exports: [IntegracionMovimientoService],
 })
 export class DatabaseModule {}

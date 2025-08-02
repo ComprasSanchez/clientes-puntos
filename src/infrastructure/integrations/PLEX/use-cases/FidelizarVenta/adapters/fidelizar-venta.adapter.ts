@@ -12,6 +12,7 @@ import { OBTENER_SALDO_SERVICE } from '@puntos/core/tokens/tokens';
 import { TipoMoneda } from '@shared/core/enums/TipoMoneda';
 import { codFidelizarVenta } from '@infrastructure/integrations/PLEX/enums/fidelizar-venta.enum';
 import { XMLBuilder, XMLParser } from 'fast-xml-parser';
+import { UseCaseResponse } from '@infrastructure/integrations/PLEX/dto/usecase-response.dto';
 
 @Injectable()
 export class FidelizarVentaPlexAdapter {
@@ -28,7 +29,10 @@ export class FidelizarVentaPlexAdapter {
     private readonly cliente: ClienteFindByTarjeta,
   ) {}
 
-  async handle(xml: string, ctx?: TransactionContext): Promise<string> {
+  async handle(
+    xml: string,
+    ctx?: TransactionContext,
+  ): Promise<UseCaseResponse> {
     // 1. Parseo XML
     const parser = new XMLParser({
       ignoreAttributes: false,
@@ -38,6 +42,7 @@ export class FidelizarVentaPlexAdapter {
 
     // 2. DTO integración
     const plexDto = PlexFidelizarVentaRequestDto.fromXml(parsedObj);
+
     // 2.1 Validar cliente
     const cliente = await this.cliente.run(plexDto.nroTarjeta.toString());
 
@@ -86,6 +91,9 @@ export class FidelizarVentaPlexAdapter {
     const xmlString = builder.build(responseXmlObj);
 
     // 9. Agregar encabezado
-    return `<?xml version="1.0" encoding="utf-8"?>\n${xmlString}`;
+    return {
+      response: `<?xml version="1.0" encoding="utf-8"?>\n${xmlString}`,
+      dto: responseDto,
+    };
   }
 }

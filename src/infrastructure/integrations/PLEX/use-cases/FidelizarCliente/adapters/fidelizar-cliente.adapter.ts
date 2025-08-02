@@ -7,6 +7,7 @@ import { codFidelizarCliente } from '@infrastructure/integrations/PLEX/enums/fid
 import { Cliente } from '@cliente/core/entities/Cliente';
 import { ClienteUpdate } from '@cliente/application/use-cases/ClienteUpdate/ClienteUpdate';
 import { PlexFidelizarClienteResponseMapper } from '../dtos/fidelizar-cliente.response.dto';
+import { UseCaseResponse } from '@infrastructure/integrations/PLEX/dto/usecase-response.dto';
 
 @Injectable()
 export class FidelizarClientePlexAdapter {
@@ -17,7 +18,10 @@ export class FidelizarClientePlexAdapter {
     private readonly clienteUpdate: ClienteUpdate,
   ) {}
 
-  async handle(xml: string, ctx?: TransactionContext): Promise<string> {
+  async handle(
+    xml: string,
+    ctx?: TransactionContext,
+  ): Promise<UseCaseResponse> {
     const parser = new XMLParser({
       ignoreAttributes: false,
       trimValues: true,
@@ -110,6 +114,9 @@ export class FidelizarClientePlexAdapter {
     });
     const xmlString = builder.build(xmlResponseObj);
 
-    return `<?xml version="1.0" encoding="utf-8"?>\n${xmlString}`;
+    return {
+      response: `<?xml version="1.0" encoding="utf-8"?>\n${xmlString}`,
+      dto: response,
+    };
   }
 }

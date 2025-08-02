@@ -12,12 +12,14 @@ import { PlexController } from './plex.controller';
 import { FidelizarClientePlexAdapter } from './use-cases/FidelizarCliente/adapters/fidelizar-cliente.adapter';
 import { ReglaInfrastructureModule } from '@regla/infrastructure/regla.module';
 import { ConsultarClientePlexAdapter } from './use-cases/ConsultarCliente/adapters/consultar-cliente.adapter';
+import { DatabaseModule } from '@infrastructure/database/database.module';
 
 @Module({
   imports: [
     forwardRef(() => PuntosInfrastructureModule),
     forwardRef(() => ClienteInfrastructureModule),
     forwardRef(() => ReglaInfrastructureModule),
+    DatabaseModule,
   ],
   controllers: [PlexController],
   providers: [

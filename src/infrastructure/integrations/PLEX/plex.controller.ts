@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
 import { Controller, Headers, Inject, Post, Req, Res } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { FidelizarVentaPlexAdapter } from './use-cases/FidelizarVenta/adapters/fidelizar-venta.adapter';
@@ -13,6 +16,8 @@ import { codFidelizarVenta } from './enums/fidelizar-venta.enum';
 import { codFidelizarCliente } from './enums/fidelizar-cliente.enum';
 import { ConsultarClientePlexAdapter } from './use-cases/ConsultarCliente/adapters/consultar-cliente.adapter';
 import { codConsultarCliente } from './enums/consultar-cliente.enum';
+import { IntegracionMovimientoService } from '../../database/services/IntegracionMovimientoService';
+import { UseCaseResponse } from './dto/usecase-response.dto';
 
 // Tipo explícito para parseo seguro
 interface MensajeFidelyGb {
@@ -31,11 +36,13 @@ export class PlexController {
     private readonly clienteAdapter: FidelizarClientePlexAdapter,
     @Inject(CONSULTAR_CLIENTE_ADAPTER)
     private readonly consultarClienteAdapter: ConsultarClientePlexAdapter,
+    @Inject(IntegracionMovimientoService)
+    private readonly integracionMovimientoService: IntegracionMovimientoService,
     private readonly transactionalRunner: TransactionalRunner,
   ) {}
 
   @Post()
-  async fidelizarVenta(
+  async plex(
     @Req() req: Request,
     @Res() res: Response,
     @Headers('content-type') contentType: string,
@@ -48,13 +55,33 @@ export class PlexController {
     const xml: string =
       req.body instanceof Buffer ? req.body.toString() : (req.body as string);
 
+    const parser = new XMLParser();
+
+    // Tipar el parseo
+    const json = parser.parse(xml) as MensajeFidelyGb;
+
+    if (
+      !json ||
+      typeof json !== 'object' ||
+      !('MensajeFidelyGb' in json) ||
+      typeof json.MensajeFidelyGb !== 'object'
+    ) {
+      throw new Error('XML malformado o sin MensajeFidelyGb');
+    }
+
+    const codAccionRaw = json?.MensajeFidelyGb?.CodAccion || '';
+
+    const movimiento =
+      await this.integracionMovimientoService.registrarMovimiento({
+        tipoIntegracion: 'ONZECRM',
+        txTipo: String(codAccionRaw), // <- te aseguras que es string
+        requestPayload: json as Record<string, unknown>, // <- bien tipado
+        status: 'IN_PROGRESS',
+      });
+
     try {
-      const responseXml: string =
+      const responseXml: UseCaseResponse =
         await this.transactionalRunner.runInTransaction(async (ctx) => {
-          const parser = new XMLParser();
-          // Tipar el parseo
-          const json = parser.parse(xml) as MensajeFidelyGb;
-          const codAccionRaw = json?.MensajeFidelyGb?.CodAccion;
           // Validación explícita y casteo
           const codAccion =
             codAccionRaw !== undefined ? String(codAccionRaw) : undefined;
@@ -89,11 +116,36 @@ export class PlexController {
           throw new Error('codAccion inválido o no soportado');
         });
 
+      await this.integracionMovimientoService.actualizarMovimiento(
+        movimiento.id,
+        {
+          status: 'OK',
+          responsePayload: responseXml,
+        },
+      );
+
       res.set('Content-Type', 'application/xml');
-      res.status(200).send(responseXml);
+      res.status(200).send(responseXml.response);
     } catch (error: unknown) {
       let msg = 'Error inesperado';
-      if (error instanceof Error) msg = error.message;
+
+      // Esta es la forma segura y recomendada:
+      if (error instanceof Error) {
+        msg = error.message;
+      } else if (typeof error === 'string') {
+        msg = error;
+      } else {
+        msg = JSON.stringify(error); // fallback para otros tipos
+      }
+
+      await this.integracionMovimientoService.actualizarMovimiento(
+        movimiento.id,
+        {
+          status: 'ERROR',
+          mensajeError: msg,
+        },
+      );
+
       const errorXml = `<?xml version="1.0" encoding="utf-8"?><RespuestaFidelyGb><RespCode>1</RespCode><RespMsg>${msg}</RespMsg></RespuestaFidelyGb>`;
       res.set('Content-Type', 'application/xml');
       res.status(500).send(errorXml);
