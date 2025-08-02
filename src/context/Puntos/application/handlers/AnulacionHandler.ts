@@ -27,6 +27,7 @@ export class AnulacionHandler {
     transaccionesOriginales: Transaccion[],
     ctx?: TransactionContext,
   ): Promise<HandlerResult> {
+    const saldoAnterior = saldo.getSaldoActual();
     // 1. Crear la operación (la operación ANULACION)
     const operacion = this.operacionFactory.create(req);
 
@@ -59,7 +60,6 @@ export class AnulacionHandler {
       );
 
     // 5. Snapshot de saldo antes/después
-    const saldoAnterior = saldo.getSaldoActual();
     const saldoNuevo = saldo.getSaldoActual();
 
     return {

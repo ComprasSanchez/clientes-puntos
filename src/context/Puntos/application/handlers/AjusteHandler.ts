@@ -32,6 +32,7 @@ export class AjusteHandler {
     tipoAjuste: TxTipo,
     ctx?: TransactionContext,
   ): Promise<HandlerResult> {
+    const saldoAnterior = saldo.getSaldoActual();
     // 1. Crear la operación usando el factory
     const operacion = this.operacionFactory.create(req);
 
@@ -66,7 +67,6 @@ export class AjusteHandler {
       );
 
     // 6. Snapshot de saldo antes/después
-    const saldoAnterior = saldo.getSaldoActual();
     const saldoNuevo = saldo.getSaldoActual();
 
     // 7. Retornar el resultado

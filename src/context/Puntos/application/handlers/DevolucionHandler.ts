@@ -31,6 +31,7 @@ export class DevolucionHandler {
     transaccionesOriginales: Transaccion[], // txsOriginal (puede ser [])
     ctx?: TransactionContext,
   ): Promise<HandlerResult> {
+    const saldoAnterior = saldo.getSaldoActual();
     // 1. Crear la operación
     const operacion = this.operacionFactory.create(req);
 
@@ -73,7 +74,6 @@ export class DevolucionHandler {
       );
 
     // 6. Snapshot de saldo antes/después
-    const saldoAnterior = saldo.getSaldoActual();
     const saldoNuevo = saldo.getSaldoActual();
 
     // 7. Retornar el resultado para que el servicio central persista

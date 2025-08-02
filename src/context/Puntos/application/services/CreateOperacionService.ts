@@ -33,6 +33,7 @@ import { Transaccion } from '@puntos/core/entities/Transaccion';
 import { HandlerResult } from '../dtos/HandlerResult';
 import { LoteId } from '@puntos/core/value-objects/LoteId';
 import { Lote } from '@puntos/core/entities/Lote';
+import { OperacionNotFoundError } from '@puntos/core/exceptions/Operacion/OperacionNotFoundError';
 
 @Injectable()
 export class CreateOperacionService {
@@ -103,7 +104,7 @@ export class CreateOperacionService {
         );
         break;
 
-      case OpTipo.ANULACION:
+      case OpTipo.ANULACION: {
         // Buscar transacciones originales (NO puede quedar vacío)
         if (req.operacionId) {
           txsOriginal = await this.txRepo.findByOperationId(
@@ -113,18 +114,44 @@ export class CreateOperacionService {
           txsOriginal = await this.txRepo.findByReferencia(
             req.referencia.value!,
           );
-          req.operacionId = txsOriginal[0]?.operationId;
+          if (txsOriginal.length > 0) {
+            req.operacionId = txsOriginal[0]?.operationId;
+          }
         }
+
         if (!txsOriginal || txsOriginal.length === 0) {
           throw new RefundError(); // O el error que uses para ausencia de movimientos a anular
         }
+
+        // Asegura que operacionId no es undefined
+        if (!req.operacionId) {
+          throw new OperacionNotFoundError('operacionId no definido');
+        }
+
+        const opOriginal = await this.operacionRepo.findById(req.operacionId);
+
+        if (!opOriginal)
+          throw new OperacionNotFoundError(req.operacionId.value.toString());
+
+        // ⚡️ Armar el nuevo request para la anulación
+        const anulacionReq: CreateOperacionRequest = {
+          clienteId: opOriginal.clienteId, // string
+          tipo: OpTipo.ANULACION,
+          origenTipo: opOriginal.origenTipo, // OrigenOperacion
+          // puntos y montoMoneda **no van**
+          moneda: opOriginal.moneda?.value, // string | undefined
+          referencia: req.referencia, // se puede pasar la misma referencia o generar nueva
+          operacionId: opOriginal.id, // OperacionId
+        };
+
         handlerResult = await this.anulacionHandler.handle(
-          req,
+          anulacionReq,
           saldo,
           txsOriginal,
           ctx,
         );
         break;
+      }
 
       default:
         throw new Error(`Tipo de operación no soportado`);
