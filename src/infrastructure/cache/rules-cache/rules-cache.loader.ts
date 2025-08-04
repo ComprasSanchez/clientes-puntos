@@ -8,6 +8,7 @@ import {
 import { RulesCacheService } from './rules-cache.service';
 import { ReglaRepository } from '@regla/core/repository/ReglaRepository';
 import { REGLA_REPO } from '@regla/core/tokens/tokens';
+import { Regla } from '@regla/core/entities/Regla';
 
 @Injectable()
 export class RulesCacheLoader implements OnApplicationBootstrap {
@@ -22,14 +23,16 @@ export class RulesCacheLoader implements OnApplicationBootstrap {
 
   async onApplicationBootstrap() {
     try {
-      await this.loadAndCacheRules();
-      this.logger.log('Reglas cacheadas en Redis al iniciar la aplicación');
+      const reglas: Regla[] = await this.loadAndCacheRules();
+      this.logger.log(
+        `Cache inicializado: ${reglas.length} reglas cargadas en Redis`,
+      );
     } catch (e) {
       this.logger.error('Error cacheando reglas al iniciar la app', e as Error);
     }
   }
 
-  async loadAndCacheRules(): Promise<any[]> {
+  async loadAndCacheRules(): Promise<Regla[]> {
     const reglas = await this.reglaRepo.findAll();
     await this.rulesCache.setRules(reglas);
     return reglas;
