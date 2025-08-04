@@ -9,12 +9,14 @@ import { AppExceptionFilter } from '@shared/core/exceptions/AppExceptionFilter';
 import { KeycloakModule } from '@infrastructure/auth/keycloak.module';
 import { AuthGuard, ResourceGuard, RoleGuard } from 'nest-keycloak-connect';
 import { IntegrationsModule } from '@infrastructure/integrations/integrations.module';
+import { RedisCacheModule } from '@infrastructure/cache/redis/redis-cache.module';
 
 @Module({
   imports: [
     ConfigModule,
     KeycloakModule,
     SharedModule,
+    RedisCacheModule,
     ClienteInfrastructureModule,
     ReglaInfrastructureModule,
     PuntosInfrastructureModule,

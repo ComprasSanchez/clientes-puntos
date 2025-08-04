@@ -11,4 +11,10 @@ export default () => ({
   realm: process.env.KEYCLOAK_REALM,
   clientId: process.env.KEYCLOAK_CLIENT_ID,
   secret: process.env.KEYCLOAK_CLIENT_SECRET || 'secret',
+  campania: process.env.CAMPANIA_ID || 1883,
+  redisHost: process.env.REDISHOST,
+  redisPort: process.env.REDISPORT,
+  redisUser: process.env.REDISUSER,
+  redisPass: process.env.REDIS_PASSWORD,
+  redisUrl: process.env.REDIS_URL,
 });

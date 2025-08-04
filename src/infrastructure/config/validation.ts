@@ -15,4 +15,10 @@ export const configValidationSchema = Joi.object({
   KEYCLOAK_REALM: Joi.string().default('FSA').required(),
   KEYCLOAK_CLIENT_ID: Joi.string().default('puntos-fsa').required(),
   KEYCLOAK_CLIENT_SECRET: Joi.string().default('').required(),
+  CAMPANIA_ID: Joi.number().required(),
+  REDIS_PASSWORD: Joi.string().required(),
+  REDISHOST: Joi.string().required(),
+  REDISPORT: Joi.number().required(),
+  REDISUSER: Joi.string().required(),
+  REDIS_URL: Joi.string().optional(),
 });
