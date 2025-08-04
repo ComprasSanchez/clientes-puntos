@@ -1,15 +1,16 @@
 // @regla/application/use-cases/ReglaFindAll.ts
 import { Injectable, Inject } from '@nestjs/common';
-import { ReglaRepository } from '@regla/core/repository/ReglaRepository';
 import { Regla } from '@regla/core/entities/Regla';
+import { RulesCacheLoader } from '@infrastructure/cache/rules-cache/rules-cache.loader';
 
 @Injectable()
 export class ReglaFindAll {
   constructor(
-    @Inject(ReglaRepository) private readonly repo: ReglaRepository,
+    @Inject(RulesCacheLoader)
+    private readonly rulesCacheLoader: RulesCacheLoader,
   ) {}
 
   async run(): Promise<Regla[]> {
-    return await this.repo.findAll();
+    return await this.rulesCacheLoader.getRules();
   }
 }

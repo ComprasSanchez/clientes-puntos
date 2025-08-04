@@ -33,12 +33,14 @@ import { ConversionRuleEntity } from './entities/rule-conversion.entity';
 import { ReglaFindCotizacion } from '@regla/application/use-cases/ReglaFindCotizacion/FindCotizacion';
 import { ReglaFactory } from '@regla/core/factories/ReglaFactory';
 import { RulesQueryService } from '@regla/application/services/RulesQueryService';
+import { RulesCacheModule } from '@infrastructure/cache/rules-cache/rules-cache.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([ReglaEntity, ConversionRuleEntity]),
     DatabaseModule,
     ReglaPersistenceModule,
+    RulesCacheModule,
   ],
   controllers: [ReglaController],
   providers: [

@@ -1,12 +1,15 @@
 // src/regla/application/services/rules-query.service.ts
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { RulesCacheLoader } from '@infrastructure/cache/rules-cache/rules-cache.loader';
 import { Regla as ReglaDomain } from '@regla/core/entities/Regla';
 import { ReglaCriteria } from '@regla/core/entities/Criteria';
 
 @Injectable()
 export class RulesQueryService {
-  constructor(private readonly rulesCacheLoader: RulesCacheLoader) {}
+  constructor(
+    @Inject(RulesCacheLoader)
+    private readonly rulesCacheLoader: RulesCacheLoader,
+  ) {}
 
   async findByCriteria(criteria: ReglaCriteria): Promise<ReglaDomain[]> {
     // 1. Obtené todas las reglas cacheadas

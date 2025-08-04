@@ -11,11 +11,15 @@ import { ReglaVigenciaFin } from '@regla/core/value-objects/ReglaVigenciaFin';
 import { RatioConversion } from '@regla/core/value-objects/RatioConversion';
 import { DiasExpiracion } from '@regla/core/value-objects/DiasExpiracion';
 import { UpdateReglaDto } from '@regla/application/dtos/UpdateReglaDto';
+import { RulesCacheLoader } from '@infrastructure/cache/rules-cache/rules-cache.loader';
 
 @Injectable()
 export class ReglaUpdate {
   constructor(
-    @Inject(ReglaRepository) private readonly repo: ReglaRepository,
+    @Inject(ReglaRepository)
+    private readonly repo: ReglaRepository,
+    @Inject(RulesCacheLoader)
+    private readonly rulesCacheLoader: RulesCacheLoader,
   ) {}
 
   async run(id: string, dto: UpdateReglaDto): Promise<void> {
@@ -65,5 +69,8 @@ export class ReglaUpdate {
     }
 
     await this.repo.update(regla);
+
+    // 👉 Invalidar el cache después de guardar
+    await this.rulesCacheLoader.invalidate();
   }
 }

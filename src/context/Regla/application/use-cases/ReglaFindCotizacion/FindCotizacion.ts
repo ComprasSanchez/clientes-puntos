@@ -1,3 +1,4 @@
+import { RulesCacheLoader } from '@infrastructure/cache/rules-cache/rules-cache.loader';
 import { Inject, Injectable } from '@nestjs/common';
 import { ConversionRule } from '@regla/core/entities/ConversionRule';
 import { ReglaNotFound } from '@regla/core/exceptions/ReglaNotFoundError';
@@ -9,13 +10,22 @@ export class ReglaFindCotizacion {
   constructor(
     @Inject(REGLA_REPO)
     private readonly reglaRepository: ReglaRepository,
+    @Inject(RulesCacheLoader)
+    private readonly rulesCacheLoader: RulesCacheLoader,
   ) {}
 
   async run(): Promise<ConversionRule> {
-    const regla = await this.reglaRepository.findCotizacion();
-    if (!regla) {
+    const reglas = await this.rulesCacheLoader.getRules();
+    const regla = reglas.find((r) => r.prioridad.value === 0);
+
+    if (regla) return regla as ConversionRule;
+
+    const reglaRepo = await this.reglaRepository.findCotizacion();
+    if (!reglaRepo) {
       throw new ReglaNotFound();
     }
-    return regla;
+
+    await this.rulesCacheLoader.invalidate();
+    return reglaRepo;
   }
 }

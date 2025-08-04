@@ -14,12 +14,15 @@ import { ConversionConfig } from '@regla/core/value-objects/ConversionConfig';
 import { CreateReglaDto } from '@regla/application/dtos/CreateReglaDto';
 import { UUIDGenerator } from '@shared/core/uuid/UuidGenerator';
 import { Regla } from '@regla/core/entities/Regla';
+import { RulesCacheLoader } from '@infrastructure/cache/rules-cache/rules-cache.loader';
 
 @Injectable()
 export class ReglaCreate {
   constructor(
     @Inject(ReglaRepository) private readonly repo: ReglaRepository,
     @Inject(UUIDGenerator) private readonly idGen: UUIDGenerator,
+    @Inject(RulesCacheLoader)
+    private readonly rulesCacheLoader: RulesCacheLoader,
   ) {}
 
   async run(dto: CreateReglaDto): Promise<void> {
@@ -48,5 +51,7 @@ export class ReglaCreate {
         throw new Error(`Tipo de regla no soportado: ${dto.tipo}`);
     }
     await this.repo.save(regla);
+
+    await this.rulesCacheLoader.invalidate();
   }
 }

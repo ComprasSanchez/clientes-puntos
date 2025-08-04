@@ -1,3 +1,4 @@
+import { RulesCacheLoader } from '@infrastructure/cache/rules-cache/rules-cache.loader';
 import { Injectable, Inject } from '@nestjs/common';
 import { ReglaRepository } from '@regla/core/repository/ReglaRepository';
 
@@ -5,6 +6,8 @@ import { ReglaRepository } from '@regla/core/repository/ReglaRepository';
 export class ReglaDelete {
   constructor(
     @Inject(ReglaRepository) private readonly repo: ReglaRepository,
+    @Inject(RulesCacheLoader)
+    private readonly rulesCacheLoader: RulesCacheLoader,
   ) {}
 
   async run(id: string): Promise<void> {
@@ -13,5 +16,7 @@ export class ReglaDelete {
       throw new Error('Regla no encontrada');
     }
     await this.repo.delete(id);
+
+    await this.rulesCacheLoader.invalidate();
   }
 }
