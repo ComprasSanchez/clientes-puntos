@@ -1,14 +1,22 @@
 // src/infrastructure/cache/rules/rules-cache.loader.ts
-import { Injectable, OnApplicationBootstrap, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  OnApplicationBootstrap,
+  Logger,
+  Inject,
+} from '@nestjs/common';
 import { RulesCacheService } from './rules-cache.service';
 import { ReglaRepository } from '@regla/core/repository/ReglaRepository';
+import { REGLA_REPO } from '@regla/core/tokens/tokens';
 
 @Injectable()
 export class RulesCacheLoader implements OnApplicationBootstrap {
   private readonly logger = new Logger(RulesCacheLoader.name);
 
   constructor(
+    @Inject(RulesCacheService)
     private readonly rulesCache: RulesCacheService,
+    @Inject(REGLA_REPO)
     private readonly reglaRepo: ReglaRepository,
   ) {}
 
