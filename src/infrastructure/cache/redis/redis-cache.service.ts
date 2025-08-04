@@ -20,7 +20,7 @@ export class RedisCacheService implements OnModuleInit, OnModuleDestroy {
 
   onModuleInit(): void {
     // 1. Usar URL completa si existe (preferible para Railway)
-    const redisUrl = this.configService.get<string>('redisUrl');
+    const redisUrl = this.configService.get<string>('redisUrl') + '?family=0';
     if (redisUrl) {
       const opts: RedisOptions = this.getRedisOptions(redisUrl);
       this.client = new Redis(redisUrl, opts);
