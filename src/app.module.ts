@@ -10,6 +10,7 @@ import { KeycloakModule } from '@infrastructure/auth/keycloak.module';
 import { AuthGuard, ResourceGuard, RoleGuard } from 'nest-keycloak-connect';
 import { IntegrationsModule } from '@infrastructure/integrations/integrations.module';
 import { RedisCacheModule } from '@infrastructure/cache/redis/redis-cache.module';
+import { RulesCacheModule } from '@infrastructure/cache/rules-cache/rules-cache.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { RedisCacheModule } from '@infrastructure/cache/redis/redis-cache.module
     ReglaInfrastructureModule,
     PuntosInfrastructureModule,
     IntegrationsModule,
+    RulesCacheModule,
   ],
   controllers: [],
   providers: [
