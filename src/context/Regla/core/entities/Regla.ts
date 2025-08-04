@@ -11,6 +11,7 @@ import { ReglaPrioridad } from '../value-objects/ReglaPrioridad';
 import { ReglaTipo } from '../value-objects/ReglaTipo';
 import { ReglaVigenciaFin } from '../value-objects/ReglaVigenciaFin';
 import { ReglaVigenciaInicio } from '../value-objects/ReglaVigenciaInicio';
+import { ReglaDTO } from '../dto/ReglaDTO';
 
 export abstract class Regla {
   protected _updatedAt: Date = new Date();
@@ -116,4 +117,6 @@ export abstract class Regla {
   protected abstract applyIfTrue(
     context: ReglaEngineRequest,
   ): ReglaEngineResult;
+
+  abstract toDTO(): ReglaDTO;
 }

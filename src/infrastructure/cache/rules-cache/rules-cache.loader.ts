@@ -9,6 +9,8 @@ import { RulesCacheService } from './rules-cache.service';
 import { ReglaRepository } from '@regla/core/repository/ReglaRepository';
 import { REGLA_REPO } from '@regla/core/tokens/tokens';
 import { Regla } from '@regla/core/entities/Regla';
+import { BaseReglaDTO, ReglaDTO } from '@regla/core/dto/ReglaDTO';
+import { ReglaFactory } from '@regla/core/factories/ReglaFactory';
 
 @Injectable()
 export class RulesCacheLoader implements OnApplicationBootstrap {
@@ -23,7 +25,7 @@ export class RulesCacheLoader implements OnApplicationBootstrap {
 
   async onApplicationBootstrap() {
     try {
-      const reglas: Regla[] = await this.loadAndCacheRules();
+      const reglas: BaseReglaDTO[] = await this.loadAndCacheRules();
       this.logger.log(
         `Cache inicializado: ${reglas.length} reglas cargadas en Redis`,
       );
@@ -32,18 +34,19 @@ export class RulesCacheLoader implements OnApplicationBootstrap {
     }
   }
 
-  async loadAndCacheRules(): Promise<Regla[]> {
+  async loadAndCacheRules(): Promise<ReglaDTO[]> {
     const reglas = await this.reglaRepo.findAll();
-    await this.rulesCache.setRules(reglas);
-    return reglas;
+    const reglasDTO = reglas.map((regla) => regla.toDTO());
+    await this.rulesCache.setRules(reglasDTO);
+    return reglasDTO;
   }
 
-  async getRules(): Promise<any[]> {
-    let reglas = await this.rulesCache.getRules<any>();
-    if (!reglas) {
-      reglas = await this.loadAndCacheRules();
+  async getRules(): Promise<Regla[]> {
+    let reglasDTO = await this.rulesCache.getRules<ReglaDTO>();
+    if (!reglasDTO) {
+      reglasDTO = await this.loadAndCacheRules();
     }
-    return reglas;
+    return reglasDTO.map((dto) => ReglaFactory.fromJSON(dto));
   }
 
   async invalidate(): Promise<void> {

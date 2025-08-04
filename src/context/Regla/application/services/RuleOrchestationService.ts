@@ -4,9 +4,9 @@ import {
   ReglaEngineRequest,
   ReglaEngineResult,
 } from '../../core/interfaces/IReglaEngine';
-import { ReglaRepository } from '../../core/repository/ReglaRepository';
 import { RuleProcessor } from '../../core/services/RuleProcessor';
-import { REGLA_REPO } from '@regla/core/tokens/tokens';
+import { RULE_QUERY_SERVICE } from '@regla/core/tokens/tokens';
+import { RulesQueryService } from './RulesQueryService';
 
 /**
  * Servicio de aplicación: orquesta repositorio, criterios y procesador de reglas.
@@ -16,7 +16,7 @@ export class RulesOrchestrationService {
   private processor = new RuleProcessor();
 
   constructor(
-    @Inject(REGLA_REPO) private readonly reglaRepo: ReglaRepository,
+    @Inject(RULE_QUERY_SERVICE) private readonly ruleService: RulesQueryService,
   ) {}
 
   /**
@@ -29,7 +29,7 @@ export class RulesOrchestrationService {
     const criteria = ReglaCriteria.fromContext(context);
 
     // 2. Obtener reglas filtradas (JSONLogic en infra)
-    const reglasFiltradas = await this.reglaRepo.findByCriteria(criteria);
+    const reglasFiltradas = await this.ruleService.findByCriteria(criteria);
 
     // 3. Procesar lista de reglas puras
     return this.processor.process(reglasFiltradas, context);

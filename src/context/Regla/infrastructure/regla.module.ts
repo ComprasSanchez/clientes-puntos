@@ -21,6 +21,7 @@ import {
   REGLA_ENGINE_ADAPTER,
   RULE_ORCHESTATION_SERVICE,
   EXECUTE_RULES_USE_CASE,
+  RULE_QUERY_SERVICE,
 } from '../core/tokens/tokens';
 import { ReglaFindAll } from '@regla/application/use-cases/ReglaFindAll/FindAll';
 import { ReglaFindById } from '@regla/application/use-cases/ReglaFindById/FindById';
@@ -30,6 +31,8 @@ import { ReglaDelete } from '@regla/application/use-cases/ReglaDelete/Delete';
 import { ReglaController } from './controllers/ReglaController';
 import { ConversionRuleEntity } from './entities/rule-conversion.entity';
 import { ReglaFindCotizacion } from '@regla/application/use-cases/ReglaFindCotizacion/FindCotizacion';
+import { ReglaFactory } from '@regla/core/factories/ReglaFactory';
+import { RulesQueryService } from '@regla/application/services/RulesQueryService';
 
 @Module({
   imports: [
@@ -56,6 +59,12 @@ import { ReglaFindCotizacion } from '@regla/application/use-cases/ReglaFindCotiz
       provide: RULE_ORCHESTATION_SERVICE,
       useClass: RulesOrchestrationService,
     },
+    {
+      provide: RULE_QUERY_SERVICE,
+      useClass: RulesQueryService,
+    },
+
+    ReglaFactory,
 
     // Use cases
     ReglaFindAll,

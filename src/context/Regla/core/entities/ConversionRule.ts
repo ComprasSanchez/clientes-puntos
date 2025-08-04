@@ -15,6 +15,7 @@ import { DiasExpiracion } from '../value-objects/DiasExpiracion';
 import { ReglaDescripcion } from '../value-objects/ReglaDescripcion';
 import { ReglaTipo } from '../value-objects/ReglaTipo';
 import { TipoRegla } from '../enums/TipoRegla';
+import { ConversionRuleDTO } from '../dto/ConversionRuleDTO';
 
 export class ConversionRule extends Regla {
   constructor(
@@ -67,6 +68,51 @@ export class ConversionRule extends Regla {
   cambiarCreditExpiryDays(nuevoDias?: DiasExpiracion): void {
     this.creditExpiryDays = nuevoDias;
     this.touch();
+  }
+
+  static fromJSON(json: ConversionRuleDTO): ConversionRule {
+    return new ConversionRule(
+      new ReglaId(json.id.value),
+      new ReglaNombre(json._nombre.value),
+      new ReglaPrioridadCotizacion(json._prioridad.value),
+      new ReglaFlag(json._activa.value),
+      new ReglaFlag(json._excluyente.value),
+      new ReglaVigenciaInicio(new Date(json._vigenciaInicio.value)),
+      json._vigenciaFin
+        ? new ReglaVigenciaFin(new Date(json._vigenciaFin.value))
+        : undefined,
+      json._descripcion
+        ? new ReglaDescripcion(json._descripcion.value)
+        : undefined,
+      new RatioConversion(json.rateAccred.value),
+      new RatioConversion(json.rateSpend.value),
+      json.creditExpiryDays
+        ? new DiasExpiracion(json.creditExpiryDays.value)
+        : undefined,
+    );
+  }
+
+  toDTO(): ConversionRuleDTO {
+    return {
+      tipo: { value: TipoRegla.CONVERSION },
+      id: { value: this.id.value },
+      _nombre: { value: this.nombre.value },
+      _prioridad: { value: this.prioridad.value },
+      _activa: { value: this.activa.value },
+      _excluyente: { value: this.excluyente.value },
+      _vigenciaInicio: { value: this.vigenciaInicio.value.toISOString() }, // o value directo según tu modelo
+      _vigenciaFin: this.vigenciaFin
+        ? { value: this.vigenciaFin.value.toISOString() }
+        : undefined,
+      _descripcion: this.descripcion
+        ? { value: this.descripcion.value }
+        : undefined,
+      rateAccred: { value: this.rateAccredVo.value },
+      rateSpend: { value: this.rateSpendVo.value },
+      creditExpiryDays: this.creditExpiryDaysVo
+        ? { value: this.creditExpiryDaysVo.value }
+        : undefined,
+    };
   }
 
   protected applyIfTrue(ctx: ReglaEngineRequest): ReglaEngineResult {
