@@ -6,7 +6,6 @@ import { ClienteMetricaRepository } from 'src/context/Metricas/core/clientes/rep
 import { Repository, Between, DataSource } from 'typeorm';
 import { ClienteMetricaEntity } from '../entities/ClienteMetrica.entity';
 import { ClienteMetrica } from 'src/context/Metricas/core/clientes/entities/ClienteMetrica';
-import { OpTipo } from '@shared/core/enums/OpTipo';
 
 @Injectable()
 export class ClienteMetricaRepositoryImpl implements ClienteMetricaRepository {
@@ -18,8 +17,7 @@ export class ClienteMetricaRepositoryImpl implements ClienteMetricaRepository {
   ) {}
 
   async save(metrica: ClienteMetrica): Promise<void> {
-    const entity = this.toEntity(metrica);
-
+    const entity = ClienteMetricaEntity.fromDomain(metrica);
     await this.dataSource.manager.transaction(async (manager) => {
       await manager.getRepository(ClienteMetricaEntity).save(entity);
     });
@@ -37,7 +35,7 @@ export class ClienteMetricaRepositoryImpl implements ClienteMetricaRepository {
       },
       order: { fecha: 'ASC' },
     });
-    return items.map((item) => this.toDomain(item));
+    return items.map((item) => item.toDomain());
   }
 
   async findByDniAndDateRange(
@@ -53,33 +51,6 @@ export class ClienteMetricaRepositoryImpl implements ClienteMetricaRepository {
       },
       order: { fecha: 'ASC' },
     });
-    return items.map((item) => this.toDomain(item));
-  }
-
-  // ------ Mapeo entre entidad y dominio ------
-  private toEntity(domain: ClienteMetrica): ClienteMetricaEntity {
-    const entity = new ClienteMetricaEntity();
-    entity.id = domain.id;
-    entity.clienteId = domain.clienteId;
-    entity.fecha = domain.fecha;
-    entity.pesosAhorro = domain.pesosAhorro;
-    entity.puntosAdquiridos = domain.puntosAdquiridos;
-    entity.movimientos = domain.movimientos;
-    entity.tipoOperacion = domain.tipoOperacion;
-    entity.referenciaTransaccion = domain.referenciaTransaccion;
-    return entity;
-  }
-
-  private toDomain(entity: ClienteMetricaEntity): ClienteMetrica {
-    return new ClienteMetrica(
-      entity.id,
-      entity.clienteId,
-      entity.fecha,
-      Number(entity.pesosAhorro),
-      Number(entity.puntosAdquiridos),
-      entity.movimientos,
-      entity.tipoOperacion as OpTipo,
-      entity.referenciaTransaccion,
-    );
+    return items.map((item) => item.toDomain());
   }
 }
