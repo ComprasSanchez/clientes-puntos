@@ -56,7 +56,6 @@ export class DevolucionHandler {
 
     // 4. Generar transacciones con el builder
     const transacciones = this.txBuilder.buildTransacciones(
-      req.tipo,
       detallesDebito,
       nuevoLote,
       operacion,

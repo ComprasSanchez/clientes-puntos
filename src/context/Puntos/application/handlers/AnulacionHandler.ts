@@ -40,7 +40,6 @@ export class AnulacionHandler {
 
     // 3. Generar transacciones de ANULACION con el builder
     const transacciones = this.txBuilder.buildTransacciones(
-      req.tipo, // OpTipo.ANULACION
       detallesDebito,
       nuevoLote,
       operacion,

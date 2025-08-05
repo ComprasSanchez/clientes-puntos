@@ -56,7 +56,6 @@ export class CompraHandler {
     const lotesActualizados = obtenerLotesActualizados(saldo, nuevoLote);
 
     const transacciones = this.txBuilder.buildTransacciones(
-      req.tipo,
       detallesDebito,
       nuevoLote,
       operacion,

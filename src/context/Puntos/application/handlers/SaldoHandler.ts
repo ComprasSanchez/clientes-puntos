@@ -17,8 +17,14 @@ import { SaldoRepository } from '@puntos/core/repository/SaldoRepository';
 import { HistorialSaldo } from '@puntos/core/entities/SaldoHistorial';
 import { TransactionContext } from '@shared/core/interfaces/TransactionContext';
 
+export interface DetalleTransaccion {
+  loteId: LoteId;
+  cantidad: CantidadPuntos;
+  tipo: TxTipo; // <-- clave!
+}
+
 export interface AplicacionCambioResult {
-  detallesDebito: Array<{ loteId: LoteId; cantidad: CantidadPuntos }>;
+  detallesDebito: DetalleTransaccion[];
   nuevoLote?: Lote;
 }
 
@@ -139,7 +145,7 @@ export class SaldoHandler {
     txs?: Transaccion[],
   ): AplicacionCambioResult {
     if (!txs) throw new ReferenciaoNotFoundError();
-
+    const detallesDebito: DetalleTransaccion[] = [];
     for (const tx of txs) {
       if (
         operacion.tipo === OpTipo.ANULACION &&
@@ -153,16 +159,22 @@ export class SaldoHandler {
       if (tx.tipo === TxTipo.ACREDITACION) {
         // Revierto la acreditación (quito puntos disponibles)
         this.gastarPuntosDeLote(lote, tx.cantidad);
+        detallesDebito.push({
+          loteId: tx.loteId,
+          cantidad: tx.cantidad,
+          tipo: TxTipo.GASTO,
+        });
       } else if (tx.tipo === TxTipo.GASTO) {
         // Revierto el gasto (devuelvo puntos)
         saldo.revertirLinea(tx.loteId.value, tx.cantidad);
+        detallesDebito.push({
+          loteId: tx.loteId,
+          cantidad: tx.cantidad,
+          tipo: TxTipo.ACREDITACION,
+        });
       }
     }
 
-    const detallesDebito = txs.map((d) => ({
-      loteId: d.loteId,
-      cantidad: d.cantidad,
-    }));
     return { detallesDebito };
   }
 
@@ -172,12 +184,13 @@ export class SaldoHandler {
     saldo: Saldo,
     operacion: Operacion,
     cantidad?: CantidadPuntos,
-  ): Array<{ loteId: LoteId; cantidad: CantidadPuntos }> {
+  ): DetalleTransaccion[] {
     if (cantidad && cantidad.value > 0) {
       saldo.consumirPuntos(operacion.id.value, cantidad);
       return saldo.getDetalleConsumo(operacion.id.value).map((d) => ({
         loteId: d.loteId,
         cantidad: d.cantidad,
+        tipo: TxTipo.GASTO,
       }));
     }
     return [];
@@ -206,9 +219,9 @@ export class SaldoHandler {
     saldo: Saldo,
     cantidad: CantidadPuntos,
     txs: Transaccion[],
-  ): Array<{ loteId: LoteId; cantidad: CantidadPuntos }> {
+  ): DetalleTransaccion[] {
     let remaining = cantidad.value;
-    const detalles: Array<{ loteId: LoteId; cantidad: CantidadPuntos }> = [];
+    const detalles: DetalleTransaccion[] = [];
 
     for (const tx of txs) {
       if (remaining <= 0) break;
@@ -225,6 +238,7 @@ export class SaldoHandler {
         detalles.push({
           loteId: tx.loteId,
           cantidad: new CantidadPuntos(cantidadAGastar),
+          tipo: TxTipo.GASTO,
         });
         remaining -= cantidadAGastar;
       }
@@ -236,9 +250,9 @@ export class SaldoHandler {
     saldo: Saldo,
     cantidadADevolver: CantidadPuntos,
     txs: Transaccion[],
-  ): Array<{ loteId: LoteId; cantidad: CantidadPuntos }> {
+  ): DetalleTransaccion[] {
     let remaining = cantidadADevolver.value;
-    const detalles: Array<{ loteId: LoteId; cantidad: CantidadPuntos }> = [];
+    const detalles: DetalleTransaccion[] = [];
 
     for (const tx of txs) {
       if (remaining <= 0) break;
@@ -258,6 +272,7 @@ export class SaldoHandler {
         detalles.push({
           loteId: tx.loteId,
           cantidad: new CantidadPuntos(cantidadARevertir),
+          tipo: TxTipo.ACREDITACION,
         });
         remaining -= cantidadARevertir;
       }

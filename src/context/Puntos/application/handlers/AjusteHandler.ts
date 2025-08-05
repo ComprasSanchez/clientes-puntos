@@ -47,7 +47,6 @@ export class AjusteHandler {
 
     // 4. Generar transacciones (builder centralizado, para auditar motivos)
     const transacciones = this.txBuilder.buildTransacciones(
-      req.tipo,
       detallesDebito,
       nuevoLote,
       operacion,
