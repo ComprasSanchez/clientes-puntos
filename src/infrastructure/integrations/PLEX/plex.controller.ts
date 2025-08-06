@@ -1,12 +1,10 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 import { Controller, Headers, Inject, Post, Req, Res } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { FidelizarVentaPlexAdapter } from './use-cases/FidelizarVenta/adapters/fidelizar-venta.adapter';
 import { TransactionalRunner } from '@shared/infrastructure/transaction/TransactionalRunner';
 import {
   CONSULTAR_CLIENTE_ADAPTER,
+  CONSULTAR_ESTADISTICAS_CLIENTE_ADAPTER,
   FIDELIZAR_CLIENTE_ADAPTER,
   FIDELIZAR_VENTA_ADAPTER,
 } from './tokens/tokens';
@@ -18,6 +16,8 @@ import { ConsultarClientePlexAdapter } from './use-cases/ConsultarCliente/adapte
 import { codConsultarCliente } from './enums/consultar-cliente.enum';
 import { IntegracionMovimientoService } from '../../database/services/IntegracionMovimientoService';
 import { UseCaseResponse } from './dto/usecase-response.dto';
+import { ConsultarEstadisticasClientePlexAdapter } from './use-cases/ConsultarEstadisticasCliente/adapters/consultar-estadisticas-cliente.adapter';
+import { codConsultarEstadisticasCliente } from './enums/consultar-estadisticas-cliente.enum';
 
 // Tipo explícito para parseo seguro
 interface MensajeFidelyGb {
@@ -36,6 +36,8 @@ export class PlexController {
     private readonly clienteAdapter: FidelizarClientePlexAdapter,
     @Inject(CONSULTAR_CLIENTE_ADAPTER)
     private readonly consultarClienteAdapter: ConsultarClientePlexAdapter,
+    @Inject(CONSULTAR_ESTADISTICAS_CLIENTE_ADAPTER)
+    private readonly consultarEstadisticasAdapter: ConsultarEstadisticasClientePlexAdapter,
     @Inject(IntegracionMovimientoService)
     private readonly integracionMovimientoService: IntegracionMovimientoService,
     private readonly transactionalRunner: TransactionalRunner,
@@ -111,6 +113,13 @@ export class PlexController {
             )
           ) {
             return this.consultarClienteAdapter.handle(xml);
+          }
+          if (
+            (
+              Object.values(codConsultarEstadisticasCliente) as string[]
+            ).includes(accionValue)
+          ) {
+            return this.consultarEstadisticasAdapter.handle(xml);
           }
 
           throw new Error('codAccion inválido o no soportado');

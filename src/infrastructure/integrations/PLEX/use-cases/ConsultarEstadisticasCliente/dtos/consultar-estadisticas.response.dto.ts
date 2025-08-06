@@ -4,7 +4,7 @@ export interface PlexConsultarEstadisticaClienteResponseDto {
   respCode: string;
   respMsg: string;
   cliente: {
-    idClienteFidely: string;
+    idClienteFidely: number;
     categoria: string;
     saldoPuntos: number;
     pesosAhorroUltimoMes: number;
@@ -40,26 +40,18 @@ export class PlexConsultarEstadisticaClienteResponseMapper {
   static toXml(dto: PlexConsultarEstadisticaClienteResponseDto): any {
     return {
       RespuestaFidelyGb: {
-        RespCode: { _text: dto.respCode },
-        RespMsg: { _text: dto.respMsg },
+        RespCode: dto.respCode,
+        RespMsg: dto.respMsg,
         Cliente: {
-          IdClienteFidely: { _text: dto.cliente.idClienteFidely },
-          Categoria: { _text: dto.cliente.categoria },
-          SaldoPuntos: { _text: dto.cliente.saldoPuntos.toString() },
-          PesosAhorroUltimoMes: {
-            _text: dto.cliente.pesosAhorroUltimoMes.toString(),
-          },
-          PesosAhorro3Meses: {
-            _text: dto.cliente.pesosAhorro3Meses.toString(),
-          },
-          PuntosUltimoMes: { _text: dto.cliente.puntosUltimoMes.toString() },
-          Puntos3Meses: { _text: dto.cliente.puntos3Meses.toString() },
-          MovimientosUltimoMes: {
-            _text: dto.cliente.movimientosUltimoMes.toString(),
-          },
-          Movimientos3Meses: {
-            _text: dto.cliente.movimientos3Meses.toString(),
-          },
+          IdClienteFidely: dto.cliente.idClienteFidely,
+          Categoria: dto.cliente.categoria,
+          SaldoPuntos: dto.cliente.saldoPuntos,
+          PesosAhorroUltimoMes: dto.cliente.pesosAhorroUltimoMes,
+          PesosAhorro3Meses: dto.cliente.pesosAhorro3Meses,
+          PuntosUltimoMes: dto.cliente.puntosUltimoMes,
+          Puntos3Meses: dto.cliente.puntos3Meses,
+          MovimientosUltimoMes: dto.cliente.movimientosUltimoMes,
+          Movimientos3Meses: dto.cliente.movimientos3Meses,
         },
       },
     };

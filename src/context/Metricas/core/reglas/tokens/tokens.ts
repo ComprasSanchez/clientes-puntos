@@ -7,3 +7,7 @@ export const CREAR_METRICA_CLIENTE_SERVICE = Symbol(
 export const CREAR_METRICA_CLIENTE_USECASE = Symbol(
   'CrearMetricaClienteuseCase',
 );
+export const GET_METRICAS_CLIENTE_USECASE = Symbol('GetMetricasCliente');
+export const CALCULAR_METRICAS_SERVICE = Symbol(
+  'CalcularMetricasClienteService',
+);

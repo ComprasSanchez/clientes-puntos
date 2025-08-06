@@ -5,9 +5,11 @@ import { ClienteMetricaRepositoryImpl } from './clientes/repositories/ClienteMet
 import { METRICAS_REPO } from '../core/clientes/tokens/tokens';
 import { RuleCotizacionFinderAdapter } from './reglas/adapters/ReglaCotizacionFinderAdapter';
 import {
+  CALCULAR_METRICAS_SERVICE,
   CLIENTE_CALCULATOR,
   CREAR_METRICA_CLIENTE_SERVICE,
   CREAR_METRICA_CLIENTE_USECASE,
+  GET_METRICAS_CLIENTE_USECASE,
   RULE_COTIZACION_FINDER,
 } from '../core/reglas/tokens/tokens';
 import { ClienteMetricsCalculator } from '../core/clientes/services/ClienteMetricsClaculator';
@@ -16,6 +18,8 @@ import { ReglaInfrastructureModule } from '@regla/infrastructure/regla.module';
 import { RulesCacheModule } from '@infrastructure/cache/rules-cache/rules-cache.module';
 import { ReglaFindCotizacion } from '@regla/application/use-cases/ReglaFindCotizacion/FindCotizacion';
 import { CrearMetricaClienteuseCase } from '../application/clientes/use-cases/CrearMetricaCliente';
+import { GetMetricasCliente } from '../application/clientes/use-cases/GetMetricasCliente';
+import { CalcularMetricasClienteService } from '../application/clientes/services/CalcularMetricasCLienteService';
 
 @Module({
   imports: [
@@ -43,12 +47,21 @@ import { CrearMetricaClienteuseCase } from '../application/clientes/use-cases/Cr
       provide: CREAR_METRICA_CLIENTE_USECASE,
       useClass: CrearMetricaClienteuseCase,
     },
+    {
+      provide: GET_METRICAS_CLIENTE_USECASE,
+      useClass: GetMetricasCliente,
+    },
+    {
+      provide: CALCULAR_METRICAS_SERVICE,
+      useClass: CalcularMetricasClienteService,
+    },
   ],
   exports: [
     METRICAS_REPO,
     TypeOrmModule,
     RULE_COTIZACION_FINDER,
     CREAR_METRICA_CLIENTE_USECASE,
+    GET_METRICAS_CLIENTE_USECASE,
   ],
 })
 export class MetricasModule {}

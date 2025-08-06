@@ -1,7 +1,7 @@
 // core/interfaces/consultar-estadistica-cliente-domain-response.interface.ts
 
 export interface ConsultarEstadisticaClienteDomainResponse {
-  idClienteFidely: string;
+  idClienteFidely: number;
   categoria: string;
   saldoPuntos: number;
   pesosAhorroUltimoMes: number;

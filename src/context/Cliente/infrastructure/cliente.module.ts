@@ -57,6 +57,7 @@ const providers: Provider[] = [
     ClienteCreate,
     ClienteUpdate,
     ClienteGetProfile,
+    ClienteFindByDni,
     ClienteFindByTarjeta,
     DatabaseModule,
     ClientePersistenceModule,
