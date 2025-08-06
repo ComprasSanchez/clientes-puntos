@@ -2,6 +2,8 @@ import { Transaccion } from '@puntos/core/entities/Transaccion';
 import { Operacion } from '@puntos/core/entities/Operacion';
 import { TxTipo } from '@puntos/core/enums/TxTipo';
 import { OpTipo } from '@shared/core/enums/OpTipo'; // Asumo que tenés este enum
+import { ConversionRule } from '@regla/core/entities/ConversionRule';
+import { valorPuntoEnPesos } from '@shared/core/utils/puntoToMoneda';
 
 export interface MovimientoOperacion {
   tipoOperacion: OpTipo;
@@ -15,20 +17,19 @@ export class ClienteMetricsCalculator {
   static calcularDesdeOperacion(
     operacion: Operacion,
     transacciones: Transaccion[],
-    getCotizacion: (op: Operacion, tx: Transaccion) => number,
+    cotizacion: ConversionRule,
   ) {
     const movimientos: MovimientoOperacion[] = transacciones.map((tx) => ({
       tipoOperacion: operacion.tipo,
       tipoTransaccion: tx.tipo,
       puntos: tx.cantidad.value,
-      cotizacion: getCotizacion(operacion, tx),
+      cotizacion: valorPuntoEnPesos(cotizacion.rateSpendVo.value),
       fecha: tx.createdAt,
     }));
 
     return {
       pesosAhorrados: this.calcularPesosAhorrados(movimientos),
       puntosAdquiridos: this.calcularPuntosAdquiridos(movimientos),
-      cantidadMovimientos: this.calcularCantidadMovimientos(movimientos),
     };
   }
 
@@ -62,9 +63,5 @@ export class ClienteMetricsCalculator {
           ),
       )
       .reduce((total, mov) => total + mov.puntos, 0);
-  }
-
-  static calcularCantidadMovimientos(movs: MovimientoOperacion[]): number {
-    return movs.filter((mov) => mov.tipoOperacion !== OpTipo.AJUSTE).length;
   }
 }

@@ -1,6 +1,7 @@
 import { TxTipo } from '@puntos/core/enums/TxTipo';
 import { Lote } from '../../core/entities/Lote';
 import { LoteId } from '../../core/value-objects/LoteId';
+import { HandlerResult } from './HandlerResult';
 
 /**
  * Detalle de una transacción resultante de la operación
@@ -25,7 +26,7 @@ export interface CreateOperacionTransaccionDto {
  */
 export interface CreateOperacionResponse {
   /** UUID de la operación creada */
-  operacionId: number;
+  handlerResult: HandlerResult;
 
   puntosDebito?: number;
 

@@ -77,7 +77,7 @@ export class FidelizarVentaPlexAdapter {
 
     // 6. Agregar los campos a la response (mapper igual que cliente)
     const responseDto = PlexFidelizarVentaResponseMapper.fromDomain({
-      idMovimiento: domainResponse.operacionId.toString(),
+      idMovimiento: domainResponse.handlerResult.operacion.id.value.toString(),
       puntosDescontados: domainResponse.puntosDebito ?? 0,
       puntosAcreditados: domainResponse.puntosCredito ?? 0,
       totalPuntosCliente: saldo,

@@ -16,12 +16,16 @@ import { Ajuste } from '@puntos/core/entities/Ajuste';
 import { AjusteDto } from '@puntos/application/dtos/AjusteDto';
 import { UUIDGenerator } from '@shared/core/uuid/UuidGenerator';
 import { TxTipo } from '@puntos/core/enums/TxTipo';
+import { CREAR_METRICA_CLIENTE_USECASE } from 'src/context/Metricas/core/reglas/tokens/tokens';
+import { CrearMetricaClienteuseCase } from 'src/context/Metricas/application/clientes/use-cases/CrearMetricaCliente';
 
 @Injectable()
 export class AjusteUseCase {
   constructor(
     @Inject(CREATE_OPERACION_SERVICE)
     private readonly service: CreateOperacionService,
+    @Inject(CREAR_METRICA_CLIENTE_USECASE)
+    private readonly crearMetricaClienteUseCase: CrearMetricaClienteuseCase,
     @Inject(AJUSTE_REPO)
     private readonly ajusteRepo: AjusteRepository,
     @Inject(UUIDGenerator)
@@ -64,10 +68,16 @@ export class AjusteUseCase {
       operacionId: operacionIdVO,
     };
 
-    const service = await this.service.execute(req, ctx, tipo);
+    const response = this.service.execute(req, ctx);
+
+    await this.crearMetricaClienteUseCase.run(
+      (await response).handlerResult.operacion,
+      (await response).handlerResult.transacciones,
+    );
 
     await this.ajusteRepo.save(ajuste, ctx);
+
     // 3️⃣ Delegar al service
-    return service;
+    return response;
   }
 }

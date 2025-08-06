@@ -9,9 +9,8 @@ export class ClienteMetrica {
     public readonly fecha: Date,
     public readonly pesosAhorro: number,
     public readonly puntosAdquiridos: number,
-    public readonly movimientos: number,
     public readonly tipoOperacion: OpTipo,
-    public readonly referenciaTransaccion?: string,
+    public readonly referenciaTransaccion?: number,
   ) {}
 
   // Puedes agregar lógica de dominio si querés (ej: validaciones)

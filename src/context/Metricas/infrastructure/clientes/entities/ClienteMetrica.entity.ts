@@ -24,14 +24,11 @@ export class ClienteMetricaEntity {
   @Column({ type: 'numeric', name: 'puntos_adquiridos', default: 0 })
   puntosAdquiridos!: number;
 
-  @Column({ type: 'integer', name: 'movimientos', default: 1 })
-  movimientos!: number;
-
   @Column({ name: 'tipo_operacion', nullable: false })
   tipoOperacion!: string;
 
   @Column({ name: 'referencia_transaccion', nullable: true })
-  referenciaTransaccion?: string;
+  referenciaTransaccion?: number;
 
   // ---------- Métodos de mapeo ----------
 
@@ -42,7 +39,6 @@ export class ClienteMetricaEntity {
     entity.fecha = domain.fecha;
     entity.pesosAhorro = domain.pesosAhorro;
     entity.puntosAdquiridos = domain.puntosAdquiridos;
-    entity.movimientos = domain.movimientos;
     entity.tipoOperacion = domain.tipoOperacion;
     entity.referenciaTransaccion = domain.referenciaTransaccion;
     return entity;
@@ -55,7 +51,6 @@ export class ClienteMetricaEntity {
       this.fecha,
       Number(this.pesosAhorro),
       Number(this.puntosAdquiridos),
-      this.movimientos,
       this.tipoOperacion as OpTipo,
       this.referenciaTransaccion,
     );

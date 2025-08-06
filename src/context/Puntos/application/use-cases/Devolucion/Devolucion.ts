@@ -9,12 +9,16 @@ import { OperacionId } from '@puntos/core/value-objects/OperacionId';
 import { Inject, Injectable } from '@nestjs/common';
 import { CREATE_OPERACION_SERVICE } from '@puntos/core/tokens/tokens';
 import { TransactionContext } from '@shared/core/interfaces/TransactionContext';
+import { CREAR_METRICA_CLIENTE_USECASE } from 'src/context/Metricas/core/reglas/tokens/tokens';
+import { CrearMetricaClienteuseCase } from 'src/context/Metricas/application/clientes/use-cases/CrearMetricaCliente';
 
 @Injectable()
 export class DevolucionUseCase {
   constructor(
     @Inject(CREATE_OPERACION_SERVICE)
     private readonly service: CreateOperacionService,
+    @Inject(CREAR_METRICA_CLIENTE_USECASE)
+    private readonly crearMetricaClienteUseCase: CrearMetricaClienteuseCase,
   ) {}
 
   async run(
@@ -43,6 +47,14 @@ export class DevolucionUseCase {
     };
 
     // 3️⃣ Delegar al service
-    return this.service.execute(req, ctx);
+    const response = this.service.execute(req, ctx);
+
+    await this.crearMetricaClienteUseCase.run(
+      (await response).handlerResult.operacion,
+      (await response).handlerResult.transacciones,
+    );
+
+    // 3️⃣ Delegar al service
+    return response;
   }
 }

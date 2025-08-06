@@ -198,7 +198,7 @@ export class CreateOperacionService {
       }));
 
     const response: CreateOperacionResponse = {
-      operacionId: handlerResult.operacion.id.value,
+      handlerResult,
       puntosDebito,
       puntosCredito,
       lotesAfectados,
