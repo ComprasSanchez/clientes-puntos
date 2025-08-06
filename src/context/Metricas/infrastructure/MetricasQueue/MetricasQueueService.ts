@@ -17,8 +17,8 @@ export class MetricasQueueService {
     transacciones: Transaccion[],
   ) {
     await this.queue.add('crear-metrica', {
-      operacion,
-      transacciones,
+      operacion: operacion.toPrimitives(),
+      transacciones: transacciones.map((tx) => tx.toPrimitives()),
     });
   }
 }

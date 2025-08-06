@@ -8,5 +8,5 @@ export interface TransaccionPrimitives {
   _cantidad: number;
   _createdAt: string; // ISO Date string
   _reglasAplicadas: Record<string, Array<{ id: string; nombre: string }>>;
-  _referenciaId?: string;
+  _referenciaId?: string | null;
 }

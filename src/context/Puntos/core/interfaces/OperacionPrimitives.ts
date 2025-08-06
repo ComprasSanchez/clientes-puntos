@@ -9,6 +9,6 @@ export interface OperacionPrimitives {
   _puntos?: number;
   _monto?: number;
   _moneda?: string;
-  _refOperacion?: string;
-  _refAnulacion?: number;
+  _refOperacion?: string | null;
+  _refAnulacion?: number | null;
 }

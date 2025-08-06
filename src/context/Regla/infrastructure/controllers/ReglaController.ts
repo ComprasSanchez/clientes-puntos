@@ -19,12 +19,14 @@ import { ReglaDelete } from '@regla/application/use-cases/ReglaDelete/Delete';
 import { ReglaResponseDto } from '../dtos/ReglaResponseDto';
 import { Regla } from '@regla/core/entities/Regla';
 import { ReglaNotFound } from '@regla/core/exceptions/ReglaNotFoundError';
+import { ReglaFindCotizacion } from '@regla/application/use-cases/ReglaFindCotizacion/FindCotizacion';
 
 @Controller('regla')
 export class ReglaController {
   constructor(
     private readonly findAllUseCase: ReglaFindAll,
     private readonly findByIdUseCase: ReglaFindById,
+    private readonly findCotizacionUseCase: ReglaFindCotizacion,
     private readonly createUseCase: ReglaCreate,
     private readonly updateUseCase: ReglaUpdate,
     private readonly deleteUseCase: ReglaDelete,
@@ -34,6 +36,12 @@ export class ReglaController {
   async findAll(): Promise<ReglaResponseDto[]> {
     const reglas = await this.findAllUseCase.run();
     return reglas.map((r) => this.toResponseDto(r));
+  }
+
+  @Get('/cotizacion')
+  async findCotizacion(): Promise<ConversionRule> {
+    const reglas = await this.findCotizacionUseCase.run();
+    return reglas;
   }
 
   @Get(':id')

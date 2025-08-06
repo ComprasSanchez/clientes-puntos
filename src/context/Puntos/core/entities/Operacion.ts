@@ -183,4 +183,19 @@ export class Operacion {
       refAnulacion,
     );
   }
+
+  toPrimitives(): OperacionPrimitives {
+    return {
+      _id: this._id.value,
+      _clienteId: this._clienteId,
+      _tipo: this._tipo,
+      _fecha: this._fecha.value.toISOString(),
+      _origenTipo: this._origenTipo.value,
+      _puntos: this._puntos?.value,
+      _monto: this._monto?.value,
+      _moneda: this._moneda?.value,
+      _refOperacion: this._refOperacion?.value,
+      _refAnulacion: this._refAnulacion?.value,
+    };
+  }
 }

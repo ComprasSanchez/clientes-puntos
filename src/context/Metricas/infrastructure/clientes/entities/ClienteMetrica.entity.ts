@@ -27,7 +27,7 @@ export class ClienteMetricaEntity {
   @Column({ name: 'tipo_operacion', nullable: false })
   tipoOperacion!: string;
 
-  @Column({ name: 'referencia_transaccion', nullable: true })
+  @Column({ type: 'bigint', name: 'referencia_transaccion', nullable: true })
   referenciaTransaccion?: number;
 
   // ---------- Métodos de mapeo ----------

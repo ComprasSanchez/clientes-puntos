@@ -19,11 +19,12 @@ export class ClienteMetricsCalculator {
     transacciones: Transaccion[],
     cotizacion: ConversionRule,
   ) {
+    const cotz = valorPuntoEnPesos(cotizacion.rateSpendVo.value);
     const movimientos: MovimientoOperacion[] = transacciones.map((tx) => ({
       tipoOperacion: operacion.tipo,
       tipoTransaccion: tx.tipo,
       puntos: tx.cantidad.value,
-      cotizacion: valorPuntoEnPesos(cotizacion.rateSpendVo.value),
+      cotizacion: cotz,
       fecha: tx.createdAt,
     }));
 

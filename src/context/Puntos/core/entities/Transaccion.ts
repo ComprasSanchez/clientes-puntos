@@ -65,6 +65,22 @@ export class Transaccion {
     );
   }
 
+  toPrimitives(): TransaccionPrimitives {
+    return {
+      _id: this._id.value, // o this._id, según cómo lo implementes
+      _operationId:
+        typeof this._operationId === 'object'
+          ? this._operationId.value
+          : this._operationId,
+      _loteId: this._loteId.value,
+      _tipo: this._tipo,
+      _cantidad: this._cantidad.value,
+      _createdAt: this._createdAt.toISOString(),
+      _reglasAplicadas: this._reglasAplicadas,
+      _referenciaId: this._referenciaId ? this._referenciaId.value : undefined,
+    };
+  }
+
   get id(): TransaccionId {
     return this._id;
   }
