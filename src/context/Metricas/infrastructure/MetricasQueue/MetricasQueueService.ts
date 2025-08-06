@@ -16,9 +16,19 @@ export class MetricasQueueService {
     operacion: Operacion,
     transacciones: Transaccion[],
   ) {
-    await this.queue.add('crear-metrica', {
-      operacion: operacion.toPrimitives(),
-      transacciones: transacciones.map((tx) => tx.toPrimitives()),
-    });
+    await this.queue.add(
+      'crear-metrica',
+      {
+        operacion: operacion.toPrimitives(),
+        transacciones: transacciones.map((tx) => tx.toPrimitives()),
+      },
+      {
+        attempts: 3,
+        backoff: {
+          type: 'exponential',
+          delay: 3000, // 3 segundos iniciales
+        },
+      },
+    );
   }
 }
