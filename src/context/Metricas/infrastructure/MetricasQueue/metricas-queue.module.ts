@@ -11,18 +11,22 @@ type RedisConnectionOptions = {
   port: number;
   username?: string;
   password?: string;
+  family?: number;
+  tls?: Record<string, any>; // Por si usás TLS
 };
 
 function buildRedisConnection(config: ConfigService): RedisConnectionOptions {
-  // Si hay URL, parseamos; si no, usamos campos separados
-  const redisUrl = config.get<string>('REDIS_URL') + '?family=0';
+  const redisUrl = config.get<string>('REDIS_URL');
   if (redisUrl) {
     const url = new URL(redisUrl);
+    const isSecure = url.protocol === 'rediss:';
     return {
       host: url.hostname,
       port: Number(url.port || 6379),
       username: url.username || undefined,
       password: url.password || undefined,
+      family: 0,
+      ...(isSecure && { tls: {} }),
     };
   }
   return {
@@ -30,6 +34,8 @@ function buildRedisConnection(config: ConfigService): RedisConnectionOptions {
     port: Number(config.get<number>('REDISPORT', 6379)),
     username: config.get<string>('REDISUSER') || undefined,
     password: config.get<string>('REDIS_PASSWORD') || undefined,
+    family: 0,
+    // tls: {} // ponelo si sabés que tu redis requiere TLS
   };
 }
 
