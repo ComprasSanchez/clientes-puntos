@@ -9,16 +9,16 @@ import { OperacionId } from '@puntos/core/value-objects/OperacionId';
 import { CREATE_OPERACION_SERVICE } from '@puntos/core/tokens/tokens';
 import { Inject, Injectable } from '@nestjs/common';
 import { TransactionContext } from '@shared/core/interfaces/TransactionContext';
-import { CREAR_METRICA_CLIENTE_USECASE } from 'src/context/Metricas/core/reglas/tokens/tokens';
-import { CrearMetricaClienteuseCase } from 'src/context/Metricas/application/clientes/use-cases/CrearMetricaCliente';
+import { MetricasQueueService } from 'src/context/Metricas/infrastructure/MetricasQueue/MetricasQueueService';
+import { METRICAS_QEUE_SERVICE } from 'src/context/Metricas/infrastructure/MetricasQueue/tokens';
 
 @Injectable()
 export class CompraUseCase {
   constructor(
     @Inject(CREATE_OPERACION_SERVICE)
     private readonly service: CreateOperacionService,
-    @Inject(CREAR_METRICA_CLIENTE_USECASE)
-    private readonly crearMetricaClienteUseCase: CrearMetricaClienteuseCase,
+    @Inject(METRICAS_QEUE_SERVICE)
+    private readonly metricasQueue: MetricasQueueService,
   ) {}
 
   async run(
@@ -48,10 +48,16 @@ export class CompraUseCase {
 
     const response = this.service.execute(req, ctx);
 
-    await this.crearMetricaClienteUseCase.run(
-      (await response).handlerResult.operacion,
-      (await response).handlerResult.transacciones,
-    );
+    // Dispara el proceso de métricas en background
+    if (
+      (await response).handlerResult.operacion &&
+      (await response).handlerResult.transacciones
+    ) {
+      await this.metricasQueue.crearMetricaCliente(
+        (await response).handlerResult.operacion,
+        (await response).handlerResult.transacciones,
+      );
+    }
 
     // 3️⃣ Delegar al service
     return response;

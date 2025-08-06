@@ -12,6 +12,7 @@ import { IntegrationsModule } from '@infrastructure/integrations/integrations.mo
 import { RedisCacheModule } from '@infrastructure/cache/redis/redis-cache.module';
 import { RulesCacheModule } from '@infrastructure/cache/rules-cache/rules-cache.module';
 import { MetricasModule } from './context/Metricas/infrastructure/metricas.module';
+import { MetricasQueueModule } from './context/Metricas/infrastructure/MetricasQueue/metricas-queue.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { MetricasModule } from './context/Metricas/infrastructure/metricas.modul
     IntegrationsModule,
     RulesCacheModule,
     MetricasModule,
+    MetricasQueueModule,
   ],
   controllers: [],
   providers: [

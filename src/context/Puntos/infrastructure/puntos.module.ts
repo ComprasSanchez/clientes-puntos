@@ -53,12 +53,12 @@ import { CompraHandler } from '@puntos/application/handlers/CompraHandler';
 import { AjusteHandler } from '@puntos/application/handlers/AjusteHandler';
 import { DevolucionHandler } from '@puntos/application/handlers/DevolucionHandler';
 import { AnulacionHandler } from '@puntos/application/handlers/AnulacionHandler';
-import { MetricasModule } from 'src/context/Metricas/infrastructure/metricas.module';
+import { MetricasQueueModule } from 'src/context/Metricas/infrastructure/MetricasQueue/metricas-queue.module';
 
 @Module({
   imports: [
     forwardRef(() => ReglaInfrastructureModule),
-    forwardRef(() => MetricasModule),
+    forwardRef(() => MetricasQueueModule),
     DatabaseModule,
     PuntosPersistenceModule,
   ],

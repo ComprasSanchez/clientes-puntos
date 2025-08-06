@@ -20,6 +20,6 @@ export class CrearMetricaClienteuseCase {
   async run(op: Operacion, tx: Transaccion[]) {
     const cotizacion = await this.ruleCotizacionFinder.findCotizacion();
 
-    return this.metricaService.run(op, tx, cotizacion);
+    await this.metricaService.run(op, tx, cotizacion);
   }
 }

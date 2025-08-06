@@ -16,16 +16,16 @@ import { Ajuste } from '@puntos/core/entities/Ajuste';
 import { AjusteDto } from '@puntos/application/dtos/AjusteDto';
 import { UUIDGenerator } from '@shared/core/uuid/UuidGenerator';
 import { TxTipo } from '@puntos/core/enums/TxTipo';
-import { CREAR_METRICA_CLIENTE_USECASE } from 'src/context/Metricas/core/reglas/tokens/tokens';
-import { CrearMetricaClienteuseCase } from 'src/context/Metricas/application/clientes/use-cases/CrearMetricaCliente';
+import { METRICAS_QEUE_SERVICE } from 'src/context/Metricas/infrastructure/MetricasQueue/tokens';
+import { MetricasQueueService } from 'src/context/Metricas/infrastructure/MetricasQueue/MetricasQueueService';
 
 @Injectable()
 export class AjusteUseCase {
   constructor(
     @Inject(CREATE_OPERACION_SERVICE)
     private readonly service: CreateOperacionService,
-    @Inject(CREAR_METRICA_CLIENTE_USECASE)
-    private readonly crearMetricaClienteUseCase: CrearMetricaClienteuseCase,
+    @Inject(METRICAS_QEUE_SERVICE)
+    private readonly metricasQueue: MetricasQueueService,
     @Inject(AJUSTE_REPO)
     private readonly ajusteRepo: AjusteRepository,
     @Inject(UUIDGenerator)
@@ -70,10 +70,16 @@ export class AjusteUseCase {
 
     const response = this.service.execute(req, ctx);
 
-    await this.crearMetricaClienteUseCase.run(
-      (await response).handlerResult.operacion,
-      (await response).handlerResult.transacciones,
-    );
+    // Dispara el proceso de métricas en background
+    if (
+      (await response).handlerResult.operacion &&
+      (await response).handlerResult.transacciones
+    ) {
+      await this.metricasQueue.crearMetricaCliente(
+        (await response).handlerResult.operacion,
+        (await response).handlerResult.transacciones,
+      );
+    }
 
     await this.ajusteRepo.save(ajuste, ctx);
 
