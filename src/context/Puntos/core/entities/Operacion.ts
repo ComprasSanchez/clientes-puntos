@@ -16,6 +16,8 @@ import { OrigenOperacion } from '../value-objects/OrigenOperacion';
 import { FechaExpiracion } from '../value-objects/FechaExpiracion';
 import { FieldRequiredError } from '@shared/core/exceptions/FieldRequiredError';
 import { MonedaNotFoundError } from '../exceptions/Operacion/MonedaNotFoundError';
+import { OperacionPrimitives } from '../interfaces/OperacionPrimitives';
+import { TipoMoneda } from '@shared/core/enums/TipoMoneda';
 
 /**
  * Instrucción de débito: cantidad total de puntos a consumir.
@@ -144,5 +146,41 @@ export class Operacion {
     const reglasAplicadas = result.reglasAplicadas || {};
 
     return { debitos, creditos, reglasAplicadas };
+  }
+
+  static fromPrimitives(obj: OperacionPrimitives): Operacion {
+    const id = OperacionId.instance(obj._id);
+    const clienteId = obj._clienteId;
+    const tipo = obj._tipo;
+    const fecha = obj._fecha
+      ? new FechaOperacion(new Date(obj._fecha))
+      : new FechaOperacion(new Date());
+    const origenTipo = new OrigenOperacion(obj._origenTipo);
+    const puntos =
+      obj._puntos !== undefined ? new CantidadPuntos(obj._puntos) : undefined;
+    const monto =
+      obj._monto !== undefined ? new MontoMoneda(obj._monto) : undefined;
+    const moneda = obj._moneda
+      ? Moneda.create(obj._moneda as TipoMoneda)
+      : undefined; // Si tenés un factory
+    const refOperacion = obj._refOperacion
+      ? new ReferenciaMovimiento(obj._refOperacion)
+      : undefined;
+    const refAnulacion = obj._refAnulacion
+      ? OperacionId.instance(obj._refAnulacion)
+      : undefined;
+
+    return new Operacion(
+      id,
+      clienteId,
+      tipo,
+      fecha,
+      origenTipo,
+      puntos,
+      monto,
+      moneda,
+      refOperacion,
+      refAnulacion,
+    );
   }
 }

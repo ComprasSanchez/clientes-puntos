@@ -4,6 +4,7 @@ import { LoteId } from '../value-objects/LoteId';
 import { ReferenciaMovimiento } from '../value-objects/ReferenciaMovimiento';
 import { TransaccionId } from '../value-objects/TransaccionId';
 import { OperacionId } from '../value-objects/OperacionId';
+import { TransaccionPrimitives } from '../interfaces/TransaccionPrimitives';
 
 export class Transaccion {
   private _updatedAt: Date;
@@ -46,6 +47,21 @@ export class Transaccion {
       args.createdAt,
       args.reglasAplicadas,
       args.referenciaId,
+    );
+  }
+
+  static fromPrimitives(obj: TransaccionPrimitives): Transaccion {
+    return new Transaccion(
+      new TransaccionId(obj._id),
+      OperacionId.instance(obj._operationId),
+      new LoteId(obj._loteId),
+      obj._tipo,
+      new CantidadPuntos(obj._cantidad),
+      new Date(obj._createdAt),
+      obj._reglasAplicadas,
+      obj._referenciaId
+        ? new ReferenciaMovimiento(obj._referenciaId)
+        : undefined,
     );
   }
 
