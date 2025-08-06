@@ -15,7 +15,7 @@ type RedisConnectionOptions = {
 
 function buildRedisConnection(config: ConfigService): RedisConnectionOptions {
   // Si hay URL, parseamos; si no, usamos campos separados
-  const redisUrl = config.get<string>('REDIS_URL');
+  const redisUrl = config.get<string>('REDIS_URL') + '?family=0';
   if (redisUrl) {
     const url = new URL(redisUrl);
     return {
