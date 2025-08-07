@@ -6,6 +6,7 @@ import { METRICAS_REPO } from '../core/clientes/tokens/tokens';
 import { RuleCotizacionFinderAdapter } from './reglas/adapters/ReglaCotizacionFinderAdapter';
 import {
   CALCULAR_METRICAS_SERVICE,
+  CALCULAR_SALDO_METRICAS_SERVICE,
   CLIENTE_CALCULATOR,
   CREAR_METRICA_CLIENTE_SERVICE,
   CREAR_METRICA_CLIENTE_USECASE,
@@ -22,7 +23,11 @@ import { GetMetricasCliente } from '../application/clientes/use-cases/GetMetrica
 import { CalcularMetricasClienteService } from '../application/clientes/services/CalcularMetricasCLienteService';
 import { MetricasOperacionEntity } from './puntos/entities/MetricasOperacionEntity';
 import { PuntosInfrastructureModule } from '@puntos/infrastructure/puntos.module';
-import { METRICA_OPERACION_REPO } from '../core/puntos/tokens/tokens';
+import {
+  CARGAR_METRICA_SALDO_USECASE,
+  GET_METRICA_SALDO_USECASE,
+  METRICA_OPERACION_REPO,
+} from '../core/puntos/tokens/tokens';
 import { MetricasOperacionTypeOrmRepository } from './puntos/repositories/MetricasOperacionTypeOrmImpl';
 import { GuardarMetricasOperacion } from '../application/puntos/use-cases/GuardarMetricasOperacion';
 import { CalcularMetricasOperacionService } from '../core/puntos/services/calcularMetricasOperacionService';
@@ -31,6 +36,11 @@ import { CRON_LOG_REPO } from './MetricasScheduler/tokens';
 import { MetricasCronLogTypeOrmRepository } from './MetricasScheduler/persistence/repositories/CronLogTypeOrmImpl';
 import { ScheduleModule } from '@nestjs/schedule';
 import { MetricasOperacionScheduler } from './MetricasScheduler/MetricasOperacion.scheduler';
+import { SaldoCacheModule } from '@infrastructure/cache/saldo-cache/saldo-cache.module';
+import { CalcularMetricasSaldoService } from '../core/puntos/services/calcularMetricasSaldoService';
+import { CargarMetricasSaldo } from '../application/puntos/use-cases/CargarMetricasSaldo';
+import { GetMetricasSaldo } from '../application/puntos/use-cases/GetMetricasSaldo';
+import { ClienteInfrastructureModule } from '@cliente/infrastructure/cliente.module';
 
 @Module({
   imports: [
@@ -40,9 +50,11 @@ import { MetricasOperacionScheduler } from './MetricasScheduler/MetricasOperacio
       MetricasOperacionEntity,
     ]),
     ScheduleModule.forRoot(),
+    forwardRef(() => ClienteInfrastructureModule),
     forwardRef(() => PuntosInfrastructureModule),
     forwardRef(() => ReglaInfrastructureModule),
     forwardRef(() => RulesCacheModule),
+    forwardRef(() => SaldoCacheModule),
   ],
   controllers: [],
   providers: [
@@ -82,8 +94,20 @@ import { MetricasOperacionScheduler } from './MetricasScheduler/MetricasOperacio
       useClass: GetMetricasCliente,
     },
     {
+      provide: CARGAR_METRICA_SALDO_USECASE,
+      useClass: CargarMetricasSaldo,
+    },
+    {
+      provide: GET_METRICA_SALDO_USECASE,
+      useClass: GetMetricasSaldo,
+    },
+    {
       provide: CALCULAR_METRICAS_SERVICE,
       useClass: CalcularMetricasClienteService,
+    },
+    {
+      provide: CALCULAR_SALDO_METRICAS_SERVICE,
+      useClass: CalcularMetricasSaldoService,
     },
     MetricasOperacionScheduler,
   ],
@@ -95,6 +119,8 @@ import { MetricasOperacionScheduler } from './MetricasScheduler/MetricasOperacio
     RULE_COTIZACION_FINDER,
     CREAR_METRICA_CLIENTE_USECASE,
     GET_METRICAS_CLIENTE_USECASE,
+    GET_METRICA_SALDO_USECASE,
+    CARGAR_METRICA_SALDO_USECASE,
   ],
 })
 export class MetricasModule {}

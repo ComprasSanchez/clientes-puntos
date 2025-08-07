@@ -11,3 +11,6 @@ export const GET_METRICAS_CLIENTE_USECASE = Symbol('GetMetricasCliente');
 export const CALCULAR_METRICAS_SERVICE = Symbol(
   'CalcularMetricasClienteService',
 );
+export const CALCULAR_SALDO_METRICAS_SERVICE = Symbol(
+  'CalcularMetricasSaldoService',
+);

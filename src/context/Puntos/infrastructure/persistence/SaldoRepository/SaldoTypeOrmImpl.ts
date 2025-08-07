@@ -4,6 +4,7 @@ import { HistorialSaldo } from '@puntos/core/entities/SaldoHistorial';
 import { SaldoRepository } from '@puntos/core/repository/SaldoRepository';
 import { CantidadPuntos } from '@puntos/core/value-objects/CantidadPuntos';
 import { OperacionId } from '@puntos/core/value-objects/OperacionId';
+import { SaldoClienteDto } from '@puntos/core/interfaces/SaldoResponseDTO';
 import { HistorialSaldoCliente } from '@puntos/infrastructure/entities/historial-saldo.entity';
 import { SaldoCliente } from '@puntos/infrastructure/entities/saldo.entity';
 import { OpTipo } from '@shared/core/enums/OpTipo';
@@ -17,6 +18,16 @@ export class TypeOrmSaldoRepository implements SaldoRepository {
     @InjectRepository(HistorialSaldoCliente)
     private readonly historialRepo: Repository<HistorialSaldoCliente>,
   ) {}
+
+  async findAll(): Promise<SaldoClienteDto[]> {
+    const saldos = await this.saldoRepo.find();
+    const result: SaldoClienteDto[] = saldos.map((s) => ({
+      clienteId: s.cliente_id,
+      puntos: new CantidadPuntos(s.saldo_total),
+    }));
+
+    return result;
+  }
 
   async findByClienteId(clienteId: string): Promise<CantidadPuntos | null> {
     const result = await this.saldoRepo.findOneBy({ cliente_id: clienteId });

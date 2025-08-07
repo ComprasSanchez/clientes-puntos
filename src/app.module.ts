@@ -13,6 +13,7 @@ import { RedisCacheModule } from '@infrastructure/cache/redis/redis-cache.module
 import { RulesCacheModule } from '@infrastructure/cache/rules-cache/rules-cache.module';
 import { MetricasModule } from './context/Metricas/infrastructure/metricas.module';
 import { MetricasQueueModule } from './context/Metricas/infrastructure/MetricasQueue/metricas-queue.module';
+import { SaldoCacheModule } from '@infrastructure/cache/saldo-cache/saldo-cache.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { MetricasQueueModule } from './context/Metricas/infrastructure/MetricasQ
     PuntosInfrastructureModule,
     IntegrationsModule,
     RulesCacheModule,
+    SaldoCacheModule,
     MetricasModule,
     MetricasQueueModule,
   ],

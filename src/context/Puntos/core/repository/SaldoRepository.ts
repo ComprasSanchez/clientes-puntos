@@ -1,5 +1,6 @@
 import { TransactionContext } from '../../../../shared/core/interfaces/TransactionContext';
 import { HistorialSaldo } from '../entities/SaldoHistorial';
+import { SaldoClienteDto } from '../interfaces/SaldoResponseDTO';
 import { CantidadPuntos } from '../value-objects/CantidadPuntos';
 
 /**
@@ -7,6 +8,7 @@ import { CantidadPuntos } from '../value-objects/CantidadPuntos';
  * Permite abstraer la persistencia y búsquedas del saldo de un cliente.
  */
 export interface SaldoRepository {
+  findAll(): Promise<SaldoClienteDto[]>;
   /**
    * Obtiene el saldo actual de un cliente.
    * @param clienteId  Identificador del cliente
