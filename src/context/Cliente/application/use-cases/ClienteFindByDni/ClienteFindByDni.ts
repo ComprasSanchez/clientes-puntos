@@ -36,7 +36,7 @@ export class ClienteFindByDni {
         ? cliente.fechaNacimiento.value.toISOString().split('T')[0]
         : null, // O '', según lo que decidas para el tipo
       status: cliente.status.value,
-      categoria: cliente.categoria.nombre.value,
+      categoria: cliente.categoria.id.value,
       email: cliente.email.value,
       telefono: cliente.telefono.value,
       direccion: cliente.fullAdress.direccion.value,

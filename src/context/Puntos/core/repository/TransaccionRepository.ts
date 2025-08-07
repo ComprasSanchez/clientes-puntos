@@ -45,6 +45,12 @@ export interface TransaccionRepository {
   findByReferencia(ref: string): Promise<Transaccion[]>;
 
   /**
+   * Obtiene todas las transacciones de un cliente, a partir de sus lotes.
+   * @param fecha Identificador del cliente
+   */
+  findByFecha(fecha: Date): Promise<Transaccion[]>;
+
+  /**
    * Persiste una nueva transacción en el ledger.
    * @param transaccion Transacción a guardar
    */

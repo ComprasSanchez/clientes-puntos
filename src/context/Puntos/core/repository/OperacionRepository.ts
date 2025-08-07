@@ -2,6 +2,7 @@
 import { TransactionContext } from '@shared/core/interfaces/TransactionContext';
 import { Operacion } from '../entities/Operacion';
 import { OperacionId } from '../value-objects/OperacionId';
+import { FechaOperacion } from '../value-objects/FechaOperacion';
 
 /**
  * Puerto de repositorio para la entidad Operacion (operación del sistema de puntos).
@@ -30,6 +31,12 @@ export interface OperacionRepository {
    * @param referenciaId Identificador de la referencia
    */
   findByReferencia(referenciaId: string): Promise<Operacion[]>;
+
+  /**
+   * Obtiene operaciones a partir de una referencia.
+   * @param fecha Identificador de la referencia
+   */
+  findByFecha(fecha: FechaOperacion): Promise<Operacion[]>;
 
   /**
    * Persiste una nueva operación en el sistema.

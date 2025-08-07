@@ -7,6 +7,7 @@ import { Operacion } from '@puntos/core/entities/Operacion';
 import { OperacionId } from '@puntos/core/value-objects/OperacionId';
 import { TransactionContext } from '@shared/core/interfaces/TransactionContext';
 import { TypeOrmBaseRepository } from '@shared/infrastructure/transaction/TypeOrmBaseRepository';
+import { FechaOperacion } from '@puntos/core/value-objects/FechaOperacion';
 
 @Injectable()
 export class TypeOrmOperacionRepository
@@ -38,6 +39,13 @@ export class TypeOrmOperacionRepository
   async findByReferencia(referenciaId: string): Promise<Operacion[]> {
     const entities = await this.ormRepo.find({
       where: { refOperacion: referenciaId },
+    });
+    return entities.map((e) => e.toDomain());
+  }
+
+  async findByFecha(fecha: FechaOperacion): Promise<Operacion[]> {
+    const entities = await this.ormRepo.find({
+      where: { fecha: fecha.value },
     });
     return entities.map((e) => e.toDomain());
   }

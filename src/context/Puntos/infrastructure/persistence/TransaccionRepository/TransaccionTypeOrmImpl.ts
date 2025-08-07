@@ -46,6 +46,11 @@ export class TypeOrmTransaccionRepository
     return entities.map((e) => e.toDomain());
   }
 
+  async findByFecha(fecha: Date): Promise<Transaccion[]> {
+    const entities = await this.repo.find({ where: { createdAt: fecha } });
+    return entities.map((e) => e.toDomain());
+  }
+
   async findByOperationId(opId: number): Promise<Transaccion[]> {
     const where: FindOptionsWhere<TransaccionEntity> = {
       operationId: Number(opId),

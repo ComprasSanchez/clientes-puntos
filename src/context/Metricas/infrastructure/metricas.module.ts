@@ -20,15 +20,23 @@ import { ReglaFindCotizacion } from '@regla/application/use-cases/ReglaFindCotiz
 import { CrearMetricaClienteuseCase } from '../application/clientes/use-cases/CrearMetricaCliente';
 import { GetMetricasCliente } from '../application/clientes/use-cases/GetMetricasCliente';
 import { CalcularMetricasClienteService } from '../application/clientes/services/CalcularMetricasCLienteService';
+import { MetricasOperacionEntity } from './puntos/entities/MetricasOperacionEntity';
+import { PuntosInfrastructureModule } from '@puntos/infrastructure/puntos.module';
+import { METRICA_OPERACION_REPO } from '../core/puntos/tokens/tokens';
+import { MetricasOperacionTypeOrmRepository } from './puntos/repositories/MetricasOperacionTypeOrmImpl';
+import { GuardarMetricasOperacion } from '../application/puntos/use-cases/GuardarMetricasOperacion';
+import { CalcularMetricasOperacionService } from '../core/puntos/services/calcularMetricasOperacionService';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([ClienteMetricaEntity]),
+    TypeOrmModule.forFeature([ClienteMetricaEntity, MetricasOperacionEntity]),
+    forwardRef(() => PuntosInfrastructureModule),
     forwardRef(() => ReglaInfrastructureModule),
     forwardRef(() => RulesCacheModule),
   ],
   controllers: [],
   providers: [
+    GuardarMetricasOperacion,
     ReglaFindCotizacion,
     { provide: RULE_COTIZACION_FINDER, useClass: RuleCotizacionFinderAdapter },
     {
@@ -36,8 +44,16 @@ import { CalcularMetricasClienteService } from '../application/clientes/services
       useClass: ClienteMetricaRepositoryImpl,
     },
     {
+      provide: METRICA_OPERACION_REPO,
+      useClass: MetricasOperacionTypeOrmRepository,
+    },
+    {
       provide: CLIENTE_CALCULATOR,
       useValue: ClienteMetricsCalculator,
+    },
+    {
+      provide: CalcularMetricasOperacionService,
+      useFactory: () => new CalcularMetricasOperacionService(),
     },
     {
       provide: CREAR_METRICA_CLIENTE_SERVICE,
@@ -58,6 +74,7 @@ import { CalcularMetricasClienteService } from '../application/clientes/services
   ],
   exports: [
     METRICAS_REPO,
+    METRICA_OPERACION_REPO,
     TypeOrmModule,
     RULE_COTIZACION_FINDER,
     CREAR_METRICA_CLIENTE_USECASE,
