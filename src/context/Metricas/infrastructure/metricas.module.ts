@@ -26,10 +26,20 @@ import { METRICA_OPERACION_REPO } from '../core/puntos/tokens/tokens';
 import { MetricasOperacionTypeOrmRepository } from './puntos/repositories/MetricasOperacionTypeOrmImpl';
 import { GuardarMetricasOperacion } from '../application/puntos/use-cases/GuardarMetricasOperacion';
 import { CalcularMetricasOperacionService } from '../core/puntos/services/calcularMetricasOperacionService';
+import { MetricasCronLogEntity } from './MetricasScheduler/persistence/entities/MetricasCronLogEntity';
+import { CRON_LOG_REPO } from './MetricasScheduler/tokens';
+import { MetricasCronLogTypeOrmRepository } from './MetricasScheduler/persistence/repositories/CronLogTypeOrmImpl';
+import { ScheduleModule } from '@nestjs/schedule';
+import { MetricasOperacionScheduler } from './MetricasScheduler/MetricasOperacion.scheduler';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([ClienteMetricaEntity, MetricasOperacionEntity]),
+    TypeOrmModule.forFeature([
+      MetricasCronLogEntity,
+      ClienteMetricaEntity,
+      MetricasOperacionEntity,
+    ]),
+    ScheduleModule.forRoot(),
     forwardRef(() => PuntosInfrastructureModule),
     forwardRef(() => ReglaInfrastructureModule),
     forwardRef(() => RulesCacheModule),
@@ -42,6 +52,10 @@ import { CalcularMetricasOperacionService } from '../core/puntos/services/calcul
     {
       provide: METRICAS_REPO,
       useClass: ClienteMetricaRepositoryImpl,
+    },
+    {
+      provide: CRON_LOG_REPO,
+      useClass: MetricasCronLogTypeOrmRepository,
     },
     {
       provide: METRICA_OPERACION_REPO,
@@ -71,10 +85,12 @@ import { CalcularMetricasOperacionService } from '../core/puntos/services/calcul
       provide: CALCULAR_METRICAS_SERVICE,
       useClass: CalcularMetricasClienteService,
     },
+    MetricasOperacionScheduler,
   ],
   exports: [
     METRICAS_REPO,
     METRICA_OPERACION_REPO,
+    CRON_LOG_REPO,
     TypeOrmModule,
     RULE_COTIZACION_FINDER,
     CREAR_METRICA_CLIENTE_USECASE,
