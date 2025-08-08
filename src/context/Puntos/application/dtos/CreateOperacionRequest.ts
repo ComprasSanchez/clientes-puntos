@@ -29,4 +29,6 @@ export interface CreateOperacionRequest {
 
   /** Id de la Operacion para acciones de devolucion y/o anulacion */
   operacionId?: OperacionId;
+
+  codSucursal?: string;
 }

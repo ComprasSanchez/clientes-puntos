@@ -44,6 +44,7 @@ export class DevolucionUseCase {
       moneda: input.moneda,
       referencia: referenciaVO,
       operacionId: operacionIdVO,
+      codSucursal: input.codSucursal,
     };
 
     // 3️⃣ Delegar al service

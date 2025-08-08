@@ -44,6 +44,7 @@ export class CompraUseCase {
       moneda: input.moneda,
       referencia: referenciaVO,
       operacionId: operacionIdVO,
+      codSucursal: input.codSucursal,
     };
 
     const response = this.service.execute(req, ctx);

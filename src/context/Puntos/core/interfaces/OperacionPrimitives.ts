@@ -11,4 +11,5 @@ export interface OperacionPrimitives {
   _moneda?: string;
   _refOperacion?: string | null;
   _refAnulacion?: number | null;
+  _codSucursal?: string;
 }

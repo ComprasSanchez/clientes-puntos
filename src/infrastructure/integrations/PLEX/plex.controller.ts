@@ -112,7 +112,7 @@ export class PlexController {
             (Object.values(codFidelizarVenta) as string[]).includes(accionValue)
           ) {
             // Si querés, podés castear a codFidelizarVenta, pero si tu handle espera string, está OK así.
-            return this.ventaAdapter.handle(xml, ctx);
+            return this.ventaAdapter.handle(xml, auth.codigoExt, ctx);
           }
           if (
             (Object.values(codFidelizarCliente) as string[]).includes(

@@ -6,4 +6,5 @@ export interface OperacionDto {
   moneda?: string;
   referencia?: string;
   refOperacion?: number;
+  codSucursal?: string;
 }

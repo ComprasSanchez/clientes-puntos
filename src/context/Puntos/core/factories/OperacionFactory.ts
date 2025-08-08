@@ -19,6 +19,7 @@ export class OperacionFactory {
       req.moneda ? Moneda.create(req.moneda) : undefined,
       req.referencia ?? undefined,
       req.operacionId ?? undefined,
+      req.codSucursal ?? undefined,
     );
   }
 }

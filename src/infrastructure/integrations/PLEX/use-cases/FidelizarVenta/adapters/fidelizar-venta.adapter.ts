@@ -31,6 +31,7 @@ export class FidelizarVentaPlexAdapter {
 
   async handle(
     xml: string,
+    sucId: string,
     ctx?: TransactionContext,
   ): Promise<UseCaseResponse> {
     // 1. Parseo XML
@@ -55,6 +56,7 @@ export class FidelizarVentaPlexAdapter {
       moneda: TipoMoneda.ARS,
       referencia: plexDto.nroComprobante,
       refOperacion: Number(plexDto.idMovimiento),
+      codSucursal: sucId,
     };
 
     // 4. Elegir use case según codAccion

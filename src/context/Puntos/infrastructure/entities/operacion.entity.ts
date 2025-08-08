@@ -53,6 +53,9 @@ export class OperacionEntity {
   @Column('bigint', { nullable: true })
   refAnulacion: number | null;
 
+  @Column('varchar', { nullable: true })
+  codSucursal: string | null;
+
   @CreateDateColumn()
   createdAt: Date;
 
@@ -75,6 +78,7 @@ export class OperacionEntity {
       this.refAnulacion !== null
         ? OperacionId.instance(this.refAnulacion)
         : undefined,
+      this.codSucursal !== null ? this.codSucursal : undefined,
     );
   }
 
@@ -90,6 +94,7 @@ export class OperacionEntity {
     entity.moneda = operacion.moneda?.value ?? null;
     entity.refOperacion = operacion.refOperacion?.value ?? null;
     entity.refAnulacion = operacion.refAnulacion?.value ?? null;
+    entity.codSucursal = operacion.codSucursal ?? null;
     return entity;
   }
 }

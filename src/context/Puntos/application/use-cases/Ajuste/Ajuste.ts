@@ -66,6 +66,7 @@ export class AjusteUseCase {
       moneda: input.moneda,
       referencia: referenciaVO,
       operacionId: operacionIdVO,
+      codSucursal: input.codSucursal,
     };
 
     const response = this.service.execute(req, ctx);

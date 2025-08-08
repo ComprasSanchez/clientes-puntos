@@ -55,6 +55,7 @@ export class Operacion {
     private readonly _moneda?: Moneda,
     private readonly _refOperacion?: ReferenciaMovimiento,
     private readonly _refAnulacion?: OperacionId,
+    private readonly _codSucursal?: string,
   ) {
     // ——— Validaciones de invariante ———
     // 1) Debe venir al menos puntos o monto
@@ -106,6 +107,10 @@ export class Operacion {
 
   get refAnulacion(): OperacionId | undefined {
     return this._refAnulacion;
+  }
+
+  get codSucursal(): string | undefined {
+    return this._codSucursal;
   }
 
   /**
@@ -169,6 +174,7 @@ export class Operacion {
     const refAnulacion = obj._refAnulacion
       ? OperacionId.instance(obj._refAnulacion)
       : undefined;
+    const codSucursal = obj._codSucursal;
 
     return new Operacion(
       id,
@@ -181,6 +187,7 @@ export class Operacion {
       moneda,
       refOperacion,
       refAnulacion,
+      codSucursal,
     );
   }
 
@@ -196,6 +203,7 @@ export class Operacion {
       _moneda: this._moneda?.value,
       _refOperacion: this._refOperacion?.value,
       _refAnulacion: this._refAnulacion?.value,
+      _codSucursal: this._codSucursal,
     };
   }
 }
