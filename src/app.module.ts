@@ -14,6 +14,7 @@ import { RulesCacheModule } from '@infrastructure/cache/rules-cache/rules-cache.
 import { MetricasModule } from './context/Metricas/infrastructure/metricas.module';
 import { MetricasQueueModule } from './context/Metricas/infrastructure/MetricasQueue/metricas-queue.module';
 import { SaldoCacheModule } from '@infrastructure/cache/saldo-cache/saldo-cache.module';
+import { SucursalInfrastructureModule } from './context/Sucursal/infrastructure/sucursal.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { SaldoCacheModule } from '@infrastructure/cache/saldo-cache/saldo-cache.
     ClienteInfrastructureModule,
     ReglaInfrastructureModule,
     PuntosInfrastructureModule,
+    SucursalInfrastructureModule,
     IntegrationsModule,
     RulesCacheModule,
     SaldoCacheModule,
