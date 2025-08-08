@@ -9,7 +9,6 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import * as jose from 'jose';
-import { extractSucursalIdFromGroups } from './extract-sucursal-id';
 import { AuthContext } from './auth.decorator';
 
 type AuthenticatedRequest = Request & { auth?: AuthContext };
@@ -19,7 +18,8 @@ type JwtPayload = {
   azp?: string;
   iss?: string;
   realm_access?: RealmAccess;
-  groups?: string[];
+  sucursalId?: string;
+  codigoExt?: string;
   [k: string]: unknown;
 };
 
@@ -67,17 +67,16 @@ export class JwtGuard implements CanActivate {
       throw new UnauthorizedException('Missing required role');
     }
 
-    const sucursalId = extractSucursalIdFromGroups(payload.groups);
-    if (!sucursalId) {
-      throw new UnauthorizedException('Missing sucursalId');
+    if (!payload.sucursalId || !payload.codigoExt) {
+      throw new UnauthorizedException('Missing sucursal codes');
     }
 
     req.auth = {
       sub: String(payload.sub ?? ''),
       roles,
       azp: String(payload.azp ?? ''),
-      sucursalId,
-      groups: payload.groups ?? [],
+      sucursalId: payload.sucursalId,
+      codigoExt: payload.codigoExt,
     };
     return true;
   }

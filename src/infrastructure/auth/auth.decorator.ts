@@ -8,7 +8,7 @@ export interface AuthContext {
   roles: string[];
   azp: string;
   sucursalId: string;
-  groups: string[];
+  codigoExt: string;
 }
 
 export const Auth = createParamDecorator(
