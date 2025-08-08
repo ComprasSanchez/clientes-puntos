@@ -41,7 +41,7 @@ import { CalcularMetricasSaldoService } from '../core/puntos/services/calcularMe
 import { CargarMetricasSaldo } from '../application/puntos/use-cases/CargarMetricasSaldo';
 import { GetMetricasSaldo } from '../application/puntos/use-cases/GetMetricasSaldo';
 import { ClienteInfrastructureModule } from '@cliente/infrastructure/cliente.module';
-import { MetricasController } from './controllers/PuntosController';
+import { MetricasController } from './controllers/MetricasController';
 
 @Module({
   imports: [

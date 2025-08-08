@@ -1,4 +1,12 @@
-import { Controller, Headers, Inject, Post, Req, Res } from '@nestjs/common';
+import {
+  Controller,
+  Headers,
+  Inject,
+  Post,
+  Req,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import { Request, Response } from 'express';
 import { FidelizarVentaPlexAdapter } from './use-cases/FidelizarVenta/adapters/fidelizar-venta.adapter';
 import { TransactionalRunner } from '@shared/infrastructure/transaction/TransactionalRunner';
@@ -18,6 +26,9 @@ import { IntegracionMovimientoService } from '../../database/services/Integracio
 import { UseCaseResponse } from './dto/usecase-response.dto';
 import { ConsultarEstadisticasClientePlexAdapter } from './use-cases/ConsultarEstadisticasCliente/adapters/consultar-estadisticas-cliente.adapter';
 import { codConsultarEstadisticasCliente } from './enums/consultar-estadisticas-cliente.enum';
+import { JwtGuard } from '@infrastructure/auth/jwt.guard';
+import { Auth, AuthContext } from '@infrastructure/auth/auth.decorator';
+import { Unprotected } from 'nest-keycloak-connect';
 
 // Tipo explícito para parseo seguro
 interface MensajeFidelyGb {
@@ -28,6 +39,7 @@ interface MensajeFidelyGb {
 }
 
 @Controller('onzecrm')
+@Unprotected()
 export class PlexController {
   constructor(
     @Inject(FIDELIZAR_VENTA_ADAPTER)
@@ -44,7 +56,9 @@ export class PlexController {
   ) {}
 
   @Post()
+  @UseGuards(JwtGuard)
   async plex(
+    @Auth() auth: AuthContext,
     @Req() req: Request,
     @Res() res: Response,
     @Headers('content-type') contentType: string,

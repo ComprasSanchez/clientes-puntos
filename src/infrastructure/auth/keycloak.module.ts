@@ -1,6 +1,7 @@
 // infrastructure/keycloak/keycloak.module.ts
 import { Global, Module } from '@nestjs/common';
 import { KeycloakConnectModule } from 'nest-keycloak-connect';
+import { JwtGuard } from './jwt.guard';
 
 @Global()
 @Module({
@@ -12,6 +13,7 @@ import { KeycloakConnectModule } from 'nest-keycloak-connect';
       secret: process.env.KEYCLOAK_CLIENT_SECRET || '', // tu secret de cliente confidencial
     }),
   ],
-  exports: [KeycloakConnectModule],
+  providers: [JwtGuard],
+  exports: [KeycloakConnectModule, JwtGuard],
 })
 export class KeycloakModule {}

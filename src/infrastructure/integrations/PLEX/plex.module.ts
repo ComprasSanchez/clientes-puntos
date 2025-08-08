@@ -16,6 +16,7 @@ import { ConsultarClientePlexAdapter } from './use-cases/ConsultarCliente/adapte
 import { DatabaseModule } from '@infrastructure/database/database.module';
 import { ConsultarEstadisticasClientePlexAdapter } from './use-cases/ConsultarEstadisticasCliente/adapters/consultar-estadisticas-cliente.adapter';
 import { MetricasModule } from 'src/context/Metricas/infrastructure/metricas.module';
+import { JwtGuard } from '@infrastructure/auth/jwt.guard';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { MetricasModule } from 'src/context/Metricas/infrastructure/metricas.mod
   ],
   controllers: [PlexController],
   providers: [
+    JwtGuard,
     {
       provide: FIDELIZAR_VENTA_ADAPTER,
       useClass: FidelizarVentaPlexAdapter,
