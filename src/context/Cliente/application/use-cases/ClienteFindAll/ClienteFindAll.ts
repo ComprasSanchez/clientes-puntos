@@ -28,7 +28,7 @@ export class ClienteFindAll {
         ? c.fechaNacimiento.value.toISOString().split('T')[0]
         : null,
       status: c.status.value,
-      categoria: c.categoria.nombre.value,
+      categoria: c.categoria.codExt!,
       tarjetaFidely: c.fidelyStatus.tarjetaFidely.value,
       idFidely: c.fidelyStatus.idFidely.value,
       email: c.email.value,
