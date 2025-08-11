@@ -57,6 +57,7 @@ export class TypeOrmCategoriaRepository implements CategoriaRepository {
     return new Categoria(
       new CategoriaId(entity.id),
       new CategoriaNombre(entity.nombre),
+      entity.codExt,
       new CategoriaDescripcion(entity.descripcion),
     );
   }

@@ -37,6 +37,7 @@ export class CategoriaController {
     return list.map((c) => ({
       id: c.id.value,
       nombre: c.nombre.value,
+      codExt: c.codExt,
       descripcion: c.descripcion?.value ?? null,
       timestamp: c.timestamp,
     }));

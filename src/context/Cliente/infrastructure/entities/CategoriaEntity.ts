@@ -5,6 +5,7 @@ import {
   OneToMany,
   CreateDateColumn,
   UpdateDateColumn,
+  Generated,
 } from 'typeorm';
 import { ClienteEntity } from './ClienteEntity';
 
@@ -21,6 +22,10 @@ export class CategoriaEntity {
 
   @Column({ type: 'boolean', default: false })
   isDefault: boolean;
+
+  @Column({ type: 'int', unique: true }) // opcionalmente unique si querés garantizar unicidad
+  @Generated('increment')
+  codExt: number;
 
   @CreateDateColumn()
   createdAt: Date;

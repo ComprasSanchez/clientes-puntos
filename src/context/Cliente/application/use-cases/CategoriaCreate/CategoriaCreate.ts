@@ -33,7 +33,13 @@ export class CategoriaCreate {
         : undefined;
     const isDefault = input.default ?? false;
 
-    const categoria = new Categoria(idVo, nombreVo, descripcionVo, isDefault);
+    const categoria = new Categoria(
+      idVo,
+      nombreVo,
+      null,
+      descripcionVo,
+      isDefault,
+    );
     await this.repo.create(categoria);
   }
 }

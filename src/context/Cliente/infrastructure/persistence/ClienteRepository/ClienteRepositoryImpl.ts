@@ -85,6 +85,7 @@ export class TypeOrmClienteRepository implements ClienteRepository {
     const catDom = new Categoria(
       new CategoriaId(e.categoria.id),
       new CategoriaNombre(e.categoria.nombre),
+      e.categoria.codExt,
       new CategoriaDescripcion(e.categoria.descripcion),
     );
     return new Cliente(
