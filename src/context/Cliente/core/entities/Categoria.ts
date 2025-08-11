@@ -7,12 +7,14 @@ export class Categoria {
   private _nombre: CategoriaNombre;
   private _descripcion: CategoriaDescripcion;
   private _default: boolean;
+  private _codExt: number;
   private _createdAt: Date;
   private _updatedAt: Date;
 
   constructor(
     id: CategoriaId,
     nombre: CategoriaNombre,
+    codExt: number,
     descripcion?: CategoriaDescripcion,
     isDefault?: boolean,
   ) {
@@ -20,6 +22,7 @@ export class Categoria {
     this._nombre = nombre;
     this._descripcion = descripcion ?? new CategoriaDescripcion(null);
     this._default = isDefault ?? false; // Default to false unless specified otherwise
+    this._codExt = codExt;
     this._createdAt = new Date();
     this._updatedAt = new Date();
   }

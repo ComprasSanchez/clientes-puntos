@@ -14,6 +14,7 @@ import {
   CONSULTAR_CLIENTE_ADAPTER,
   CONSULTAR_ESTADISTICAS_CLIENTE_ADAPTER,
   FIDELIZAR_CLIENTE_ADAPTER,
+  FIDELIZAR_PRODUCTO_ADAPTER,
   FIDELIZAR_VENTA_ADAPTER,
 } from './tokens/tokens';
 import { FidelizarClientePlexAdapter } from './use-cases/FidelizarCliente/adapters/fidelizar-cliente.adapter';
@@ -29,6 +30,8 @@ import { codConsultarEstadisticasCliente } from './enums/consultar-estadisticas-
 import { JwtGuard } from '@infrastructure/auth/jwt.guard';
 import { Auth, AuthContext } from '@infrastructure/auth/auth.decorator';
 import { Unprotected } from 'nest-keycloak-connect';
+import { codFidelizarProducto } from './enums/fidelizar-producto.enum';
+import { FidelizarProductoPlexAdapater } from './use-cases/FidelizarProducto/adapters/fidelizar-producto.adapter';
 
 // Tipo explícito para parseo seguro
 interface MensajeFidelyGb {
@@ -50,6 +53,8 @@ export class PlexController {
     private readonly consultarClienteAdapter: ConsultarClientePlexAdapter,
     @Inject(CONSULTAR_ESTADISTICAS_CLIENTE_ADAPTER)
     private readonly consultarEstadisticasAdapter: ConsultarEstadisticasClientePlexAdapter,
+    @Inject(FIDELIZAR_PRODUCTO_ADAPTER)
+    private readonly fidelizarProductoAdapter: FidelizarProductoPlexAdapater,
     @Inject(IntegracionMovimientoService)
     private readonly integracionMovimientoService: IntegracionMovimientoService,
     private readonly transactionalRunner: TransactionalRunner,
@@ -134,6 +139,13 @@ export class PlexController {
             ).includes(accionValue)
           ) {
             return this.consultarEstadisticasAdapter.handle(xml);
+          }
+          if (
+            (Object.values(codFidelizarProducto) as string[]).includes(
+              accionValue,
+            )
+          ) {
+            return this.fidelizarProductoAdapter.handle(xml);
           }
 
           throw new Error('codAccion inválido o no soportado');

@@ -3,6 +3,7 @@ import {
   CONSULTAR_CLIENTE_ADAPTER,
   CONSULTAR_ESTADISTICAS_CLIENTE_ADAPTER,
   FIDELIZAR_CLIENTE_ADAPTER,
+  FIDELIZAR_PRODUCTO_ADAPTER,
   FIDELIZAR_VENTA_ADAPTER,
 } from './tokens/tokens';
 import { FidelizarVentaPlexAdapter } from './use-cases/FidelizarVenta/adapters/fidelizar-venta.adapter';
@@ -17,6 +18,7 @@ import { DatabaseModule } from '@infrastructure/database/database.module';
 import { ConsultarEstadisticasClientePlexAdapter } from './use-cases/ConsultarEstadisticasCliente/adapters/consultar-estadisticas-cliente.adapter';
 import { MetricasModule } from 'src/context/Metricas/infrastructure/metricas.module';
 import { JwtGuard } from '@infrastructure/auth/jwt.guard';
+import { FidelizarProductoPlexAdapater } from './use-cases/FidelizarProducto/adapters/fidelizar-producto.adapter';
 
 @Module({
   imports: [
@@ -45,12 +47,17 @@ import { JwtGuard } from '@infrastructure/auth/jwt.guard';
       provide: CONSULTAR_ESTADISTICAS_CLIENTE_ADAPTER,
       useClass: ConsultarEstadisticasClientePlexAdapter,
     },
+    {
+      provide: FIDELIZAR_PRODUCTO_ADAPTER,
+      useClass: FidelizarProductoPlexAdapater,
+    },
     TransactionalRunner,
   ],
   exports: [
     FIDELIZAR_VENTA_ADAPTER,
     FIDELIZAR_CLIENTE_ADAPTER,
     CONSULTAR_CLIENTE_ADAPTER,
+    FIDELIZAR_PRODUCTO_ADAPTER,
     CONSULTAR_ESTADISTICAS_CLIENTE_ADAPTER,
     TransactionalRunner,
   ],
