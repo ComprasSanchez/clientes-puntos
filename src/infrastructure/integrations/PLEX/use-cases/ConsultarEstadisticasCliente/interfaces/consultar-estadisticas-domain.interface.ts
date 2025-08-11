@@ -2,7 +2,7 @@
 
 export interface ConsultarEstadisticaClienteDomainResponse {
   idClienteFidely: number;
-  categoria: string;
+  categoria: number;
   saldoPuntos: number;
   pesosAhorroUltimoMes: number;
   pesosAhorro3Meses: number;

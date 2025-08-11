@@ -8,7 +8,7 @@ export interface PlexConsultarClienteResponseDto {
   cliente: {
     idClienteFidely: string;
     campania: string;
-    categoria: string;
+    categoria: number;
     nombre: string;
     apellido: string;
     fecNac: string;

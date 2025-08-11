@@ -22,8 +22,8 @@ export class ClienteResponseDto {
   @ApiProperty({ example: 'activo' })
   status: string;
 
-  @ApiProperty({ example: 'Premium' })
-  categoria: string;
+  @ApiProperty({ example: 1 })
+  categoria: number;
 
   @ApiProperty({ type: String, nullable: true, example: 'john.doe@email.com' })
   email: string | null;

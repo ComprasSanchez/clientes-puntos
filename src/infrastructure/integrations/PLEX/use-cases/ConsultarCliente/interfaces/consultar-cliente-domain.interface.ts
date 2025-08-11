@@ -3,7 +3,7 @@
 export interface ConsultarClienteDomainResponse {
   idClienteFidely: string;
   campania: string;
-  categoria: string;
+  categoria: number;
   nombre: string;
   apellido: string;
   fecNac: string | null;
