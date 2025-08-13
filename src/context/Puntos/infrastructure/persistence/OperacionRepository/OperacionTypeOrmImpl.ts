@@ -43,6 +43,19 @@ export class TypeOrmOperacionRepository
     return entities.map((e) => e.toDomain());
   }
 
+  async findBetween(startUtc: Date, endUtc: Date): Promise<Operacion[]> {
+    // Cambiá 'fecha' por 'fechaOperacion' si así se llama tu columna
+    const rows = await this.ormRepo
+      .createQueryBuilder('o')
+      .where('o.fecha >= :start', { start: startUtc })
+      .andWhere('o.fecha < :end', { end: endUtc })
+      // .where('o.fechaOperacion >= :start', { start: startUtc })
+      // .andWhere('o.fechaOperacion < :end',  { end: endUtc })
+      .getMany();
+
+    return rows.map((e) => e.toDomain());
+  }
+
   async findByFecha(fecha: FechaOperacion): Promise<Operacion[]> {
     const entities = await this.ormRepo.find({
       where: { fecha: fecha.value },

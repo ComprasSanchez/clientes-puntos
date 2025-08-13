@@ -44,9 +44,12 @@ export interface TransaccionRepository {
    */
   findByReferencia(ref: string): Promise<Transaccion[]>;
 
+  findBetween(startUtc: Date, endUtc: Date): Promise<Transaccion[]>;
+
   /**
    * Obtiene todas las transacciones de un cliente, a partir de sus lotes.
    * @param fecha Identificador del cliente
+   * @deprecated Usar findBetween
    */
   findByFecha(fecha: Date): Promise<Transaccion[]>;
 

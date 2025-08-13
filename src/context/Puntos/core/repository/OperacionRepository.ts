@@ -32,9 +32,12 @@ export interface OperacionRepository {
    */
   findByReferencia(referenciaId: string): Promise<Operacion[]>;
 
+  findBetween(startUtc: Date, endUtc: Date): Promise<Operacion[]>;
+
   /**
    * Obtiene operaciones a partir de una referencia.
    * @param fecha Identificador de la referencia
+   *  @deprecated Usar findBetween
    */
   findByFecha(fecha: FechaOperacion): Promise<Operacion[]>;
 

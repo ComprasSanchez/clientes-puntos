@@ -1,8 +1,14 @@
+// src/context/Metricas/infrastructure/MetricasScheduler/MetricasOperacion.scheduler.ts
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { GuardarMetricasOperacion } from '../../application/puntos/use-cases/GuardarMetricasOperacion';
 import { CRON_LOG_REPO } from './tokens';
 import { MetricasCronLogTypeOrmRepository } from './persistence/repositories/CronLogTypeOrmImpl';
+import { toZonedTime, fromZonedTime } from 'date-fns-tz';
+import { startOfDay, addDays, subDays } from 'date-fns';
+import { FechaDiaRange } from '../../application/puntos/value-objects/FechaDiaRange';
+
+const TZ = 'America/Argentina/Cordoba';
 
 @Injectable()
 export class MetricasOperacionScheduler {
@@ -16,41 +22,51 @@ export class MetricasOperacionScheduler {
   ) {}
 
   @Cron(CronExpression.EVERY_DAY_AT_1AM)
-  async handleCron() {
-    // Calcula "ayer", sin hora
-    const hoy = new Date();
-    hoy.setHours(0, 0, 0, 0);
-    const ayer = new Date(hoy);
-    ayer.setDate(hoy.getDate() - 1);
+  async handleCron(): Promise<void> {
+    // 1) Ahora en TZ Córdoba
+    const nowZoned = toZonedTime(new Date(), TZ);
+    // 2) Rango de AYER en TZ Córdoba
+    const ayerStartZoned = startOfDay(subDays(nowZoned, 1));
+    const hoyStartZoned = addDays(ayerStartZoned, 1);
+    // 3) Convertir límites a UTC (DB)
+    const startUtc = fromZonedTime(ayerStartZoned, TZ);
+    const endUtc = fromZonedTime(hoyStartZoned, TZ);
 
-    // Crear log inicial
+    // Preformateo para logs (evita concatenar llamados en plantilla)
+    const ymdLocal = ayerStartZoned.toISOString().slice(0, 10);
+    const startIso = startUtc.toISOString();
+    const endIso = endUtc.toISOString();
+
     const log = await this.cronLogRepo.createLog({
       jobName: 'MetricasOperacionBatch',
-      fechaResumen: ayer,
+      fechaResumen: ayerStartZoned,
       startTime: new Date(),
       status: 'STARTED',
     });
 
     try {
       this.logger.log(
-        `Ejecutando cálculo de métricas para el día: ${ayer.toISOString().slice(0, 10)}`,
+        `Métricas para día local ${ymdLocal} | UTC ${startIso} → ${endIso}`,
       );
-      await this.guardarMetricas.run(ayer);
+
+      await this.guardarMetricas.run(new FechaDiaRange(startUtc, endUtc));
 
       await this.cronLogRepo.updateLog(log.id, {
         endTime: new Date(),
         status: 'OK',
         message: 'Ejecución exitosa',
       });
-    } catch (err) {
-      this.logger.error(
-        `Error ejecutando cálculo de métricas para el día ${ayer.toISOString().slice(0, 10)}:`,
-        (err as Error).stack || String(err),
-      );
+    } catch (error: unknown) {
+      // Narrowing seguro para ESLint/TS
+      const msg = error instanceof Error ? error.message : String(error);
+      const stack = error instanceof Error ? error.stack : undefined;
+
+      this.logger.error(`Error ejecutando cálculo de métricas: ${msg}`, stack);
+
       await this.cronLogRepo.updateLog(log.id, {
         endTime: new Date(),
         status: 'ERROR',
-        error: (err as Error).stack || String(err),
+        error: stack ?? msg,
       });
     }
   }

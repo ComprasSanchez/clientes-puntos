@@ -46,6 +46,17 @@ export class TypeOrmTransaccionRepository
     return entities.map((e) => e.toDomain());
   }
 
+  async findBetween(startUtc: Date, endUtc: Date): Promise<Transaccion[]> {
+    // Cambiá 'createdAt' por 'fecha'/'fechaOperacion' si corresponde
+    const rows = await this.repo
+      .createQueryBuilder('t')
+      .where('t.createdAt >= :start', { start: startUtc })
+      .andWhere('t.createdAt < :end', { end: endUtc })
+      .getMany();
+
+    return rows.map((e) => e.toDomain());
+  }
+
   async findByFecha(fecha: Date): Promise<Transaccion[]> {
     const entities = await this.repo.find({ where: { createdAt: fecha } });
     return entities.map((e) => e.toDomain());

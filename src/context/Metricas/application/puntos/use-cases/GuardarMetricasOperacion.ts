@@ -1,14 +1,16 @@
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable, Inject, Logger } from '@nestjs/common';
 import { OperacionRepository } from '@puntos/core/repository/OperacionRepository';
 import { TransaccionRepository } from '@puntos/core/repository/TransaccionRepository';
 import { OPERACION_REPO, TX_REPO } from '@puntos/core/tokens/tokens';
-import { FechaOperacion } from '@puntos/core/value-objects/FechaOperacion';
 import { MetricasOperacionRepository } from 'src/context/Metricas/core/puntos/repositories/MetricasOperacionRepository';
 import { CalcularMetricasOperacionService } from 'src/context/Metricas/core/puntos/services/calcularMetricasOperacionService';
 import { METRICA_OPERACION_REPO } from 'src/context/Metricas/core/puntos/tokens/tokens';
+import { FechaDiaRange } from '../value-objects/FechaDiaRange';
 
 @Injectable()
 export class GuardarMetricasOperacion {
+  private readonly logger = new Logger(GuardarMetricasOperacion.name);
+
   constructor(
     @Inject(METRICA_OPERACION_REPO)
     private readonly metricasRepo: MetricasOperacionRepository,
@@ -20,10 +22,13 @@ export class GuardarMetricasOperacion {
     private readonly calc: CalcularMetricasOperacionService,
   ) {}
 
-  async run(fecha: Date): Promise<void> {
-    const ops = await this.operacionRepo.findByFecha(new FechaOperacion(fecha));
-    const transacciones = await this.transaccionRepo.findByFecha(fecha);
-    const calc = this.calc.calcular(ops, transacciones, fecha);
-    await this.metricasRepo.save(calc);
+  async run(diaUtc: FechaDiaRange): Promise<void> {
+    const [ops, txs] = await Promise.all([
+      this.operacionRepo.findBetween(diaUtc.startUtc, diaUtc.endUtc),
+      this.transaccionRepo.findBetween(diaUtc.startUtc, diaUtc.endUtc),
+    ]);
+
+    const metricas = this.calc.calcular(ops, txs, diaUtc.startUtc);
+    await this.metricasRepo.save(metricas);
   }
 }
