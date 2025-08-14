@@ -15,6 +15,7 @@ import { MetricasModule } from './context/Metricas/infrastructure/metricas.modul
 import { MetricasQueueModule } from './context/Metricas/infrastructure/MetricasQueue/metricas-queue.module';
 import { SaldoCacheModule } from '@infrastructure/cache/saldo-cache/saldo-cache.module';
 import { SucursalInfrastructureModule } from './context/Sucursal/infrastructure/sucursal.module';
+import { ProductoModule } from './context/Producto/infrastructure/producto.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { SucursalInfrastructureModule } from './context/Sucursal/infrastructure/
     SaldoCacheModule,
     MetricasModule,
     MetricasQueueModule,
+    ProductoModule,
   ],
   controllers: [],
   providers: [
