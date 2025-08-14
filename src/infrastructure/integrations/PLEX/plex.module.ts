@@ -18,7 +18,8 @@ import { DatabaseModule } from '@infrastructure/database/database.module';
 import { ConsultarEstadisticasClientePlexAdapter } from './use-cases/ConsultarEstadisticasCliente/adapters/consultar-estadisticas-cliente.adapter';
 import { MetricasModule } from 'src/context/Metricas/infrastructure/metricas.module';
 import { JwtGuard } from '@infrastructure/auth/jwt.guard';
-import { FidelizarProductoPlexAdapater } from './use-cases/FidelizarProducto/adapters/fidelizar-producto.adapter';
+import { FidelizarProductoPlexAdapter } from './use-cases/FidelizarProducto/adapters/fidelizar-producto.adapter';
+import { ProductoModule } from 'src/context/Producto/infrastructure/producto.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { FidelizarProductoPlexAdapater } from './use-cases/FidelizarProducto/ada
     forwardRef(() => ClienteInfrastructureModule),
     forwardRef(() => ReglaInfrastructureModule),
     forwardRef(() => MetricasModule),
+    forwardRef(() => ProductoModule),
     DatabaseModule,
   ],
   controllers: [PlexController],
@@ -49,7 +51,7 @@ import { FidelizarProductoPlexAdapater } from './use-cases/FidelizarProducto/ada
     },
     {
       provide: FIDELIZAR_PRODUCTO_ADAPTER,
-      useClass: FidelizarProductoPlexAdapater,
+      useClass: FidelizarProductoPlexAdapter,
     },
     TransactionalRunner,
   ],

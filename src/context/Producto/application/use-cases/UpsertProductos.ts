@@ -20,22 +20,29 @@ export class UpsertProductos {
   ) {}
 
   async run(input: UpsertProductoPlano[]): Promise<void> {
-    const productos = input.map((i) =>
-      Producto.create({
-        id: ProductoId.from(this.idGen.generate()),
-        codExt: i.idProducto,
-        nombre: NombreProducto.from(i.producto),
-        presentacion: Presentacion.from(i.presentacion ?? ''),
-        costo: Dinero.from(i.costo),
-        precio: Dinero.from(i.precio),
-        clasificadores: (i.clasificadores ?? []).map(
-          (c) =>
-            new ClasificadorAsociado(
-              Number(c.idTipoClasificador) as TipoClasificador,
-              Number(c.idClasificador),
-              c.nombre ?? '',
-            ),
-        ),
+    // Si tu repo soporta bulk-lookup por codExt, preferilo.
+    const productos: Producto[] = await Promise.all(
+      input.map(async (i) => {
+        const existente = await this.repo.findByCodExt(i.idProducto);
+        const id = existente?.id ?? ProductoId.from(this.idGen.generate());
+
+        return Producto.create({
+          id,
+          codExt: i.idProducto,
+          nombre: NombreProducto.from(i.producto),
+          presentacion: Presentacion.from(i.presentacion ?? ''),
+          costo: Dinero.from(i.costo),
+          precio: Dinero.from(i.precio),
+          clasificadores: (i.clasificadores ?? []).map(
+            (c) =>
+              new ClasificadorAsociado(
+                Number(c.idTipoClasificador) as TipoClasificador,
+                Number(c.idClasificador),
+                c.nombre ?? '',
+              ),
+          ),
+          activa: i.activa,
+        });
       }),
     );
 

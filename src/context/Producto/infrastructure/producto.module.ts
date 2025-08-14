@@ -13,6 +13,9 @@ import { ListarProductos } from '../application/use-cases/ListarProductos';
 import { ProductoController } from './controllers/producto.controller';
 import { UUIDGenerator } from '@shared/core/uuid/UuidGenerator';
 import { UUIDv4Generator } from '@shared/infrastructure/uuid/UuidV4Generator';
+import { DesactivarProducto } from '../application/use-cases/DesactivarProducto';
+import { ReactivarProducto } from '../application/use-cases/ReactivarProducto';
+import { ActualizarPrecioProducto } from '../application/use-cases/ActualizarPreciosProducto';
 
 @Module({
   imports: [
@@ -21,6 +24,9 @@ import { UUIDv4Generator } from '@shared/infrastructure/uuid/UuidV4Generator';
   controllers: [ProductoController],
   providers: [
     UpsertProductos,
+    DesactivarProducto,
+    ReactivarProducto,
+    ActualizarPrecioProducto,
     GetProductoById,
     ListarProductos,
     { provide: PRODUCTO_REPO, useClass: ProductoTypeOrmRepository },
@@ -31,6 +37,9 @@ import { UUIDv4Generator } from '@shared/infrastructure/uuid/UuidV4Generator';
     UpsertProductos,
     GetProductoById,
     ListarProductos,
+    DesactivarProducto,
+    ReactivarProducto,
+    ActualizarPrecioProducto,
     PRODUCTO_REPO,
     TypeOrmModule, // útil si otro módulo compone repos con estas entities
   ],

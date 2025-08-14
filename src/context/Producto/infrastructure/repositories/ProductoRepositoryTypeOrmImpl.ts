@@ -1,3 +1,4 @@
+// infrastructure/.../ProductoTypeOrmRepository.ts
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, ILike } from 'typeorm';
@@ -24,37 +25,64 @@ export class ProductoTypeOrmRepository implements ProductoRepository {
     private readonly repoClas: Repository<ProductoClasificadorEntity>,
   ) {}
 
+  // --- HELPERS PRIVADOS ---
+
+  private async syncClasificadores(p: Producto): Promise<void> {
+    const current = await this.repoClas.find({
+      where: { productoId: p.id.value },
+    });
+
+    const desiredKeys = new Set(
+      p.clasificadores.map((c) =>
+        key(p.id.value, Number(c.tipo), c.idClasificador),
+      ),
+    );
+
+    // borrar los que no están en dominio
+    for (const c of current) {
+      if (!desiredKeys.has(key(c.productoId, c.tipo, c.idClasificador))) {
+        await this.repoClas.delete(c.id);
+      }
+    }
+
+    // upsert los deseados
+    for (const c of p.clasificadores) {
+      await this.repoClas.save(clasifFromDomain(p.id.value, c));
+    }
+  }
+
+  // --- REPO CONTRACT ---
+
   async findById(id: ProductoId): Promise<Producto | null> {
-    const row = await this.repo.findOne({ where: { id: id.value } });
+    const row = await this.repo.findOne({
+      where: { id: id.value },
+      relations: { clasificadores: true },
+    });
     return row ? productoToDomain(row) : null;
+  }
+
+  async findByCodExt(codExt: number): Promise<Producto | null> {
+    const row = await this.repo.findOne({
+      where: { cod_ext: codExt },
+      relations: { clasificadores: true },
+    });
+    return row ? productoToDomain(row) : null;
+  }
+
+  async save(producto: Producto): Promise<void> {
+    // Persistir base
+    await this.repo.save(productoFromDomain(producto));
+    // Sincronizar clasificadores
+    await this.syncClasificadores(producto);
+
+    // Si querés auditar "motivo", este es un buen punto para enviar a un outbox/log.
+    // p.ej.: await this.auditRepo.insert({ productoId: producto.id.value, motivo: meta?.motivo ?? null, ... })
   }
 
   async upsertMany(productos: Producto[]): Promise<void> {
     for (const p of productos) {
-      // Upsert base del producto
       await this.repo.save(productoFromDomain(p));
-
-      // Sincronía manual de clasificadores (evita depender de PK de hijos)
-      const current = await this.repoClas.find({
-        where: { productoId: p.id.value },
-      });
-      const desiredKeys = new Set(
-        p.clasificadores.map((c) =>
-          key(p.id.value, Number(c.tipo), c.idClasificador),
-        ),
-      );
-
-      // Borrar los que ya no están
-      for (const c of current) {
-        if (!desiredKeys.has(key(c.productoId, c.tipo, c.idClasificador))) {
-          await this.repoClas.delete(c.id);
-        }
-      }
-
-      // Upsert nuevos/actualizados
-      for (const c of p.clasificadores) {
-        await this.repoClas.save(clasifFromDomain(p.id.value, c));
-      }
+      await this.syncClasificadores(p);
     }
   }
 
@@ -80,8 +108,8 @@ export class ProductoTypeOrmRepository implements ProductoRepository {
 
     const total = await qb.getCount();
 
-    if (params?.limit) qb.take(params.limit);
-    if (params?.offset) qb.skip(params.offset);
+    if (params?.limit != null) qb.take(params.limit);
+    if (params?.offset != null) qb.skip(params.offset);
 
     const rows = await qb.getMany();
     return { items: rows.map(productoToDomain), total };

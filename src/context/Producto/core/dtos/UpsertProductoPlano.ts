@@ -9,7 +9,8 @@ export interface UpsertProductoPlano {
   precio: number;
   clasificadores: Array<{
     idTipoClasificador: TipoClasificador | number;
-    idClasificador: string;
+    idClasificador: number;
     nombre: string;
   }>;
+  activa: boolean;
 }

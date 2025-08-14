@@ -15,6 +15,7 @@ export class Producto {
     public costo: Dinero,
     public precio: Dinero,
     public clasificadores: ClasificadorAsociado[],
+    public activo: boolean,
     public readonly createdAt: Date,
   ) {
     this._updatedAt = new Date(createdAt);
@@ -28,6 +29,7 @@ export class Producto {
     costo: Dinero;
     precio: Dinero;
     clasificadores: ClasificadorAsociado[];
+    activa: boolean;
     createdAt?: Date;
   }): Producto {
     const p = new Producto(
@@ -38,6 +40,7 @@ export class Producto {
       params.costo,
       params.precio,
       dedupClasificadores(params.clasificadores),
+      params.activa,
       params.createdAt ?? new Date(),
     );
     p.assertInvariants();
@@ -51,6 +54,7 @@ export class Producto {
       costo: Dinero;
       precio: Dinero;
       clasificadores: ClasificadorAsociado[];
+      activa: boolean;
     }>,
   ) {
     if (data.nombre) this.nombre = data.nombre;
@@ -59,6 +63,7 @@ export class Producto {
     if (data.precio) this.precio = data.precio;
     if (data.clasificadores)
       this.clasificadores = dedupClasificadores(data.clasificadores);
+    if (data.activa) this.activo = data.activa;
     this._updatedAt = new Date();
     this.assertInvariants();
   }
@@ -70,6 +75,30 @@ export class Producto {
   private assertInvariants() {
     if (this.costo.value < 0) throw new Error('Costo no puede ser negativo');
     if (this.precio.value < 0) throw new Error('Precio no puede ser negativo');
+  }
+
+  desactivar() {
+    if (!this.activo) return; // idempotente
+    this.activo = false;
+    // this._events.push(new ProductoDesactivado(this._id, this._codExt));
+  }
+
+  reactivar() {
+    if (this.activo) return;
+    this.activo = true;
+    // this._events.push(new ProductoReactivado(this._id, this._codExt));
+  }
+
+  cambiarPrecio(nuevo: Dinero) {
+    if (this.precio.equals(nuevo)) return; // idempotente
+    this.precio = nuevo;
+    // this._events.push(new PrecioActualizado(this._id, nuevo));
+  }
+
+  cambiarCosto(nuevo: Dinero) {
+    if (this.costo.equals(nuevo)) return;
+    this.costo = nuevo;
+    // this._events.push(new CostoActualizado(this._id, nuevo));
   }
 }
 

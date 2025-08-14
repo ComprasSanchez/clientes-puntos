@@ -39,6 +39,9 @@ export class ProductoEntity {
   @Column({ type: 'numeric', precision: 14, scale: 2, default: 0 })
   precio!: string;
 
+  @Column({ default: true })
+  activo!: boolean;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt!: Date;
 
@@ -67,6 +70,7 @@ export function toDomain(row: ProductoEntity): Producto {
     costo: Dinero.from(Number(row.costo)),
     precio: Dinero.from(Number(row.precio)),
     clasificadores: (row.clasificadores ?? []).map(toClasificadorDomain),
+    activa: row.activo,
     createdAt: row.createdAt,
   });
 }

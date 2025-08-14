@@ -12,4 +12,6 @@ export abstract class ProductoRepository {
     limit?: number;
     offset?: number;
   }): Promise<{ items: Producto[]; total: number }>;
+  abstract findByCodExt(codExt: number): Promise<Producto | null>;
+  abstract save(producto: Producto, meta?: { motivo?: string }): Promise<void>;
 }

@@ -31,7 +31,7 @@ import { JwtGuard } from '@infrastructure/auth/jwt.guard';
 import { Auth, AuthContext } from '@infrastructure/auth/auth.decorator';
 import { Unprotected } from 'nest-keycloak-connect';
 import { codFidelizarProducto } from './enums/fidelizar-producto.enum';
-import { FidelizarProductoPlexAdapater } from './use-cases/FidelizarProducto/adapters/fidelizar-producto.adapter';
+import { FidelizarProductoPlexAdapter } from './use-cases/FidelizarProducto/adapters/fidelizar-producto.adapter';
 
 // Tipo explícito para parseo seguro
 interface MensajeFidelyGb {
@@ -54,7 +54,7 @@ export class PlexController {
     @Inject(CONSULTAR_ESTADISTICAS_CLIENTE_ADAPTER)
     private readonly consultarEstadisticasAdapter: ConsultarEstadisticasClientePlexAdapter,
     @Inject(FIDELIZAR_PRODUCTO_ADAPTER)
-    private readonly fidelizarProductoAdapter: FidelizarProductoPlexAdapater,
+    private readonly fidelizarProductoAdapter: FidelizarProductoPlexAdapter,
     @Inject(IntegracionMovimientoService)
     private readonly integracionMovimientoService: IntegracionMovimientoService,
     private readonly transactionalRunner: TransactionalRunner,
