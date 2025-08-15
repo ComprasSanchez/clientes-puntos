@@ -45,6 +45,11 @@ export class DevolucionUseCase {
       referencia: referenciaVO,
       operacionId: operacionIdVO,
       codSucursal: input.codSucursal,
+      productos: input.productos?.map((p) => ({
+        codExt: p.codExt,
+        cantidad: Math.max(1, Number(p.cantidad ?? 1)),
+        precio: Number(p.precio ?? 0),
+      })),
     };
 
     // 3️⃣ Delegar al service
