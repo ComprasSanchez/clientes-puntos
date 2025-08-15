@@ -14,13 +14,13 @@ export interface PlexFidelizarVentaFXPParsed {
       FechaComprobante?: string;
       Productos?:
         | Array<{
-            IdProducto?: string;
+            IdProducto?: number;
             Cantidad?: string | number;
             Precio?: string | number;
             IdComprobanteRef?: string;
           }>
         | {
-            IdProducto?: string;
+            IdProducto?: number;
             Cantidad?: string | number;
             Precio?: string | number;
             IdComprobanteRef?: string;

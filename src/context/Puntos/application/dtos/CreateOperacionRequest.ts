@@ -33,7 +33,7 @@ export interface CreateOperacionRequest {
   codSucursal?: string;
 
   productos?: Array<{
-    codExt: string | number;
+    codExt: number;
     cantidad: number;
     precio: number; // importe unitario (misma moneda que `moneda`)
   }>;

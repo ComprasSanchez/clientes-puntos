@@ -20,6 +20,7 @@ export class OperacionFactory {
       req.referencia ?? undefined,
       req.operacionId ?? undefined,
       req.codSucursal ?? undefined,
+      req.productos,
     );
   }
 }

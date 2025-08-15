@@ -1,7 +1,7 @@
 import { PlexFidelizarVentaFXPParsed } from '../interfaces/fidelizar-venta-parsed.interface';
 
 type ProductoParsed = {
-  IdProducto?: string;
+  IdProducto?: number;
   Cantidad?: string | number;
   Precio?: string | number;
   IdComprobanteRef?: string;
@@ -18,7 +18,7 @@ export class PlexFidelizarVentaRequestDto {
   nroComprobante: string;
   fechaComprobante: string;
   productos: Array<{
-    idProducto: string;
+    idProducto: number;
     cantidad: number;
     precio: number;
     idComprobanteRef?: string;
@@ -61,7 +61,7 @@ export class PlexFidelizarVentaRequestDto {
         ? String(venta.FechaComprobante).trim()
         : '',
       productos: productosArr.map((p) => ({
-        idProducto: p.IdProducto ? String(p.IdProducto).trim() : '',
+        idProducto: p.IdProducto!,
         cantidad: safeNumber(p.Cantidad),
         precio: safeNumber(p.Precio),
         idComprobanteRef: p.IdComprobanteRef
