@@ -1,7 +1,8 @@
 import { TipoRegla } from '../enums/TipoRegla';
 import { ConversionRuleDTO } from './ConversionRuleDTO';
+import { ProductoRuleDTO } from './ProductoRuleDTO';
 
-export type ReglaDTO = ConversionRuleDTO;
+export type ReglaDTO = ConversionRuleDTO | ProductoRuleDTO;
 
 export interface BaseReglaDTO {
   tipo: { value: TipoRegla };

@@ -15,6 +15,7 @@ import { CantidadPuntos } from '../../core/value-objects/CantidadPuntos';
 import { MontoMoneda } from '../../core/value-objects/MontoMoneda';
 import { Moneda } from '../../core/value-objects/Moneda';
 import { ReferenciaMovimiento } from '../../core/value-objects/ReferenciaMovimiento';
+import { DecimalToNumberTransformer } from '@shared/infrastructure/transformers/decimal-to-number.transformer';
 
 @Entity({ name: 'operaciones' })
 export class OperacionEntity {
@@ -36,7 +37,10 @@ export class OperacionEntity {
   @Column('int', { nullable: true })
   puntos: number | null;
 
-  @Column('numeric', { nullable: true })
+  @Column('numeric', {
+    nullable: true,
+    transformer: DecimalToNumberTransformer,
+  })
   monto: number | null;
 
   @Column({

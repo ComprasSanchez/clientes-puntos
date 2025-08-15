@@ -7,20 +7,14 @@ import {
 } from '../interfaces/IReglaEngine';
 
 export class RuleProcessor {
-  /**
-   * Dada una lista pre-filtrada de Reglas, aplica cada una en orden (por prioridad),
-   * acumula débitos/crédito y detiene si es excluyente.
-   */
   public process(
     rules: Regla[],
     context: ReglaEngineRequest,
   ): ReglaEngineResult {
-    // 1. Ordenar
     const sorted = [...rules].sort(
       (a, b) => a.prioridad.value - b.prioridad.value,
     );
 
-    // 2. Aplicar y acumular
     const resultado: ReglaEngineResult = {
       debitAmount: 0,
       reglasAplicadas: {},
@@ -29,22 +23,48 @@ export class RuleProcessor {
     for (const regla of sorted) {
       const parcial = regla.apply(context);
 
-      const tipo = regla.tipo;
-      const reglaInfo = { id: regla.id.value, nombre: regla.nombre.value };
+      const huboDebito = (parcial.debitAmount ?? 0) > 0;
+      const huboCredito =
+        !!parcial.credito && (parcial.credito.cantidad ?? 0) > 0;
+      const huboEfecto = huboDebito || huboCredito;
 
-      if (!resultado.reglasAplicadas[tipo.value]) {
-        resultado.reglasAplicadas[tipo.value] = [];
-      }
-      resultado.reglasAplicadas[tipo.value].push(reglaInfo);
-
-      if (parcial.debitAmount) {
+      // Acumular débitos
+      if (huboDebito) {
         resultado.debitAmount += parcial.debitAmount;
       }
-      if (parcial.credito && !resultado.credito) {
-        resultado.credito = parcial.credito;
+
+      // ⬅️ Acumular créditos (sumar cantidades y elegir expiración más próxima)
+      if (huboCredito) {
+        const anterior = resultado.credito;
+        const nuevaCantidad =
+          (anterior?.cantidad ?? 0) + (parcial.credito!.cantidad ?? 0);
+
+        let expiraEn: Date | undefined =
+          anterior?.expiraEn ?? parcial.credito!.expiraEn;
+        if (anterior?.expiraEn && parcial.credito!.expiraEn) {
+          expiraEn = new Date(
+            Math.min(
+              anterior.expiraEn.getTime(),
+              parcial.credito!.expiraEn.getTime(),
+            ),
+          );
+        }
+
+        resultado.credito = { cantidad: nuevaCantidad, expiraEn };
       }
 
-      if (regla.excluyente.value) {
+      // Registrar regla aplicada solo si produjo efecto
+      if (huboEfecto) {
+        const tipo = regla.tipo;
+        const reglaInfo = { id: regla.id.value, nombre: regla.nombre.value };
+        if (!resultado.reglasAplicadas[tipo.value]) {
+          resultado.reglasAplicadas[tipo.value] = [];
+        }
+        resultado.reglasAplicadas[tipo.value].push(reglaInfo);
+      }
+
+      // Cortar solo si es excluyente y hubo efecto
+      if (regla.excluyente.value && huboEfecto) {
         break;
       }
     }
