@@ -1,3 +1,4 @@
+// @puntos/infrastructure/typeorm/entities/Operacion.entity.ts
 import { OpTipo } from '@shared/core/enums/OpTipo';
 import { TipoMoneda } from '@shared/core/enums/TipoMoneda';
 import {
@@ -16,6 +17,13 @@ import { MontoMoneda } from '../../core/value-objects/MontoMoneda';
 import { Moneda } from '../../core/value-objects/Moneda';
 import { ReferenciaMovimiento } from '../../core/value-objects/ReferenciaMovimiento';
 import { DecimalToNumberTransformer } from '@shared/infrastructure/transformers/decimal-to-number.transformer';
+
+// 🔹 shape JSON que se guarda en DB
+export interface CarritoDbItem {
+  codExt: number;
+  cantidad: number;
+  precio: number; // unitario en la misma moneda de la operación
+}
 
 @Entity({ name: 'operaciones' })
 export class OperacionEntity {
@@ -60,6 +68,10 @@ export class OperacionEntity {
   @Column('varchar', { nullable: true })
   codSucursal: string | null;
 
+  // 🔹 NUEVO: carrito JSONB
+  @Column('jsonb', { nullable: true })
+  items: CarritoDbItem[] | null;
+
   @CreateDateColumn()
   createdAt: Date;
 
@@ -67,6 +79,14 @@ export class OperacionEntity {
   updatedAt: Date;
 
   toDomain(): Operacion {
+    // map JSON → dominio (mantener números seguros)
+    const items =
+      this.items?.map((i) => ({
+        codExt: i.codExt,
+        cantidad: Math.max(1, Number(i.cantidad ?? 1)),
+        precio: Number(i.precio ?? 0),
+      })) ?? undefined;
+
     return new Operacion(
       OperacionId.instance(this.id),
       this.clienteId,
@@ -82,7 +102,9 @@ export class OperacionEntity {
       this.refAnulacion !== null
         ? OperacionId.instance(this.refAnulacion)
         : undefined,
-      this.codSucursal !== null ? this.codSucursal : undefined,
+      this.codSucursal ?? undefined,
+      // 🔹 pasar carrito al dominio (último parámetro del ctor)
+      items,
     );
   }
 
@@ -99,6 +121,15 @@ export class OperacionEntity {
     entity.refOperacion = operacion.refOperacion?.value ?? null;
     entity.refAnulacion = operacion.refAnulacion?.value ?? null;
     entity.codSucursal = operacion.codSucursal ?? null;
+
+    // 🔹 dominio → JSON
+    const items = operacion.items?.map((it) => ({
+      codExt: it.codExt,
+      cantidad: it.cantidad,
+      precio: it.precio,
+    }));
+    entity.items = items && items.length > 0 ? items : null;
+
     return entity;
   }
 }
