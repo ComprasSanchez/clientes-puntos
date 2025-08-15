@@ -1,3 +1,4 @@
+import { BaseProducto } from '../enums/BaseProducto';
 import { TipoEfecto } from '../enums/ProductoEfecto';
 import { BaseReglaDTO } from './ReglaDTO';
 
@@ -7,12 +8,12 @@ export type ProductoEfectoDTO =
   | {
       kind: TipoEfecto.PORCENTAJE;
       porcentaje: number;
-      base?: 'precio' | 'costo';
+      base?: BaseProducto;
     }
   | {
       kind: TipoEfecto.MULTIPLICADOR;
       factor: number;
-      base?: 'precio' | 'costo';
+      base?: BaseProducto;
     }
   | {
       kind: TipoEfecto.ESCALA;

@@ -17,6 +17,8 @@ import { TipoRegla } from '../enums/TipoRegla';
 import { TipoEfecto } from '../enums/ProductoEfecto';
 import { Condition } from '../interfaces/Condition';
 import { ProductoEfectoDTO, ProductoRuleDTO } from '../dto/ProductoRuleDTO';
+import { BaseProducto } from '../enums/BaseProducto';
+import { numberFromMoney } from '../utils/number-helper';
 
 export class ReglaProducto extends Regla {
   constructor(
@@ -45,75 +47,71 @@ export class ReglaProducto extends Regla {
     );
   }
 
+  get efectoVO(): EfectoProducto {
+    return this.efecto;
+  }
+
   protected applyIfTrue(ctx: ReglaEngineRequest): ReglaEngineResult {
-    // Validaciones mínimas del contexto
-    if (!ctx.producto) return { debitAmount: 0, reglasAplicadas: {} };
+    const lineas = Array.isArray(ctx.productos) ? ctx.productos : [];
+    if (lineas.length === 0) return { debitAmount: 0, reglasAplicadas: {} };
 
-    const cantidad = Math.max(1, ctx.cantidad ?? 1);
-    const baseSel =
-      this.efecto.kind === TipoEfecto.PORCENTAJE ||
-      this.efecto.kind === TipoEfecto.MULTIPLICADOR
-        ? (this.efecto.base ?? ctx.usarBase ?? 'precio')
-        : (ctx.usarBase ?? 'precio');
+    let puntosTotal = 0;
 
-    const baseVO =
-      baseSel === 'precio' ? ctx.producto.precio : ctx.producto.costo;
-    const baseNumber =
-      typeof baseVO === 'object' &&
-      baseVO !== null &&
-      'amount' in baseVO &&
-      typeof (baseVO as { amount: unknown }).amount === 'number'
-        ? (baseVO as { amount: number }).amount
-        : Number(baseVO);
+    for (const linea of lineas) {
+      const cantidad = Math.max(1, linea.cantidad ?? 1);
 
-    let puntos = 0;
+      const baseSel =
+        this.efecto.kind === TipoEfecto.PORCENTAJE ||
+        this.efecto.kind === TipoEfecto.MULTIPLICADOR
+          ? (this.efecto.base ??
+            (linea.usarBase as BaseProducto) ??
+            BaseProducto.COSTO)
+          : ((linea.usarBase as BaseProducto) ?? BaseProducto.PRECIO);
 
-    switch (this.efecto.kind) {
-      case TipoEfecto.FIJO:
-        puntos = this.efecto.puntos;
-        break;
+      const baseNumber =
+        baseSel === BaseProducto.PRECIO
+          ? numberFromMoney(linea.precio)
+          : numberFromMoney(linea.costo);
 
-      case TipoEfecto.PORCENTAJE:
-        puntos = (baseNumber * this.efecto.porcentaje) / 100;
-        break;
+      let puntos = 0;
 
-      case TipoEfecto.MULTIPLICADOR:
-        puntos = baseNumber * this.efecto.factor;
-        break;
-
-      case TipoEfecto.ESCALA: {
-        const tramo = this.efecto.tramos.find(
-          (t) => cantidad >= t.min && (t.max == null || cantidad <= t.max),
-        );
-        puntos = tramo ? tramo.puntos : 0;
-        break;
+      switch (this.efecto.kind) {
+        case TipoEfecto.FIJO:
+          puntos = this.efecto.puntos;
+          break;
+        case TipoEfecto.PORCENTAJE:
+          puntos = (baseNumber * this.efecto.porcentaje) / 100;
+          break;
+        case TipoEfecto.MULTIPLICADOR:
+          puntos = baseNumber * this.efecto.factor;
+          break;
+        case TipoEfecto.ESCALA: {
+          const tramo = this.efecto.tramos.find(
+            (t) => cantidad >= t.min && (t.max == null || cantidad <= t.max),
+          );
+          puntos = tramo ? tramo.puntos : 0;
+          break;
+        }
+        case TipoEfecto.TOPE:
+          puntos = 0; // se aplica post total
+          break;
       }
 
-      case TipoEfecto.TOPE:
-        // sin cálculo previo, tope solo recorta: lo dejamos en 0 aquí; el tope lo aplicamos como post-proceso si corresponde
-        puntos = 0;
-        break;
+      if (this.efecto.kind !== TipoEfecto.ESCALA) puntos *= cantidad;
+      puntosTotal += Math.max(0, puntos);
     }
 
-    // Por unidad * cantidad (si tu política lo requiere)
-    // Si querés que 'EscalaCantidad' ya incluya el total por tramo, omití este multiplicador:
-    if (this.efecto.kind !== TipoEfecto.ESCALA) {
-      puntos = puntos * cantidad;
-    }
-
-    // Post-proceso de tope (si esta misma regla define tope)
     if (this.efecto.kind === TipoEfecto.TOPE) {
       const { min, max } = this.efecto;
-      if (min != null) puntos = Math.max(puntos, min);
-      if (max != null) puntos = Math.min(puntos, max);
+      if (min != null) puntosTotal = Math.max(puntosTotal, min);
+      if (max != null) puntosTotal = Math.min(puntosTotal, max);
     }
 
-    if (puntos <= 0) return { debitAmount: 0, reglasAplicadas: {} };
+    if (puntosTotal <= 0) return { debitAmount: 0, reglasAplicadas: {} };
 
-    // NOTA: en tu engine, REGISTRA por tipo. Acá devolvemos la huella de esta regla.
     return {
-      debitAmount: 0, // es acreditación, no débito
-      credito: { cantidad: Math.round(puntos) }, // redondeo simple; si tenés política global, hacelo en un servicio
+      debitAmount: 0,
+      credito: { cantidad: Math.round(puntosTotal) },
       reglasAplicadas: {
         [this.tipo.value]: [{ id: this.id.value, nombre: this.nombre.value }],
       },
@@ -205,7 +203,7 @@ export class ReglaProducto extends Regla {
           value: {
             kind: TipoEfecto.PORCENTAJE,
             porcentaje: efecto.porcentaje,
-            base: efecto.base ?? 'precio',
+            base: efecto.base ?? BaseProducto.PRECIO,
           },
         };
 
@@ -214,7 +212,7 @@ export class ReglaProducto extends Regla {
           value: {
             kind: TipoEfecto.MULTIPLICADOR,
             factor: efecto.factor,
-            base: efecto.base ?? 'precio',
+            base: efecto.base ?? BaseProducto.PRECIO,
           },
         };
 

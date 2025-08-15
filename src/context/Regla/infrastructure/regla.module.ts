@@ -34,10 +34,15 @@ import { ReglaFindCotizacion } from '@regla/application/use-cases/ReglaFindCotiz
 import { ReglaFactory } from '@regla/core/factories/ReglaFactory';
 import { RulesQueryService } from '@regla/application/services/RulesQueryService';
 import { RulesCacheModule } from '@infrastructure/cache/rules-cache/rules-cache.module';
+import { ProductoRuleEntity } from './entities/rule-producto.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([ReglaEntity, ConversionRuleEntity]),
+    TypeOrmModule.forFeature([
+      ReglaEntity,
+      ConversionRuleEntity,
+      ProductoRuleEntity,
+    ]),
     DatabaseModule,
     ReglaPersistenceModule,
     RulesCacheModule,

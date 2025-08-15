@@ -1,3 +1,4 @@
+// @regla/application/use-cases/ExecuteRulesUseCase.ts
 import { OpTipo } from '@shared/core/enums/OpTipo';
 import { ReglaEngineRequest } from '../../../core/interfaces/IReglaEngine';
 import { CantidadPuntos } from '../../../core/value-objects/CantidadPuntos';
@@ -7,12 +8,22 @@ import { MontoMoneda } from '../../../core/value-objects/MontoMoneda';
 import { ExecuteRulesRequestDto } from '../../dtos/RunRuleRequest.dto';
 import { ExecuteRulesResponseDto } from '../../dtos/RunRuleResponse.dto';
 import { RulesOrchestrationService } from '../../services/RuleOrchestationService';
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, BadRequestException } from '@nestjs/common';
 import { RULE_ORCHESTATION_SERVICE } from '@regla/core/tokens/tokens';
 
-/**
- * Caso de uso: mapea DTO, llama al servicio de orquestación y mapea resultado.
- */
+function safeNumber(n: unknown, fallback = 0): number {
+  const num = typeof n === 'number' ? n : Number(n);
+  return Number.isFinite(num) ? num : fallback;
+}
+
+function parseOpTipo(value: string): OpTipo {
+  // Ajustá según tus valores reales de OpTipo
+  const v = String(value).toUpperCase();
+  if (v in OpTipo) return OpTipo[v as keyof typeof OpTipo] as OpTipo;
+  // Si tus enums son numéricos o distintos, adaptá esta lógica.
+  throw new BadRequestException(`Tipo de operación inválido: ${value}`);
+}
+
 @Injectable()
 export class ExecuteRulesUseCase {
   constructor(
@@ -23,23 +34,58 @@ export class ExecuteRulesUseCase {
   public async execute(
     dto: ExecuteRulesRequestDto,
   ): Promise<ExecuteRulesResponseDto> {
-    // Mapear DTO → contexto dominio
+    // fecha segura (Date | string ISO)
+    const fechaJs = dto.fecha instanceof Date ? dto.fecha : new Date(dto.fecha);
+
+    // tipo seguro
+    const tipo = parseOpTipo(dto.tipo);
+
+    // moneda (si viene), normalizada opcionalmente
+    const moneda = dto.moneda
+      ? Moneda.create(dto.moneda.toUpperCase())
+      : undefined;
+
+    // map carrito (opcional)
+    const productosMapped = dto.productos?.map((i) => ({
+      productoId: i.productoId,
+      codExt: i.codExt,
+      nombre: i.nombre,
+      cantidad: Math.max(1, safeNumber(i.cantidad, 1)),
+      precio: {
+        amount: safeNumber(i.precio?.amount, 0),
+        currency: i.precio?.currency?.toUpperCase(),
+      },
+      costo: {
+        amount: safeNumber(i.costo?.amount, 0),
+        currency: i.costo?.currency?.toUpperCase(),
+      },
+      usarBase: i.usarBase, // 'precio' | 'costo'
+      clasificadores: i.clasificadores,
+      tags: i.tags,
+    }));
+
     const context: ReglaEngineRequest = {
       clienteId: dto.clienteId,
-      tipo: dto.tipo as OpTipo,
-      fecha: new FechaOperacion(dto.fecha),
-      puntosSolicitados: dto.puntosSolicitados
-        ? new CantidadPuntos(dto.puntosSolicitados)
-        : undefined,
-      monto: dto.monto ? new MontoMoneda(dto.monto) : undefined,
-      moneda: dto.moneda ? Moneda.create(dto.moneda) : undefined,
-      saldoActual: new CantidadPuntos(dto.saldoActual),
+      tipo,
+      fecha: new FechaOperacion(fechaJs),
+      puntosSolicitados:
+        dto.puntosSolicitados != null
+          ? new CantidadPuntos(safeNumber(dto.puntosSolicitados, 0))
+          : undefined,
+      monto:
+        dto.monto != null
+          ? new MontoMoneda(safeNumber(dto.monto, 0))
+          : undefined,
+      moneda,
+      saldoActual: new CantidadPuntos(safeNumber(dto.saldoActual, 0)),
+      productos:
+        productosMapped && productosMapped.length > 0
+          ? productosMapped
+          : undefined,
     };
 
-    // Llamar lógica de aplicación
     const result = await this.orchestration.execute(context);
 
-    // Mapear resultado → DTO salida
     const response: ExecuteRulesResponseDto = {
       debitAmount: result.debitAmount,
       credito: result.credito
@@ -48,7 +94,7 @@ export class ExecuteRulesUseCase {
             expiraEn: result.credito.expiraEn,
           }
         : undefined,
-      reglasAplicadas: result.reglasAplicadas || [], // Asegurarse de que siempre sea un array
+      reglasAplicadas: result.reglasAplicadas || {},
     };
     return response;
   }

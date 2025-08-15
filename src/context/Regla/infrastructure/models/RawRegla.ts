@@ -13,5 +13,5 @@ export interface RawRegla {
   rateAccred?: number;
   rateSpend?: number;
   creditExpiryDays?: number;
-  // …otros campos según reglas…
+  efecto?: string;
 }

@@ -1,3 +1,4 @@
+import { ReglaProducto } from '@regla/core/entities/ProductoRule';
 import { ConversionRule } from '../../core/entities/ConversionRule';
 import { Regla } from '../../core/entities/Regla';
 import { TipoRegla } from '../../core/enums/TipoRegla';
@@ -12,6 +13,7 @@ import { ReglaTipo } from '../../core/value-objects/ReglaTipo';
 import { ReglaVigenciaFin } from '../../core/value-objects/ReglaVigenciaFin';
 import { ReglaVigenciaInicio } from '../../core/value-objects/ReglaVigenciaInicio';
 import { RawRegla } from '../models/RawRegla';
+import { toEfectoProducto } from '../helpers/efecto-producto-type-safe';
 
 export class ReglaFactory {
   static create(raw: RawRegla): Regla {
@@ -45,7 +47,20 @@ export class ReglaFactory {
           new RatioConversion(raw.rateSpend!),
           new DiasExpiracion(raw.creditExpiryDays!),
         );
-      // case 'otroTipo': …
+      case TipoRegla.PRODUCTO: {
+        const efecto = toEfectoProducto(raw.efecto);
+        return new ReglaProducto(
+          id,
+          nombre,
+          prioridad,
+          activa,
+          excluyente,
+          vigInicio,
+          vigFin,
+          descripcion,
+          efecto,
+        );
+      }
       default:
         throw new Error(`Tipo de regla desconocido: ${tipo.value}`);
     }

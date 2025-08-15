@@ -17,8 +17,8 @@ export class ReglaEngineAdapter implements RuleEngineContract {
   async procesar(
     req: ExecuteRulesRequestDto,
   ): Promise<ExecuteRulesResponseDto> {
-    // Mapear domain → DTO de input
-    const inputDto = {
+    // ⚙️ Mapear dominio → DTO de input (con soporte de carrito)
+    const inputDto: ExecuteRulesRequestDto = {
       clienteId: req.clienteId,
       tipo: req.tipo,
       fecha: req.fecha,
@@ -26,18 +26,45 @@ export class ReglaEngineAdapter implements RuleEngineContract {
       monto: req.monto,
       moneda: req.moneda,
       saldoActual: req.saldoActual,
+
+      // 🔹 productos es opcional; si viene, normalizamos
+      productos: req.productos?.map((i) => ({
+        productoId: i.productoId,
+        codExt: i.codExt,
+        nombre: i.nombre,
+        cantidad: Math.max(1, i.cantidad ?? 1),
+        precio: {
+          amount: Number(i.precio?.amount ?? 0),
+          currency: i.precio?.currency,
+        },
+        costo: {
+          amount: Number(i.costo?.amount ?? 0),
+          currency: i.costo?.currency,
+        },
+        usarBase: i.usarBase, // 'precio' | 'costo'
+        clasificadores: i.clasificadores?.map((c) => ({
+          type: c.type,
+          id: c.id,
+        })),
+        tags: i.tags,
+      })),
     };
+
     const respDto = await this.useCase.execute(inputDto);
-    // Mapear DTO de salida → dominio
+
+    // 🔁 DTO salida → contrato
     return {
       debitAmount: respDto.debitAmount,
-      credito: respDto.credito && {
-        cantidad: respDto.credito.cantidad,
-        expiraEn: respDto.credito.expiraEn
-          ? new Date(respDto.credito.expiraEn)
-          : undefined,
-      },
-      reglasAplicadas: respDto.reglasAplicadas || {}, // Asegurarse de que siempre sea un objeto
+      credito: respDto.credito
+        ? {
+            cantidad: respDto.credito.cantidad,
+            expiraEn: respDto.credito.expiraEn
+              ? new Date(respDto.credito.expiraEn)
+              : undefined,
+          }
+        : undefined,
+      // aseguramos objeto y no array
+      reglasAplicadas: respDto.reglasAplicadas ?? {},
     };
   }
 }
