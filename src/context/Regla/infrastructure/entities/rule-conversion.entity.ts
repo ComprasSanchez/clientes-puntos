@@ -23,7 +23,7 @@ export class ConversionRuleEntity extends ReglaEntity {
     nullable: true,
     transformer: ConversionConfigTransformer,
   })
-  config?: ConversionConfig;
+  config!: ConversionConfig;
 
   /**
    * Mapea la entidad a la regla de dominio.
@@ -38,10 +38,10 @@ export class ConversionRuleEntity extends ReglaEntity {
       new ReglaVigenciaInicio(this.vigenciaInicio),
       this.vigenciaFin ? new ReglaVigenciaFin(this.vigenciaFin) : undefined,
       this.descripcion ? new ReglaDescripcion(this.descripcion) : undefined,
-      this.config!.rateAccred,
-      this.config!.rateSpend,
-      this.config!.creditExpiryDays
-        ? new DiasExpiracion(this.config!.creditExpiryDays.value)
+      this.config.rateAccred,
+      this.config.rateSpend,
+      this.config.creditExpiryDays
+        ? new DiasExpiracion(this.config.creditExpiryDays.value)
         : undefined,
     );
   }

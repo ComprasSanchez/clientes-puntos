@@ -16,7 +16,7 @@ import { EfectoProductoTransformer } from '../transformers/EfectoProductoTransfo
 @ChildEntity('PRODUCTO')
 export class ProductoRuleEntity extends ReglaEntity {
   @Column('jsonb', { transformer: EfectoProductoTransformer })
-  efecto!: EfectoProducto;
+  config!: EfectoProducto;
 
   toDomain(): ReglaProducto {
     return new ReglaProducto(
@@ -28,7 +28,7 @@ export class ProductoRuleEntity extends ReglaEntity {
       new ReglaVigenciaInicio(this.vigenciaInicio),
       this.vigenciaFin ? new ReglaVigenciaFin(this.vigenciaFin) : undefined,
       this.descripcion ? new ReglaDescripcion(this.descripcion) : undefined,
-      this.efecto,
+      this.config,
       undefined, // condition si luego persistís targeting
     );
   }
@@ -44,7 +44,7 @@ export class ProductoRuleEntity extends ReglaEntity {
     e.vigenciaInicio = domain.vigenciaInicio.value;
     e.vigenciaFin = domain.vigenciaFin?.value;
     e.descripcion = domain.descripcion?.value;
-    e.efecto = domain.efectoVO;
+    e.config = domain.efectoVO;
     return e;
   }
 }
