@@ -12,4 +12,5 @@ export interface OperacionPrimitives {
   _refOperacion?: string | null;
   _refAnulacion?: number | null;
   _codSucursal?: string;
+  _items?: Array<{ codExt: number; cantidad: number; precio: number }>;
 }

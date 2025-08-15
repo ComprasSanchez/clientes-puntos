@@ -31,4 +31,10 @@ export interface CreateOperacionRequest {
   operacionId?: OperacionId;
 
   codSucursal?: string;
+
+  productos?: Array<{
+    codExt: string | number;
+    cantidad: number;
+    precio: number; // importe unitario (misma moneda que `moneda`)
+  }>;
 }

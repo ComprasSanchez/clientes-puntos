@@ -47,6 +47,11 @@ export class FidelizarVentaPlexAdapter {
     // 2.1 Validar cliente
     const cliente = await this.cliente.run(plexDto.nroTarjeta.toString());
 
+    const n = (x: unknown, fb = 0) => {
+      const v = typeof x === 'number' ? x : Number(x);
+      return Number.isFinite(v) ? v : fb;
+    };
+
     // 3. Mapeo a dominio
     const domainRequest = {
       clienteId: cliente.id,
@@ -57,6 +62,13 @@ export class FidelizarVentaPlexAdapter {
       referencia: plexDto.nroComprobante,
       refOperacion: Number(plexDto.idMovimiento),
       codSucursal: sucId,
+      productos: plexDto.productos?.map((p) => ({
+        // idProducto en Plex = codExt para nosotros
+        codExt: p.idProducto,
+        cantidad: Math.max(1, n(p.cantidad, 1)),
+        // precio unitario (si viene total, adaptalo acá)
+        precio: n(p.precio, 0),
+      })),
     };
 
     // 4. Elegir use case según codAccion

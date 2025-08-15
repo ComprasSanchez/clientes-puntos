@@ -43,6 +43,12 @@ export interface CambioOperacion {
   reglasAplicadas: Record<string, Array<{ id: string; nombre: string }>>;
 }
 
+type CarritoItem = {
+  codExt: number;
+  cantidad: number;
+  precio: number;
+};
+
 export class Operacion {
   constructor(
     private readonly _id: OperacionId,
@@ -56,6 +62,7 @@ export class Operacion {
     private readonly _refOperacion?: ReferenciaMovimiento,
     private readonly _refAnulacion?: OperacionId,
     private readonly _codSucursal?: string,
+    private readonly _items?: CarritoItem[],
   ) {
     // ——— Validaciones de invariante ———
     // 1) Debe venir al menos puntos o monto
@@ -113,6 +120,10 @@ export class Operacion {
     return this._codSucursal;
   }
 
+  get items(): ReadonlyArray<CarritoItem> | undefined {
+    return this._items;
+  }
+
   /**
    * Orquesta la petición al motor de reglas y devuelve instrucciones
    * de débito (cantidad total) y crédito (cantidad + expiración).
@@ -121,6 +132,14 @@ export class Operacion {
     saldo: Saldo,
     reglaEngine: IReglaEngine,
   ): Promise<CambioOperacion> {
+    const productos = this._items?.map((it) => ({
+      codExt: it.codExt,
+      cantidad: Math.max(1, it.cantidad),
+      usarBase: 'precio' as const,
+      precio: { amount: it.precio, currency: this._moneda?.value },
+      costo: { amount: 0, currency: this._moneda?.value },
+    }));
+
     const req: ReglaEngineRequest = {
       clienteId: this._clienteId,
       tipo: this._tipo,
@@ -129,6 +148,7 @@ export class Operacion {
       monto: this._monto?.value,
       moneda: this._moneda?.value,
       saldoActual: saldo.getSaldoActual().value,
+      productos,
     };
 
     const result: ReglaEngineResult = await reglaEngine.procesar(req);
@@ -176,6 +196,12 @@ export class Operacion {
       : undefined;
     const codSucursal = obj._codSucursal;
 
+    const items = obj._items?.map((i) => ({
+      codExt: i.codExt,
+      cantidad: Math.max(1, Number(i.cantidad ?? 1)),
+      precio: Number(i.precio ?? 0),
+    }));
+
     return new Operacion(
       id,
       clienteId,
@@ -188,6 +214,7 @@ export class Operacion {
       refOperacion,
       refAnulacion,
       codSucursal,
+      items,
     );
   }
 
@@ -204,6 +231,11 @@ export class Operacion {
       _refOperacion: this._refOperacion?.value,
       _refAnulacion: this._refAnulacion?.value,
       _codSucursal: this._codSucursal,
+      _items: this._items?.map((i) => ({
+        codExt: i.codExt,
+        cantidad: i.cantidad,
+        precio: i.precio,
+      })),
     };
   }
 }

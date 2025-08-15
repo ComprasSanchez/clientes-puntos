@@ -29,7 +29,6 @@ export class ProductoRuleEntity extends ReglaEntity {
       this.vigenciaFin ? new ReglaVigenciaFin(this.vigenciaFin) : undefined,
       this.descripcion ? new ReglaDescripcion(this.descripcion) : undefined,
       this.config,
-      undefined, // condition si luego persistís targeting
     );
   }
 

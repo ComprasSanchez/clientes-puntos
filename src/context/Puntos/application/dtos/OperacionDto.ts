@@ -7,4 +7,9 @@ export interface OperacionDto {
   referencia?: string;
   refOperacion?: number;
   codSucursal?: string;
+  productos?: Array<{
+    codExt: string | number;
+    cantidad: number;
+    precio: number; // importe unitario (misma moneda que `moneda`)
+  }>;
 }
