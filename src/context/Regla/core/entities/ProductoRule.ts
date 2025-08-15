@@ -120,6 +120,62 @@ export class ReglaProducto extends Regla {
     };
   }
 
+  static fromJSON(json: ProductoRuleDTO): ReglaProducto {
+    // Reconstruir el VO de efecto según el tipo
+    const efectoValue = json.efecto.value;
+    let efecto: EfectoProducto;
+
+    switch (efectoValue.kind) {
+      case TipoEfecto.FIJO:
+        efecto = { kind: TipoEfecto.FIJO, puntos: efectoValue.puntos };
+        break;
+      case TipoEfecto.PORCENTAJE:
+        efecto = {
+          kind: TipoEfecto.PORCENTAJE,
+          porcentaje: efectoValue.porcentaje,
+          base: efectoValue.base,
+        };
+        break;
+      case TipoEfecto.MULTIPLICADOR:
+        efecto = {
+          kind: TipoEfecto.MULTIPLICADOR,
+          factor: efectoValue.factor,
+          base: efectoValue.base,
+        };
+        break;
+      case TipoEfecto.ESCALA:
+        efecto = { kind: TipoEfecto.ESCALA, tramos: efectoValue.tramos };
+        break;
+      case TipoEfecto.TOPE:
+        efecto = {
+          kind: TipoEfecto.TOPE,
+          min: efectoValue.min,
+          max: efectoValue.max,
+        };
+        break;
+      default:
+        throw new Error(`Tipo de efecto no soportado`);
+    }
+
+    return new ReglaProducto(
+      new ReglaId(json.id.value),
+      new ReglaNombre(json._nombre.value),
+      new ReglaPrioridad(json._prioridad.value),
+      new ReglaFlag(json._activa.value),
+      new ReglaFlag(json._excluyente.value),
+      new ReglaVigenciaInicio(new Date(json._vigenciaInicio.value)),
+      json._vigenciaFin
+        ? new ReglaVigenciaFin(new Date(json._vigenciaFin.value))
+        : undefined,
+      json._descripcion
+        ? new ReglaDescripcion(json._descripcion.value)
+        : undefined,
+      efecto,
+      // Si tenés `condition` en el DTO, acá deberías reconstruirla también.
+      undefined,
+    );
+  }
+
   toDTO(): ProductoRuleDTO {
     return {
       tipo: { value: this.tipo.value },
