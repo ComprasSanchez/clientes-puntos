@@ -45,11 +45,14 @@ export class OperacionEntity {
   @Column('int', { nullable: true })
   puntos: number | null;
 
-  @Column('numeric', {
+  @Column({
+    type: 'numeric',
+    precision: 14,
+    scale: 2,
     nullable: true,
-    transformer: DecimalToNumberTransformer,
+    transformer: new DecimalToNumberTransformer(), // 👈 instancia, no la clase
   })
-  monto: number | null;
+  monto!: number | null;
 
   @Column({
     type: 'enum',
