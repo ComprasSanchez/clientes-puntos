@@ -14,4 +14,13 @@ export abstract class ProductoRepository {
   }): Promise<{ items: Producto[]; total: number }>;
   abstract findByCodExt(codExt: number): Promise<Producto | null>;
   abstract save(producto: Producto, meta?: { motivo?: string }): Promise<void>;
+
+  // 👇 NUEVO: upsert de maestros de clasificador
+  abstract upsertClasificadoresMasters(
+    items: Array<{
+      tipo: TipoClasificador | number;
+      idClasificador: number;
+      nombre: string;
+    }>,
+  ): Promise<void>;
 }

@@ -99,7 +99,7 @@ export function fromDomain(
   const base: Partial<ProductoEntity> = {
     id: p.id.value,
     // Si **NO** autogenerás cod_ext (Opción A):
-    // cod_ext: p.codExt, // asegurate que p.codExt sea int válido en dominio
+    cod_ext: p.codExt, // asegurate que p.codExt sea int válido en dominio
 
     // Si **SÍ** autogenerás (Opción B), NO seteés cod_ext aquí
     nombre: p.nombre.value,

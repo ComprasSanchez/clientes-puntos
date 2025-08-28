@@ -16,10 +16,15 @@ import { UUIDv4Generator } from '@shared/infrastructure/uuid/UuidV4Generator';
 import { DesactivarProducto } from '../application/use-cases/DesactivarProducto';
 import { ReactivarProducto } from '../application/use-cases/ReactivarProducto';
 import { ActualizarPrecioProducto } from '../application/use-cases/ActualizarPreciosProducto';
+import { ClasificadorEntity } from './entities/Clasificador.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([ProductoEntity, ProductoClasificadorEntity]),
+    TypeOrmModule.forFeature([
+      ProductoEntity,
+      ProductoClasificadorEntity,
+      ClasificadorEntity,
+    ]),
   ],
   controllers: [ProductoController],
   providers: [

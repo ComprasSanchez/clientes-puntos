@@ -1,64 +1,61 @@
-// infrastructure/persistence/typeorm/entities/ProductoClasificadorEntity.ts
+// infrastructure/persistence/typeorm/entities/ProductoClasificador.entity.ts
 import {
   Entity,
   Column,
   PrimaryGeneratedColumn,
   ManyToOne,
   Index,
+  JoinColumn,
 } from 'typeorm';
 import { ClasificadorAsociado } from '../../core/entities/ClasificadorAsociado';
 import { TipoClasificador } from '../../core/enums/TipoClasificador.enum';
 import { ProductoEntity } from './Producto.entity';
+import { ClasificadorEntity } from './Clasificador.entity';
 
-// Entity
 @Entity({ name: 'producto_clasificador' })
 @Index(['productoId', 'tipo', 'idClasificador'], { unique: true })
 export class ProductoClasificadorEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @Column({ name: 'producto_id', type: 'varchar', unique: true })
+  @Column({ name: 'producto_id', type: 'varchar' })
   productoId!: string;
 
   @ManyToOne(() => ProductoEntity, (p) => p.clasificadores, {
     onDelete: 'CASCADE',
   })
+  @JoinColumn({ name: 'producto_id' })
   producto!: ProductoEntity;
 
   @Column({ type: 'int' })
-  tipo!: number; // TipoClasificador
+  tipo!: number;
 
-  @Column({
-    name: 'id_clasificador',
-    type: 'int',
-    unique: true,
-    nullable: false,
-  })
+  @Column({ name: 'id_clasificador', type: 'int' })
   idClasificador!: number;
 
-  @Column({ type: 'varchar', length: 300 })
-  nombre!: string;
+  // Maestro del clasificador (FK compuesta)
+  @ManyToOne(() => ClasificadorEntity, { eager: true, onDelete: 'RESTRICT' })
+  @JoinColumn([
+    { name: 'tipo', referencedColumnName: 'tipo' },
+    { name: 'id_clasificador', referencedColumnName: 'idExterno' },
+  ])
+  clasificador!: ClasificadorEntity;
 }
 
 // ---------------------------
 // Mapping helpers (infra <-> domain)
 // ---------------------------
 
-/** Convierte una fila TypeORM a la entidad de dominio ClasificadorAsociado */
 export function toDomain(
   row: ProductoClasificadorEntity,
 ): ClasificadorAsociado {
   return new ClasificadorAsociado(
     row.tipo as TipoClasificador,
     row.idClasificador,
-    row.nombre ?? '',
+    row.clasificador?.nombre ?? '', // 👈 nombre desde el maestro
   );
 }
 
-/**
- * Convierte un clasificador de dominio a el shape persistible (DeepPartial) de TypeORM.
- * Nota: devolvemos un objeto “partial” que podés pasar a repo.save(...)
- */
 export function fromDomain(
   productoId: string,
   c: ClasificadorAsociado,
@@ -67,6 +64,6 @@ export function fromDomain(
     productoId,
     tipo: Number(c.tipo),
     idClasificador: c.idClasificador,
-    nombre: c.nombre ?? '',
+    // ❌ ya no seteamos 'nombre' aquí (vive en el maestro)
   };
 }

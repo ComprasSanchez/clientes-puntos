@@ -11,6 +11,7 @@ import {
   ProductoClasificadorEntity,
   fromDomain as clasifFromDomain,
 } from '../entities/ProductoClasificador.entity';
+import { ClasificadorEntity } from '../entities/Clasificador.entity'; // 👈 maestro
 import { ProductoRepository } from '../../core/repositories/ProductoRepository';
 import { Producto } from '../../core/entities/Producto';
 import { ProductoId } from '../../core/value-objects/ProductoId';
@@ -23,35 +24,80 @@ export class ProductoTypeOrmRepository implements ProductoRepository {
     private readonly repo: Repository<ProductoEntity>,
     @InjectRepository(ProductoClasificadorEntity)
     private readonly repoClas: Repository<ProductoClasificadorEntity>,
+    @InjectRepository(ClasificadorEntity)
+    private readonly repoClasMaster: Repository<ClasificadorEntity>, // 👈 nuevo
   ) {}
 
-  // --- HELPERS PRIVADOS ---
+  // --- NUEVO ---
+  async upsertClasificadoresMasters(
+    items: Array<{
+      tipo: TipoClasificador | number;
+      idClasificador: number;
+      nombre: string;
+    }>,
+  ): Promise<void> {
+    if (!items?.length) return;
 
+    // dedup por (tipo,idClasificador)
+    const seen = new Set<string>();
+    const payload: Array<{ tipo: number; idExterno: number; nombre: string }> =
+      [];
+    for (const it of items) {
+      const tipo = Number(it.tipo);
+      const idExterno = Number(it.idClasificador);
+      const k = `${tipo}::${idExterno}`;
+      if (seen.has(k)) continue;
+      seen.add(k);
+      payload.push({ tipo, idExterno, nombre: it.nombre ?? '' });
+    }
+    await this.repoClasMaster.upsert(payload, ['tipo', 'idExterno']);
+  }
+
+  // --- HELPERS PRIVADOS ---
   private async syncClasificadores(p: Producto): Promise<void> {
+    // 0) Upsert maestros (tipo,idExterno) con nombre
+    if (p.clasificadores?.length) {
+      const masters = p.clasificadores.map((c) => ({
+        tipo: Number(c.tipo),
+        idClasificador: c.idClasificador,
+        nombre: c.nombre ?? '',
+      }));
+      await this.upsertClasificadoresMasters(masters);
+    }
+
+    // 1) Join actual del producto
     const current = await this.repoClas.find({
       where: { productoId: p.id.value },
     });
 
-    const desiredKeys = new Set(
-      p.clasificadores.map((c) =>
-        key(p.id.value, Number(c.tipo), c.idClasificador),
-      ),
+    // 2) Target join
+    const desired = p.clasificadores.map((c) =>
+      clasifFromDomain(p.id.value, c),
     );
 
-    // borrar los que no están en dominio
-    for (const c of current) {
-      if (!desiredKeys.has(key(c.productoId, c.tipo, c.idClasificador))) {
-        await this.repoClas.delete(c.id);
-      }
-    }
+    const key = (pid: string, tipo: number, idc: number) =>
+      `${pid}::${tipo}::${idc}`;
+    const desiredKeys = new Set(
+      desired.map((e) => key(e.productoId!, e.tipo!, e.idClasificador!)),
+    );
 
-    // upsert los deseados
-    for (const c of p.clasificadores) {
-      await this.repoClas.save(clasifFromDomain(p.id.value, c));
+    // 3) DELETE los que ya no están (si querés mirror exacto)
+    const toDelete = current.filter(
+      (c) => !desiredKeys.has(key(c.productoId, c.tipo, c.idClasificador)),
+    );
+    if (toDelete.length) await this.repoClas.remove(toDelete);
+
+    // 4) UPSERT del join (evita duplicados)
+    if (desired.length) {
+      await this.repoClas.upsert(desired, [
+        'productoId',
+        'tipo',
+        'idClasificador',
+      ]);
     }
   }
 
-  // --- REPO CONTRACT ---
+  // --- CONTRATO ---
 
   async findById(id: ProductoId): Promise<Producto | null> {
     const row = await this.repo.findOne({
@@ -70,13 +116,8 @@ export class ProductoTypeOrmRepository implements ProductoRepository {
   }
 
   async save(producto: Producto): Promise<void> {
-    // Persistir base
     await this.repo.save(productoFromDomain(producto));
-    // Sincronizar clasificadores
     await this.syncClasificadores(producto);
-
-    // Si querés auditar "motivo", este es un buen punto para enviar a un outbox/log.
-    // p.ej.: await this.auditRepo.insert({ productoId: producto.id.value, motivo: meta?.motivo ?? null, ... })
   }
 
   async upsertMany(productos: Producto[]): Promise<void> {
@@ -115,6 +156,3 @@ export class ProductoTypeOrmRepository implements ProductoRepository {
     return { items: rows.map(productoToDomain), total };
   }
 }
-
-const key = (pid: string, tipo: number, idc: number) =>
-  `${pid}::${tipo}::${idc}`;

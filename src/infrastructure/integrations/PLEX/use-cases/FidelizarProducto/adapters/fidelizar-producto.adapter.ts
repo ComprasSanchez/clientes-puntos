@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 // infrastructure/integrations/PLEX/adapters/FidelizarProductoPlexAdapter.ts
 import { Inject, Injectable } from '@nestjs/common';
@@ -12,6 +14,9 @@ import { UpsertProductoPlano } from 'src/context/Producto/core/dtos/UpsertProduc
 import { PlexFidelizarProductoResponseMapper } from '../dto/fideliza-producto-response.dto';
 import { ActualizarPrecioProducto } from 'src/context/Producto/application/use-cases/ActualizarPreciosProducto';
 
+const isFiniteNum = (n: unknown): n is number =>
+  typeof n === 'number' && Number.isFinite(n);
+
 @Injectable()
 export class FidelizarProductoPlexAdapter {
   constructor(
@@ -25,67 +30,86 @@ export class FidelizarProductoPlexAdapter {
   ) {}
 
   async handle(xml: string): Promise<UseCaseResponse> {
-    // 1) Parse XML
-    const parser = new XMLParser({ ignoreAttributes: false, trimValues: true });
-    const parsedObj = parser.parse(xml) as unknown;
+    try {
+      const parser = new XMLParser({
+        ignoreAttributes: false,
+        trimValues: true,
+      });
+      const parsedObj = parser.parse(xml) as unknown;
 
-    // 2) Map a DTO PLEX
-    const dto = PlexFidelizarProductoRequestMapper.fromXml(parsedObj);
+      const dto = PlexFidelizarProductoRequestMapper.fromXml(parsedObj);
 
-    // 3) Ejecutar caso de uso según acción
-    switch (dto.codAccion as codFidelizarProducto) {
-      case codFidelizarProducto.NUEVO:
-      case codFidelizarProducto.EDICION: {
-        // Armamos el input esperado por UpsertProductos
-        const item: UpsertProductoPlano = {
-          idProducto: dto.idProducto,
-          producto: dto.producto ?? '',
-          presentacion: dto.presentacion ?? '',
-          costo: dto.costo ?? 0,
-          precio: dto.precio ?? 0,
-          activa: dto.activa ?? true,
-          clasificadores: (dto.clasificadores ?? []).map((c) => ({
-            ...c,
-            nombre: c.nombre ?? '',
-          })),
-        };
-        await this.upsertProductos.run([item]);
-        break;
+      switch (dto.codAccion.toString() as codFidelizarProducto) {
+        case codFidelizarProducto.NUEVO:
+        case codFidelizarProducto.EDICION: {
+          const items: UpsertProductoPlano[] = dto.productos.map((p) => ({
+            idProducto: p.idProducto,
+            producto: p.producto ?? '',
+            presentacion: p.presentacion ?? '',
+            costo: isFiniteNum(p.costo) ? p.costo : 0,
+            precio: isFiniteNum(p.precio) ? p.precio : 0,
+            activa: p.activa ?? true,
+            clasificadores: (p.clasificadores ?? []).map((c) => ({
+              idTipoClasificador: c.idTipoClasificador,
+              idClasificador: c.idClasificador,
+              nombre: c.nombre ?? '',
+            })),
+          }));
+          await this.upsertProductos.run(items);
+          break;
+        }
+
+        case codFidelizarProducto.BAJA: {
+          for (const p of dto.productos) {
+            await this.desactivarProducto.run(p.idProducto);
+          }
+          break;
+        }
+
+        case codFidelizarProducto.REACTIVACION: {
+          for (const p of dto.productos) {
+            await this.reactivarProducto.run(p.idProducto);
+          }
+          break;
+        }
+
+        case codFidelizarProducto.PRECIOS: {
+          for (const p of dto.productos) {
+            await this.actualizarPrecio.run({
+              codExt: p.idProducto,
+              nuevoPrecio: isFiniteNum(p.precio) ? p.precio : undefined,
+              nuevoCosto: isFiniteNum(p.costo) ? p.costo : undefined,
+            });
+          }
+          break;
+        }
+
+        default:
+          return this.fail(`CodAccion desconocido: ${dto.codAccion}`);
       }
 
-      case codFidelizarProducto.BAJA: {
-        await this.desactivarProducto.run(dto.idProducto);
-        break;
-      }
-
-      case codFidelizarProducto.REACTIVACION: {
-        await this.reactivarProducto.run(dto.idProducto);
-        break;
-      }
-
-      case codFidelizarProducto.PRECIOS: {
-        await this.actualizarPrecio.run({
-          codExt: dto.idProducto,
-          nuevoPrecio: dto.precio,
-          nuevoCosto: dto.costo,
-        });
-        break;
-      }
-
-      default:
-        throw new Error(`CodAccion desconocido: ${dto.codAccion}`);
+      return this.ok('OK');
+    } catch (err: any) {
+      return this.fail(err?.message ?? 'Error inesperado');
     }
+  }
 
-    // 4) Construir response DTO y XML
-    const respDto = {
-      respCode: '0',
-      respMsg: 'OK',
-    };
-
-    const xmlResponseObj = PlexFidelizarProductoResponseMapper.toXml(respDto);
+  private ok(msg: string): UseCaseResponse {
+    const respDto = { respCode: '0', respMsg: msg };
     const builder = new XMLBuilder({ ignoreAttributes: false, format: true });
+    const xmlResponseObj = PlexFidelizarProductoResponseMapper.toXml(respDto);
     const xmlString = builder.build(xmlResponseObj);
+    return {
+      response: `<?xml version="1.0" encoding="utf-8"?>\n${xmlString}`,
+      dto: respDto,
+    };
+  }
 
+  private fail(msg: string): UseCaseResponse {
+    const respDto = { respCode: '1', respMsg: msg };
+    const builder = new XMLBuilder({ ignoreAttributes: false, format: true });
+    const xmlResponseObj = PlexFidelizarProductoResponseMapper.toXml(respDto);
+    const xmlString = builder.build(xmlResponseObj);
     return {
       response: `<?xml version="1.0" encoding="utf-8"?>\n${xmlString}`,
       dto: respDto,
