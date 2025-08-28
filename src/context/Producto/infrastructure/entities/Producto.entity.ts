@@ -18,6 +18,7 @@ import { NombreProducto } from '../../core/value-objects/NombreProducto';
 import { Presentacion } from '../../core/value-objects/Presentacion';
 import { Dinero } from '../../core/value-objects/Dinero';
 import { ClasificadorAsociado } from '../../core/entities/ClasificadorAsociado';
+import { DecimalToNumberTransformer } from '@shared/infrastructure/transformers/decimal-to-number.transformer';
 
 @Entity({ name: 'producto' })
 export class ProductoEntity {
@@ -33,11 +34,23 @@ export class ProductoEntity {
   @Column({ type: 'varchar', length: 200, default: '' })
   presentacion!: string;
 
-  @Column({ type: 'numeric', precision: 14, scale: 2, default: 0 })
-  costo!: string;
+  @Column({
+    type: 'numeric',
+    precision: 14,
+    scale: 2,
+    default: 0,
+    transformer: new DecimalToNumberTransformer(),
+  })
+  costo!: number;
 
-  @Column({ type: 'numeric', precision: 14, scale: 2, default: 0 })
-  precio!: string;
+  @Column({
+    type: 'numeric',
+    precision: 14,
+    scale: 2,
+    default: 0,
+    transformer: new DecimalToNumberTransformer(),
+  })
+  precio!: number;
 
   @Column({ default: true })
   activo!: boolean;
@@ -60,15 +73,18 @@ export class ProductoEntity {
 // Mapping helpers (infra <-> domain)
 // ---------------------------
 
+const asFinite = (n: any, def = 0): number =>
+  typeof n === 'number' && Number.isFinite(n) ? n : def;
+
 /** TypeORM -> Dominio */
 export function toDomain(row: ProductoEntity): Producto {
   return Producto.create({
     id: ProductoId.from(row.id),
-    codExt: row.cod_ext,
+    codExt: row.cod_ext, // si usás autogen, este valor viene de DB
     nombre: NombreProducto.from(row.nombre),
-    presentacion: Presentacion.from(row.presentacion),
-    costo: Dinero.from(Number(row.costo)),
-    precio: Dinero.from(Number(row.precio)),
+    presentacion: Presentacion.from(row.presentacion ?? ''),
+    costo: Dinero.from(asFinite(row.costo, 0)),
+    precio: Dinero.from(asFinite(row.precio, 0)),
     clasificadores: (row.clasificadores ?? []).map(toClasificadorDomain),
     activa: row.activo,
     createdAt: row.createdAt,
@@ -82,11 +98,15 @@ export function fromDomain(
 ): Partial<ProductoEntity> {
   const base: Partial<ProductoEntity> = {
     id: p.id.value,
-    cod_ext: p.codExt,
+    // Si **NO** autogenerás cod_ext (Opción A):
+    // cod_ext: p.codExt, // asegurate que p.codExt sea int válido en dominio
+
+    // Si **SÍ** autogenerás (Opción B), NO seteés cod_ext aquí
     nombre: p.nombre.value,
-    presentacion: p.presentacion.value,
-    costo: String(p.costo.value),
-    precio: String(p.precio.value),
+    presentacion: p.presentacion.value ?? '',
+    costo: p.costo.value, // transformer lo guarda bien
+    precio: p.precio.value, // transformer lo guarda bien
+    activo: p.activo,
   };
 
   if (opts?.includeChildren) {
