@@ -50,9 +50,9 @@ export class OperacionEntity {
     precision: 14,
     scale: 2,
     nullable: true,
-    transformer: new DecimalToNumberTransformer(), // 👈 instancia, no la clase
+    transformer: new DecimalToNumberTransformer(),
   })
-  monto!: number | null;
+  monto!: number;
 
   @Column({
     type: 'enum',
@@ -119,7 +119,7 @@ export class OperacionEntity {
     entity.fecha = operacion.fecha.value;
     entity.origenTipo = operacion.origenTipo.value;
     entity.puntos = operacion.puntos?.value ?? null;
-    entity.monto = operacion.monto?.value ?? null;
+    entity.monto = operacion.monto?.value ?? 0;
     entity.moneda = operacion.moneda?.value ?? null;
     entity.refOperacion = operacion.refOperacion?.value ?? null;
     entity.refAnulacion = operacion.refAnulacion?.value ?? null;
