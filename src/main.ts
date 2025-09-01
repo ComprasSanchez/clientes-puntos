@@ -8,9 +8,6 @@ async function bootstrap() {
     logger: ['error', 'warn', 'log'],
   });
 
-  // 1) Prefijo global para todos los controladores
-  app.setGlobalPrefix('api'); // => /api/cliente, /api/ajuste/acreditar, etc.
-
   // 2) CORS (un poco más permisivo con headers y OPTIONS)
   app.enableCors({
     origin: [
@@ -39,10 +36,10 @@ async function bootstrap() {
     .setVersion('1.0')
     .build();
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api/docs', app, document);
+  SwaggerModule.setup('/docs', app, document);
 
   // 4) Body raw SOLO para XML en el endpoint con prefijo global
-  app.use('/api/onzecrm', express.raw({ type: 'application/xml' }));
+  app.use('/onzecrm', express.raw({ type: 'application/xml' }));
 
   await app.listen(process.env.PORT ?? 3000);
 }
