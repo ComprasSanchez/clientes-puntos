@@ -74,7 +74,7 @@ export class AjusteUseCase {
       })),
     };
 
-    const response = this.service.execute(req, ctx);
+    const response = this.service.execute(req, ctx, tipo);
 
     // Dispara el proceso de métricas en background
     if (
