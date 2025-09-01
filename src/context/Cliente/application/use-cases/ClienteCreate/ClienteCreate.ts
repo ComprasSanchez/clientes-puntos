@@ -24,6 +24,7 @@ import { UUIDGenerator } from '@shared/core/uuid/UuidGenerator';
 import { Cliente } from '@cliente/core/entities/Cliente';
 import { TransactionContext } from '@shared/core/interfaces/TransactionContext';
 import { CategoriaNotFoundError } from '@cliente/core/exceptions/CategoriaNotFoundError';
+import { ClienteIdFidely } from '@cliente/core/value-objects/ClienteIdFidely';
 
 export interface ClienteCreateInput {
   dni: string;
@@ -38,6 +39,7 @@ export interface ClienteCreateInput {
   codPostal?: string;
   localidad?: string;
   provincia?: string;
+  fidely_customerid?: number;
 }
 
 @Injectable()
@@ -80,7 +82,7 @@ export class ClienteCreate {
       status: new ClienteStatus(StatusCliente.Activo),
       categoria: categoria,
       tarjetaFidely: new ClienteTarjetaFidely(newCard),
-      // idFidely: NO SE PASA (queda undefined)
+      idFidely: new ClienteIdFidely(input.fidely_customerid || null),
       email: new ClienteEmail(input.email || null),
       telefono: new ClienteTelefono(input.telefono || null),
       direccion: new ClienteDireccion(input.direccion || null),
