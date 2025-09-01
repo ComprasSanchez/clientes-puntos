@@ -29,7 +29,7 @@ import { CategoriaEntity } from '../../entities/CategoriaEntity';
 export class TypeOrmClienteRepository implements ClienteRepository {
   private readonly ormRepo: Repository<ClienteEntity>;
 
-  constructor(dataSource: DataSource) {
+  constructor(private readonly dataSource: DataSource) {
     this.ormRepo = dataSource.getRepository(ClienteEntity);
   }
 
@@ -71,14 +71,59 @@ export class TypeOrmClienteRepository implements ClienteRepository {
     return count > 0;
   }
 
+  /**
+   * UPSERT por DNI: si no existe -> inserta; si existe -> actualiza campos (sin tocar id/created_at)
+   */
   async create(cliente: Cliente): Promise<void> {
     const entity = this.toEntity(cliente);
-    await this.ormRepo.insert(entity);
+    await this.insertOnConflictUpdateByDni(entity);
   }
 
+  /**
+   * También usamos UPSERT por DNI para que sea idempotente.
+   */
   async update(cliente: Cliente): Promise<void> {
     const entity = this.toEntity(cliente);
-    await this.ormRepo.save(entity);
+    await this.insertOnConflictUpdateByDni(entity);
+  }
+
+  // ---------- helpers ----------
+
+  /**
+   * Implementación de INSERT ... ON CONFLICT ("dni") DO UPDATE SET ...
+   * Actualiza columnas de datos y fuerza updated_at = NOW().
+   * No modifica id ni created_at.
+   */
+  private async insertOnConflictUpdateByDni(
+    entity: ClienteEntity,
+  ): Promise<void> {
+    await this.ormRepo
+      .createQueryBuilder()
+      .insert()
+      .into(ClienteEntity)
+      .values(entity)
+      .onConflict(
+        `
+        ("dni") DO UPDATE SET
+          nombre = EXCLUDED.nombre,
+          apellido = EXCLUDED.apellido,
+          sexo = EXCLUDED.sexo,
+          fec_nacimiento = EXCLUDED.fec_nacimiento,
+          status_cliente = EXCLUDED.status_cliente,
+          categoria_id = EXCLUDED.categoria_id,
+          tarjeta_fidely = EXCLUDED.tarjeta_fidely,
+          id_fidely = EXCLUDED.id_fidely,
+          email = EXCLUDED.email,
+          telefono = EXCLUDED.telefono,
+          direccion = EXCLUDED.direccion,
+          cod_postal = EXCLUDED.cod_postal,
+          localidad = EXCLUDED.localidad,
+          provincia = EXCLUDED.provincia,
+          fecha_baja = EXCLUDED.fecha_baja,
+          updated_at = NOW()
+      `,
+      )
+      .execute();
   }
 
   private toDomain(e: ClienteEntity): Cliente {
@@ -111,7 +156,7 @@ export class TypeOrmClienteRepository implements ClienteRepository {
 
   private toEntity(c: Cliente): ClienteEntity {
     const e = new ClienteEntity();
-    e.id = c.id.value;
+    e.id = c.id.value; // no se modificará en el ON CONFLICT
     e.dni = c.dni.value;
     e.nombre = c.nombre.value;
     e.apellido = c.apellido.value;
