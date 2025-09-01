@@ -70,7 +70,7 @@ export class Operacion {
       throw new MonedaNotFoundError('Puntos - Monto');
     }
     // 2) Si se especifica monto, debe venir moneda
-    if (this._monto?.value !== 0 && !this._moneda) {
+    if (this.monto?.value && this._monto?.value !== 0 && !this._moneda) {
       throw new FieldRequiredError('Moneda');
     }
     // ——————————————————————————
