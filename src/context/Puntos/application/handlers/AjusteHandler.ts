@@ -60,6 +60,10 @@ export class AjusteHandler {
       throw new Error('Tipo de ajuste no soportado');
     }
 
+    if (!total || total.value <= 0) {
+      total = new CantidadPuntos(0);
+    }
+
     // 3) Aplicar ajuste con el monto resuelto
     const { detallesDebito, nuevoLote } = this.saldoHandler.aplicarAjuste(
       saldo,

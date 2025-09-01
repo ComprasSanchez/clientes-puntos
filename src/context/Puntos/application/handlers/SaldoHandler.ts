@@ -64,7 +64,11 @@ export class SaldoHandler {
     ajusteTipo: TxTipo,
     totalDebito: CantidadPuntos,
   ): AplicacionCambioResult {
-    if (!totalDebito || totalDebito.value <= 0) throw new MontoNotFoundError();
+    if (!totalDebito) throw new MontoNotFoundError();
+
+    if (totalDebito.value === 0) {
+      return { detallesDebito: [], nuevoLote: undefined };
+    }
 
     if (ajusteTipo === TxTipo.GASTO) {
       const detallesDebito = this.consumirSiCorresponde(
