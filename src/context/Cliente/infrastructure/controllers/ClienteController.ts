@@ -55,6 +55,7 @@ export class ClienteController {
       sexo: dto.sexo,
       fechaNacimiento: new Date(dto.fechaNacimiento),
       categoria: categoria.id.value,
+      fidely_customerid: dto.idFidely ?? undefined,
       email: dto.email ?? undefined,
       telefono: dto.telefono ?? undefined,
       direccion: dto.direccion ?? undefined,
