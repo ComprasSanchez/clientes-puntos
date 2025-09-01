@@ -310,22 +310,32 @@ export class SaldoHandler {
     saldo: Saldo,
     ctx?: TransactionContext,
   ): Promise<void> {
-    const saldoAnterior = await this.saldoRepo.findByClienteId(
-      operacion.clienteId,
-    );
+    // ✅ tomar clienteId de la operación o, si no viene, del saldo
+    const clienteId = operacion.clienteId;
+    if (!clienteId) {
+      // log explícito para rastrear
+      console.error('[SaldoHandler] clienteId ausente', {
+        operacionId: operacion?.id?.value ?? operacion?.id,
+        tipo: operacion.tipo,
+      });
+      throw new Error('clienteId requerido para persistir saldo/historial');
+    }
+
+    const saldoAnterior = await this.saldoRepo.findByClienteId(clienteId);
     const saldoActual = saldo.getSaldoCalculado().value;
 
-    await this.saldoRepo.updateSaldo(operacion.clienteId, saldoActual, ctx);
+    await this.saldoRepo.updateSaldo(clienteId, saldoActual, ctx);
 
     const historial = new HistorialSaldo(
       undefined,
-      operacion.clienteId,
+      clienteId,
       new CantidadPuntos(saldoAnterior?.value ?? 0),
       new CantidadPuntos(saldoActual),
       operacion.tipo,
       operacion.id,
       new Date(),
     );
+
     await this.saldoRepo.saveHistorial(historial, ctx);
   }
 }
