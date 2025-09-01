@@ -4,34 +4,71 @@ import { MaxLengthRequiredError } from '@shared/core/exceptions/MaxLengthRequire
 import { MinLengthRequiredError } from '@shared/core/exceptions/MinLengthRequiredError';
 
 export class ClienteApellido {
-  value: string;
+  readonly value: string;
 
-  constructor(value: string) {
-    this.value = value.trim();
-    this.validate();
+  // Solo letras (incluye acentos/ñ/ü), espacios, guiones y apóstrofes
+  private static readonly ALLOWED = /^[A-Za-zÁÉÍÓÚÑÜáéíóúñü' -]+$/;
+
+  // Palabras que se mantienen en minúsculas
+  private static readonly LOWER_KEEP = new Set([
+    'de',
+    'del',
+    'la',
+    'las',
+    'los',
+    'y',
+    'da',
+    'di',
+    'do',
+    'du',
+    'van',
+    'von',
+    'san',
+    'santa',
+  ]);
+
+  constructor(raw: string) {
+    const normalized = ClienteApellido.normalize(raw);
+    this.ensureValid(normalized);
+    this.value = normalized;
   }
 
-  private validate() {
-    if (!this.value) {
+  private static normalize(input: string): string {
+    if (!input) return '';
+    // Normaliza unicode, recorta y colapsa espacios
+    let s = input.normalize('NFC').trim().replace(/\s+/g, ' ');
+
+    // Title Case con excepciones; preserva guiones y apóstrofes por sub-partes
+    s = s
+      .split(' ')
+      .map((word) =>
+        word
+          .split(/([-'])/) // mantiene '-' y '\'' como separadores conservados
+          .map((part) => {
+            if (part === '-' || part === "'") return part;
+            const lw = part.toLowerCase();
+            if (ClienteApellido.LOWER_KEEP.has(lw)) return lw;
+            return lw ? lw[0].toUpperCase() + lw.slice(1) : '';
+          })
+          .join(''),
+      )
+      .join(' ');
+
+    return s;
+  }
+
+  private ensureValid(s: string) {
+    if (!s) {
       throw new FieldRequiredError('Apellido');
     }
-
-    // Validar que el nombre tenga al menos 2 caracteres
-    if (this.value.length < 2) {
-      throw new MinLengthRequiredError('Apellido', 2, this.value.length);
+    if (s.length < 2) {
+      throw new MinLengthRequiredError('Apellido', 2, s.length);
     }
-
-    // Validar que el nombre no supere los 50 caracteres
-    if (this.value.length > 50) {
-      throw new MaxLengthRequiredError('Apellido', 50, this.value.length);
+    if (s.length > 50) {
+      throw new MaxLengthRequiredError('Apellido', 50, s.length);
     }
-
-    // Validar que el nombre no contenga números ni caracteres especiales
-    const nombreApellidoRegex =
-      /^[A-ZÁÉÍÓÚÑÜ][a-záéíóúñü]+(?: (?:[A-ZÁÉÍÓÚÑÜ][a-záéíóúñü]+|[a-záéíóúñü]+))*$/;
-
-    if (!nombreApellidoRegex.test(this.value)) {
-      throw new InvalidFormatError(this.value);
+    if (!ClienteApellido.ALLOWED.test(s)) {
+      throw new InvalidFormatError(s);
     }
   }
 }

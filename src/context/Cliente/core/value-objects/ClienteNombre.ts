@@ -3,29 +3,59 @@ import { InvalidFormatError } from '@shared/core/exceptions/InvalidFormatError';
 import { MinLengthRequiredError } from '@shared/core/exceptions/MinLengthRequiredError';
 
 export class ClienteNombre {
-  value: string;
+  readonly value: string;
 
-  constructor(value: string) {
-    this.value = value.trim();
-    this.validate();
+  private static readonly ALLOWED = /^[A-Za-zÁÉÍÓÚÑÜáéíóúñü' -]+$/;
+  private static readonly LOWER_KEEP = new Set([
+    'de',
+    'del',
+    'la',
+    'las',
+    'los',
+    'y',
+    'da',
+    'di',
+    'do',
+    'du',
+    'van',
+    'von',
+    'san',
+    'santa',
+  ]);
+
+  constructor(raw: string) {
+    const normalized = ClienteNombre.normalize(raw);
+    this.ensureValid(normalized);
+    this.value = normalized;
   }
 
-  private validate() {
-    if (!this.value) {
-      throw new FieldRequiredError('Nombre');
-    }
+  private static normalize(input: string): string {
+    if (!input) return '';
+    // Normaliza Unicode y espacios
+    let s = input.normalize('NFC').trim().replace(/\s+/g, ' ');
 
-    // Validar que el nombre tenga al menos 2 caracteres
-    if (this.value.length < 2) {
-      throw new MinLengthRequiredError('Nombre', 2, this.value.length);
-    }
+    // Title Case con excepciones (de/del/la/… en minúsculas)
+    s = s
+      .split(' ')
+      .map((word) =>
+        word
+          .split(/([-'])/) // conserva guiones y apóstrofes
+          .map((part) => {
+            if (part === '-' || part === "'") return part;
+            const lw = part.toLowerCase();
+            if (ClienteNombre.LOWER_KEEP.has(lw)) return lw;
+            return lw ? lw[0].toUpperCase() + lw.slice(1) : '';
+          })
+          .join(''),
+      )
+      .join(' ');
 
-    // Validar que el nombre no contenga números ni caracteres especiales
-    const nombreApellidoRegex =
-      /^(?![A-ZÁÉÍÓÚÑÜ\s]+$)[A-ZÁÉÍÓÚÑÜ][a-záéíóúñü]+(?: [A-ZÁÉÍÓÚÑÜ][a-záéíóúñü]+)*$/;
+    return s;
+  }
 
-    if (!nombreApellidoRegex.test(this.value)) {
-      throw new InvalidFormatError(this.value);
-    }
+  private ensureValid(s: string) {
+    if (!s) throw new FieldRequiredError('Nombre');
+    if (s.length < 2) throw new MinLengthRequiredError('Nombre', 2, s.length);
+    if (!ClienteNombre.ALLOWED.test(s)) throw new InvalidFormatError(s);
   }
 }
