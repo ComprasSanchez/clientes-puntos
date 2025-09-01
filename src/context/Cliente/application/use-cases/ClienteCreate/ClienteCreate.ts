@@ -92,7 +92,7 @@ export class ClienteCreate {
       fechaBaja: new ClienteFechaBaja(null),
     });
     await this.repository.create(cliente, ctx);
-    const result = await this.repository.findById(cliente.id);
+    const result = await this.repository.findByDni(cliente.dni);
     if (!result) {
       throw new Error('Cliente no encontrado después de crear');
     }
