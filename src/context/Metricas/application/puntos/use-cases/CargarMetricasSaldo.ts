@@ -28,7 +28,7 @@ export class CargarMetricasSaldo {
     // 1. Traer todos los saldos actuales
     const saldos = await this.saldoRepo.findAll(); // [{ usuarioId, saldo }]
     // 2. Traer total de usuarios (puede estar en otro repo, adaptalo si hace falta)
-    const totalUsuarios = (await this.clienteRepo.findAll()).length;
+    const totalUsuarios = await this.clienteRepo.countAll();
 
     // 3. Calcular KPIs de saldo
     const metricas = this.calcularMetricasSaldo.run(saldos, totalUsuarios);

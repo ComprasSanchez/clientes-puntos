@@ -31,8 +31,8 @@ export class ClienteEntity {
   @Column({ type: 'char', length: 1 })
   sexo: string;
 
-  @Column({ name: 'fec_nacimiento', type: 'date' })
-  fecNacimiento: Date;
+  @Column({ name: 'fec_nacimiento', type: 'date', nullable: true })
+  fecNacimiento: Date | null;
 
   @Column({
     name: 'status_cliente',

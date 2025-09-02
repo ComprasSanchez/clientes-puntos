@@ -1,5 +1,4 @@
 // @cliente/core/factories/ClienteFactory.ts
-
 import { Cliente } from '../entities/Cliente';
 import { Categoria } from '../entities/Categoria';
 import { ClienteId } from '../value-objects/ClienteId';
@@ -7,83 +6,72 @@ import { ClienteDni } from '../value-objects/ClienteDni';
 import { ClienteNombre } from '../value-objects/ClienteNombre';
 import { ClienteApellido } from '../value-objects/ClienteApellido';
 import { ClienteSexo } from '../value-objects/ClienteSexo';
-import { ClienteFechaNacimiento } from '../value-objects/ClienteFechaNacimiento';
 import { ClienteStatus } from '../value-objects/ClienteStatus';
-import { ClienteIdFidely } from '../value-objects/ClienteIdFidely';
-import { ClienteTarjetaFidely } from '../value-objects/ClienteTarjetaFidely';
-import { ClienteEmail } from '../value-objects/ClienteEmail';
-import { ClienteTelefono } from '../value-objects/ClienteTelefono';
-import { ClienteDireccion } from '../value-objects/ClienteDireccion';
-import { ClienteCodigoPostal } from '../value-objects/ClienteCodPostal';
-import { ClienteLocalidad } from '../value-objects/ClienteLocalidad';
-import { ClienteProvincia } from '../value-objects/ClienteProvincia';
-import { ClienteFechaBaja } from '../value-objects/ClienteFechaBaja';
-import { safeCreate } from '@shared/core/utils/safeCreate';
+import {
+  safeFechaNacimiento,
+  safeEmail,
+  safeTelefono,
+  safeDireccion,
+  safeCodigoPostal,
+  safeLocalidad,
+  safeProvincia,
+  safeIdFidely,
+  safeTarjetaFidely,
+} from './vo-safe';
+import { ClienteFechaNacimiento } from '../value-objects/ClienteFechaNacimiento';
 
-export interface CrearClienteProps {
-  id: ClienteId;
-  dni: ClienteDni;
-  nombre: ClienteNombre;
-  apellido: ClienteApellido;
-  sexo: ClienteSexo;
-  fechaNacimiento: ClienteFechaNacimiento;
-  status: ClienteStatus;
+type ClientePlano = {
+  id: string;
+  dni: string | number;
+  nombre: string;
+  apellido: string;
+  sexo: string;
+  fechaNacimiento?: string | Date | null;
+  status: string | number;
   categoria: Categoria;
-  tarjetaFidely: ClienteTarjetaFidely;
-  idFidely?: ClienteIdFidely;
-  email?: ClienteEmail;
-  telefono?: ClienteTelefono;
-  direccion?: ClienteDireccion;
-  codPostal?: ClienteCodigoPostal;
-  localidad?: ClienteLocalidad;
-  provincia?: ClienteProvincia;
-  fechaBaja?: ClienteFechaBaja;
-}
 
+  idFidely?: string | number | null;
+  tarjetaFidely?: string | number | null;
+
+  email?: string | null;
+  telefono?: string | null;
+  direccion?: string | null;
+  codPostal?: string | number | null;
+  localidad?: string | null;
+  provincia?: string | null;
+};
+
+// @cliente/core/factories/ClienteFactory.ts
 export class ClienteFactory {
-  static crear(props: CrearClienteProps): Cliente {
-    const email = props.email
-      ? safeCreate(() => new ClienteEmail(props.email?.value))
-      : undefined;
-
-    const telefono = props.telefono
-      ? safeCreate(() => new ClienteTelefono(props.telefono?.value))
-      : undefined;
-
-    const direccion = props.direccion
-      ? safeCreate(() => new ClienteDireccion(props.direccion?.value))
-      : undefined;
-
-    const codPostal = props.codPostal
-      ? safeCreate(() => new ClienteCodigoPostal(props.codPostal?.value))
-      : undefined;
-
-    const localidad = props.localidad
-      ? safeCreate(() => new ClienteLocalidad(props.localidad?.value))
-      : undefined;
-
-    const provincia = props.provincia
-      ? safeCreate(() => new ClienteProvincia(props.provincia?.value))
-      : undefined;
-
+  static create(dto: ClientePlano): Cliente {
     return new Cliente(
-      props.id,
-      props.dni,
-      props.nombre,
-      props.apellido,
-      props.sexo,
-      props.fechaNacimiento,
-      props.status,
-      props.categoria,
-      props.tarjetaFidely,
-      props.idFidely,
-      email,
-      telefono,
-      direccion,
-      codPostal,
-      localidad,
-      provincia,
-      props.fechaBaja,
+      // muchos VOs tuyos esperan string → normalizamos
+      new ClienteId(String(dto.id)),
+      new ClienteDni(String(dto.dni)),
+      new ClienteNombre(String(dto.nombre)),
+      new ClienteApellido(String(dto.apellido)),
+      new ClienteSexo(String(dto.sexo)),
+
+      // si tu entidad AÚN NO acepta null en el ctor, usa el fallback:
+      safeFechaNacimiento(dto.fechaNacimiento) ??
+        new ClienteFechaNacimiento(null),
+
+      // si ClienteStatus espera string, normalizá también:
+      new ClienteStatus(String(dto.status)),
+
+      dto.categoria,
+
+      // Tarjeta & Fidely (tus safe ya admiten string|number|null)
+      safeTarjetaFidely(dto.tarjetaFidely),
+      safeIdFidely(dto.idFidely),
+
+      // opcionales
+      safeEmail(dto.email),
+      safeTelefono(dto.telefono),
+      safeDireccion(dto.direccion),
+      safeCodigoPostal(dto.codPostal),
+      safeLocalidad(dto.localidad),
+      safeProvincia(dto.provincia),
     );
   }
 }

@@ -28,7 +28,7 @@ export class Cliente {
   private _nombre: ClienteNombre;
   private _apellido: ClienteApellido;
   private _sexo: ClienteSexo;
-  private _fechaNacimiento: ClienteFechaNacimiento;
+  private _fechaNacimiento: ClienteFechaNacimiento | null;
   private _status: ClienteStatus;
 
   // Se auto-inicializan
@@ -119,7 +119,7 @@ export class Cliente {
   }
 
   /** Retorna el VO ClienteFechaNacimiento */
-  get fechaNacimiento(): ClienteFechaNacimiento {
+  get fechaNacimiento(): ClienteFechaNacimiento | null {
     return this._fechaNacimiento;
   }
 
@@ -199,8 +199,8 @@ export class Cliente {
     this.touch();
   }
 
-  editarFechaNacimiento(nuevaFecha: ClienteFechaNacimiento): void {
-    this._fechaNacimiento = nuevaFecha;
+  editarFechaNacimiento(nuevaFecha: ClienteFechaNacimiento | null): void {
+    this._fechaNacimiento = nuevaFecha; // ← permite limpiar la fecha con null
     this.touch();
   }
 

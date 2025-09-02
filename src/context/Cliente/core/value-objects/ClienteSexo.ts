@@ -16,7 +16,7 @@ export class ClienteSexo {
     }
 
     // Forzar mayúscula por si el caller pasa 'm', 'f' o 'x'
-    const v = this.value.toUpperCase();
+    const v = this.value.normalize('NFC').trim().toUpperCase();
 
     // Validar membresía en el enum Sexo
     if (!Object.values(Sexo).includes(v as Sexo)) {

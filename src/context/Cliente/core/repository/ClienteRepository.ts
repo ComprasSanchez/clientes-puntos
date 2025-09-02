@@ -7,6 +7,7 @@ import { ClienteIdFidely } from '../value-objects/ClienteIdFidely';
 
 export interface ClienteRepository {
   findAll(): Promise<Cliente[]>;
+  countAll(): Promise<number>;
   findById(id: ClienteId): Promise<Cliente | null>;
   findByDni(dni: ClienteDni): Promise<Cliente | null>;
   findByNroTarjeta(nroTarjeta: ClienteTarjetaFidely): Promise<Cliente | null>;

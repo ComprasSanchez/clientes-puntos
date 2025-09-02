@@ -38,6 +38,10 @@ export class TypeOrmClienteRepository implements ClienteRepository {
     return entities.map((e) => this.toDomain(e));
   }
 
+  async countAll(): Promise<number> {
+    return this.ormRepo.count();
+  }
+
   async findById(id: ClienteId): Promise<Cliente | null> {
     const entity = await this.ormRepo.findOne({ where: { id: id.value } });
     return entity ? this.toDomain(entity) : null;
@@ -161,7 +165,7 @@ export class TypeOrmClienteRepository implements ClienteRepository {
     e.nombre = c.nombre.value;
     e.apellido = c.apellido.value;
     e.sexo = c.sexo.value;
-    e.fecNacimiento = c.fechaNacimiento.value;
+    e.fecNacimiento = c.fechaNacimiento ? c.fechaNacimiento.value : null;
     e.status = c.status.value;
     e.categoria = { id: c.categoria.id.value } as CategoriaEntity;
     e.tarjetaFidely = c.fidelyStatus.tarjetaFidely.value;

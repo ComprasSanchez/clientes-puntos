@@ -40,7 +40,6 @@ interface MensajeFidelyGb {
     [key: string]: unknown;
   };
 }
-
 @Controller('onzecrm')
 @Unprotected()
 export class PlexController {

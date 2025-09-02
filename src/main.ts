@@ -2,19 +2,17 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import * as express from 'express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { mergeOnzeInto } from '@infrastructure/integrations/PLEX/docs/onzecrm.openapi';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     logger: ['error', 'warn', 'log'],
   });
 
-  // 2) CORS (un poco más permisivo con headers y OPTIONS)
   app.enableCors({
     origin: [
       'https://clientes-puntos-develop.up.railway.app',
       'http://clientes-puntos-develop.up.railway.app',
-      // podés agregar localhost, etc.
-      // /railway\.app$/  // si querés usar regex
     ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
@@ -27,18 +25,35 @@ async function bootstrap() {
     ],
   });
 
-  // 3) Swagger en /api/docs (no pisa /api/*)
-  const config = new DocumentBuilder()
+  // Swagger GENERAL
+  const cfgGeneral = new DocumentBuilder()
     .setTitle('Puntos FSA - API Docs')
-    .setDescription(
-      'Documentación completa de la API de Sistema de Puntos de Sanchez Antoniolli',
-    )
+    .setDescription('Documentación completa de la API de Sistema de Puntos')
     .setVersion('1.0')
+    .addBearerAuth() // quitalo si no querés mostrar auth en este portal
     .build();
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('/docs', app, document);
 
-  // 4) Body raw SOLO para XML en el endpoint con prefijo global
+  const docGeneral = SwaggerModule.createDocument(app, cfgGeneral);
+  SwaggerModule.setup('/docs', app, docGeneral);
+
+  // Swagger ESPECÍFICO de ONZE (doc separada, sin tocar controller)
+  const cfgOnze = new DocumentBuilder()
+    .setTitle('OnzeCRM Integration')
+    .setDescription('Endpoint XML multipropósito vía CodAccion')
+    .setVersion('1.0.0')
+    .addBearerAuth() // o quitá si el endpoint /onzecrm va público
+    .build();
+
+  // base vacío o con módulos mínimos; acá usamos base “vacío” y luego fusionamos el doc TS
+  const docOnzeBase = SwaggerModule.createDocument(app, cfgOnze, {
+    deepScanRoutes: false, // no escanear decoradores; tomamos todo del doc externo
+    include: [], // opcional; no incluimos módulos para mantenerlo limpio
+  });
+
+  const docOnze = mergeOnzeInto(docOnzeBase);
+  SwaggerModule.setup('/onze/docs', app, docOnze);
+
+  // Body RAW SOLO para XML en /onzecrm
   app.use('/onzecrm', express.raw({ type: 'application/xml' }));
 
   await app.listen(process.env.PORT ?? 3000);
