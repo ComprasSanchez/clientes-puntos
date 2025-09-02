@@ -1,6 +1,29 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 // src/infrastructure/docs/onzecrm.openapi.ts
 import type { OpenAPIObject } from '@nestjs/swagger';
+
+function pickPaths(doc: OpenAPIObject, allow: RegExp[]): OpenAPIObject {
+  const filtered: OpenAPIObject = {
+    ...doc,
+    paths: {},
+    tags: doc.tags?.filter((t) => /onze|xml|plex/i.test(t.name ?? '')),
+  };
+
+  for (const [path, item] of Object.entries(doc.paths ?? {})) {
+    if (allow.some((rx) => rx.test(path))) {
+      (filtered.paths as any)[path] = item;
+    }
+  }
+
+  return filtered;
+}
+
+export function buildOnzeDoc(base: OpenAPIObject): OpenAPIObject {
+  const full = mergeOnzeInto(base);
+  // 🔒 filtrar solo el endpoint xml
+  return pickPaths(full, [/^\/onzecrm(\/.*)?$/]);
+}
 
 export function buildOnzeOpenApi(): Partial<OpenAPIObject> {
   return {

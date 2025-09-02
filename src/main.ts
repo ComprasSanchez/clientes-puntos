@@ -5,7 +5,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import * as express from 'express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { mergeOnzeInto } from '@infrastructure/integrations/PLEX/docs/onzecrm.openapi';
+import { buildOnzeDoc } from '@infrastructure/integrations/PLEX/docs/onzecrm.openapi';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -51,7 +51,7 @@ async function bootstrap() {
     include: [],
   });
 
-  const docOnze = mergeOnzeInto(docOnzeBase);
+  const docOnze = buildOnzeDoc(docOnzeBase);
   SwaggerModule.setup('/onze/docs', app, docOnze);
 
   // === NUEVO: endpoints JSON para ambos
