@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import * as express from 'express';
@@ -36,22 +39,25 @@ async function bootstrap() {
   const docGeneral = SwaggerModule.createDocument(app, cfgGeneral);
   SwaggerModule.setup('/docs', app, docGeneral);
 
-  // Swagger ESPECÍFICO de ONZE (doc separada, sin tocar controller)
   const cfgOnze = new DocumentBuilder()
     .setTitle('OnzeCRM Integration')
     .setDescription('Endpoint XML multipropósito vía CodAccion')
     .setVersion('1.0.0')
-    .addBearerAuth() // o quitá si el endpoint /onzecrm va público
+    .addBearerAuth()
     .build();
 
-  // base vacío o con módulos mínimos; acá usamos base “vacío” y luego fusionamos el doc TS
   const docOnzeBase = SwaggerModule.createDocument(app, cfgOnze, {
-    deepScanRoutes: false, // no escanear decoradores; tomamos todo del doc externo
-    include: [], // opcional; no incluimos módulos para mantenerlo limpio
+    deepScanRoutes: false,
+    include: [],
   });
 
   const docOnze = mergeOnzeInto(docOnzeBase);
   SwaggerModule.setup('/onze/docs', app, docOnze);
+
+  // === NUEVO: endpoints JSON para ambos
+  const http = app.getHttpAdapter();
+  http.get('/docs-json', (_req: any, res: any) => res.json(docGeneral));
+  http.get('/onze/docs-json', (_req: any, res: any) => res.json(docOnze));
 
   // Body RAW SOLO para XML en /onzecrm
   app.use('/onzecrm', express.raw({ type: 'application/xml' }));
