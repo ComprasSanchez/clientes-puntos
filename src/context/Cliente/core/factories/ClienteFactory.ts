@@ -18,6 +18,7 @@ import { ClienteCodigoPostal } from '../value-objects/ClienteCodPostal';
 import { ClienteLocalidad } from '../value-objects/ClienteLocalidad';
 import { ClienteProvincia } from '../value-objects/ClienteProvincia';
 import { ClienteFechaBaja } from '../value-objects/ClienteFechaBaja';
+import { safeCreate } from '@shared/core/utils/safeCreate';
 
 export interface CrearClienteProps {
   id: ClienteId;
@@ -28,8 +29,8 @@ export interface CrearClienteProps {
   fechaNacimiento: ClienteFechaNacimiento;
   status: ClienteStatus;
   categoria: Categoria;
-  tarjetaFidely: ClienteTarjetaFidely; // Opcional
-  idFidely?: ClienteIdFidely; // Opcional
+  tarjetaFidely: ClienteTarjetaFidely;
+  idFidely?: ClienteIdFidely;
   email?: ClienteEmail;
   telefono?: ClienteTelefono;
   direccion?: ClienteDireccion;
@@ -41,6 +42,30 @@ export interface CrearClienteProps {
 
 export class ClienteFactory {
   static crear(props: CrearClienteProps): Cliente {
+    const email = props.email
+      ? safeCreate(() => new ClienteEmail(props.email?.value))
+      : undefined;
+
+    const telefono = props.telefono
+      ? safeCreate(() => new ClienteTelefono(props.telefono?.value))
+      : undefined;
+
+    const direccion = props.direccion
+      ? safeCreate(() => new ClienteDireccion(props.direccion?.value))
+      : undefined;
+
+    const codPostal = props.codPostal
+      ? safeCreate(() => new ClienteCodigoPostal(props.codPostal?.value))
+      : undefined;
+
+    const localidad = props.localidad
+      ? safeCreate(() => new ClienteLocalidad(props.localidad?.value))
+      : undefined;
+
+    const provincia = props.provincia
+      ? safeCreate(() => new ClienteProvincia(props.provincia?.value))
+      : undefined;
+
     return new Cliente(
       props.id,
       props.dni,
@@ -52,12 +77,12 @@ export class ClienteFactory {
       props.categoria,
       props.tarjetaFidely,
       props.idFidely,
-      props.email,
-      props.telefono,
-      props.direccion,
-      props.codPostal,
-      props.localidad,
-      props.provincia,
+      email,
+      telefono,
+      direccion,
+      codPostal,
+      localidad,
+      provincia,
       props.fechaBaja,
     );
   }

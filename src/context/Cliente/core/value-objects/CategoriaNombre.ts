@@ -1,7 +1,6 @@
 import { FieldRequiredError } from '@shared/core/exceptions/FieldRequiredError';
 import { InvalidFormatError } from '@shared/core/exceptions/InvalidFormatError';
 import { MaxLengthRequiredError } from '@shared/core/exceptions/MaxLengthRequiredError';
-import { MinLengthRequiredError } from '@shared/core/exceptions/MinLengthRequiredError';
 
 export class CategoriaNombre {
   value: string;
@@ -14,15 +13,6 @@ export class CategoriaNombre {
   private validate() {
     if (!this.value) {
       throw new FieldRequiredError('Nombre Categoria');
-    }
-
-    // Validar que el nombre tenga al menos 2 caracteres
-    if (this.value.length < 2) {
-      throw new MinLengthRequiredError(
-        'Nombre Categoria',
-        2,
-        this.value.length,
-      );
     }
 
     if (this.value.length > 20) {

@@ -1,6 +1,5 @@
 import { FieldRequiredError } from '@shared/core/exceptions/FieldRequiredError';
 import { InvalidFormatError } from '@shared/core/exceptions/InvalidFormatError';
-import { MinLengthRequiredError } from '@shared/core/exceptions/MinLengthRequiredError';
 
 export class ClienteNombre {
   readonly value: string;
@@ -55,7 +54,6 @@ export class ClienteNombre {
 
   private ensureValid(s: string) {
     if (!s) throw new FieldRequiredError('Nombre');
-    if (s.length < 2) throw new MinLengthRequiredError('Nombre', 2, s.length);
     if (!ClienteNombre.ALLOWED.test(s)) throw new InvalidFormatError(s);
   }
 }
