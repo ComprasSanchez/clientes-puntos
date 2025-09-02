@@ -7,6 +7,7 @@ import {
   UpdateDateColumn,
   ManyToOne,
   JoinColumn,
+  Generated,
 } from 'typeorm';
 import { CategoriaEntity } from './CategoriaEntity';
 import { StatusCliente } from '@cliente/core/enums/StatusCliente';
@@ -61,6 +62,7 @@ export class ClienteEntity {
   provincia: string | null;
 
   @Column({ name: 'id_fidely', type: 'int', nullable: true })
+  @Generated('increment')
   idFidely: number | null;
 
   @Column({
