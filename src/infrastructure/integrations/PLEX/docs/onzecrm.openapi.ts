@@ -28,7 +28,13 @@ export function buildOnzeOpenApi(): Partial<OpenAPIObject> {
             required: true,
             content: {
               'application/xml': {
-                schema: { type: 'string' },
+                // ⬇⬇⬇ FIX: schema como objeto XML con root definido
+                schema: {
+                  type: 'object',
+                  xml: { name: 'MensajeFidelyGb' },
+                  properties: {},
+                  additionalProperties: true,
+                },
                 examples: {
                   // ───────────────────────────────────────────────────────────
                   // Auth (1)
@@ -291,7 +297,13 @@ export function buildOnzeOpenApi(): Partial<OpenAPIObject> {
               description: 'OK',
               content: {
                 'application/xml': {
-                  schema: { type: 'string' },
+                  // ⬇⬇⬇ FIX: schema como objeto XML con root definido
+                  schema: {
+                    type: 'object',
+                    xml: { name: 'RespuestaFidelyGb' },
+                    properties: {},
+                    additionalProperties: true,
+                  },
                   examples: {
                     // ─────────────────────────────────────────────────────────
                     // Auth (1)
@@ -475,7 +487,13 @@ export function buildOnzeOpenApi(): Partial<OpenAPIObject> {
                 'Solicitud inválida (XML mal formado o faltan campos)',
               content: {
                 'application/xml': {
-                  schema: { type: 'string' },
+                  // ⬇⬇⬇ FIX: schema objeto con root
+                  schema: {
+                    type: 'object',
+                    xml: { name: 'RespuestaFidelyGb' },
+                    properties: {},
+                    additionalProperties: true,
+                  },
                   example: `<?xml version="1.0" encoding="utf-8"?>
 <RespuestaFidelyGb>
   <RespCode>1</RespCode>
@@ -489,7 +507,13 @@ export function buildOnzeOpenApi(): Partial<OpenAPIObject> {
               description: 'Credenciales inválidas',
               content: {
                 'application/xml': {
-                  schema: { type: 'string' },
+                  // ⬇⬇⬇ FIX: schema objeto con root
+                  schema: {
+                    type: 'object',
+                    xml: { name: 'RespuestaFidelyGb' },
+                    properties: {},
+                    additionalProperties: true,
+                  },
                   example: `<?xml version="1.0" encoding="utf-8"?>
 <RespuestaFidelyGb>
   <RespCode>1</RespCode>
@@ -503,7 +527,13 @@ export function buildOnzeOpenApi(): Partial<OpenAPIObject> {
               description: 'Error inesperado',
               content: {
                 'application/xml': {
-                  schema: { type: 'string' },
+                  // ⬇⬇⬇ FIX: schema objeto con root
+                  schema: {
+                    type: 'object',
+                    xml: { name: 'RespuestaFidelyGb' },
+                    properties: {},
+                    additionalProperties: true,
+                  },
                   example: `<?xml version="1.0" encoding="utf-8"?>
 <RespuestaFidelyGb>
   <RespCode>1</RespCode>
