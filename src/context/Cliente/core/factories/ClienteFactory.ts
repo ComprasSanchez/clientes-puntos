@@ -43,7 +43,7 @@ type ClientePlano = {
 
 // @cliente/core/factories/ClienteFactory.ts
 export class ClienteFactory {
-  static create(dto: ClientePlano): Cliente {
+  static crear(dto: ClientePlano): Cliente {
     return new Cliente(
       // muchos VOs tuyos esperan string → normalizamos
       new ClienteId(String(dto.id)),

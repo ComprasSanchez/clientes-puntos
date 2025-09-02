@@ -25,9 +25,10 @@ export class ClienteFindById {
       nombre: cliente.nombre.value,
       apellido: cliente.apellido.value,
       sexo: cliente.sexo.value,
-      fechaNacimiento: cliente.fechaNacimiento.value
-        ? cliente.fechaNacimiento.value.toISOString().split('T')[0]
-        : null, // O '', según lo que decidas para el tipo
+      fechaNacimiento:
+        cliente.fechaNacimiento && cliente.fechaNacimiento.value
+          ? cliente.fechaNacimiento.value.toISOString().split('T')[0]
+          : null,
       status: cliente.status.value,
       categoria: cliente.categoria.codExt!,
       email: cliente.email.value,

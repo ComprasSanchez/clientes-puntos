@@ -17,7 +17,7 @@ export class ClienteProfileDto {
   sexo: string;
 
   @ApiProperty({ type: String, example: '1997-11-11' })
-  fechaNacimiento: string;
+  fechaNacimiento: string | null;
 
   @ApiProperty()
   status: string;

@@ -34,7 +34,10 @@ export class ClienteGetProfile {
       nombre: cliente.nombre.value,
       apellido: cliente.apellido.value,
       sexo: cliente.sexo.value,
-      fechaNacimiento: cliente.fechaNacimiento.value.toISOString(),
+      fechaNacimiento:
+        cliente.fechaNacimiento && cliente.fechaNacimiento.value
+          ? cliente.fechaNacimiento.value.toISOString()
+          : null,
       status: cliente.status.value,
       categoria: cliente.categoria.nombre.value,
       email: cliente.email.value,
