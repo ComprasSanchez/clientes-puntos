@@ -1,4 +1,5 @@
-import { Controller, Get, Post, Body, Param } from '@nestjs/common';
+// src/infrastructure/controllers/OperacionController.ts
+import { Controller, Get, Post, Body, Param, UseGuards } from '@nestjs/common';
 import { OperacionResponseDto } from '../dtos/OperacionResponseDto';
 import { OperacionId } from '../../core/value-objects/OperacionId';
 import { FindAllOperacionesUseCase } from '@puntos/application/use-cases/OperacionFindAll/OperacionFindAll';
@@ -11,7 +12,15 @@ import { AnulacionUseCase } from '@puntos/application/use-cases/Anulacion/Anulac
 import { OperacionDto } from '@puntos/application/dtos/OperacionDto';
 import { CreateOperacionResponse } from '@puntos/application/dtos/CreateOperacionResponse';
 import { TransactionalRunner } from '@shared/infrastructure/transaction/TransactionalRunner';
+import { ApiJwtGuard } from '@infrastructure/auth/api-jwt.guard';
+import { Authz } from '@infrastructure/auth/authz-policy.decorator';
 
+@UseGuards(ApiJwtGuard)
+@Authz({
+  allowedAzp: ['puntos-fsa'],
+  requiredClientRoles: { 'puntos-fsa': ['consultant', 'administrator'] },
+  requireSucursalData: false, // GETs no requieren sucursal
+})
 @Controller('operacion')
 export class OperacionController {
   constructor(
@@ -22,7 +31,7 @@ export class OperacionController {
     private readonly compraUseCase: CompraUseCase,
     private readonly devolucionUseCase: DevolucionUseCase,
     private readonly anulacionUseCase: AnulacionUseCase,
-    private readonly transactionalRunner: TransactionalRunner, // <--- Inyecta el runner
+    private readonly transactionalRunner: TransactionalRunner,
   ) {}
 
   @Get()
@@ -55,7 +64,12 @@ export class OperacionController {
     return operaciones.map(OperacionResponseDto.fromDomain);
   }
 
-  // --- Operaciones POST ---
+  // --- POSTs: sólo administrator y requieren sucursal ---
+  @Authz({
+    allowedAzp: ['puntos-fsa'],
+    requiredClientRoles: { 'puntos-fsa': ['administrator'] },
+    requireSucursalData: true,
+  })
   @Post('compra')
   async compra(@Body() dto: OperacionDto): Promise<CreateOperacionResponse> {
     return this.transactionalRunner.runInTransaction((ctx) =>
@@ -63,6 +77,11 @@ export class OperacionController {
     );
   }
 
+  @Authz({
+    allowedAzp: ['puntos-fsa'],
+    requiredClientRoles: { 'puntos-fsa': ['administrator'] },
+    requireSucursalData: true,
+  })
   @Post('devolucion')
   async devolucion(
     @Body() dto: OperacionDto,
@@ -72,6 +91,11 @@ export class OperacionController {
     );
   }
 
+  @Authz({
+    allowedAzp: ['puntos-fsa'],
+    requiredClientRoles: { 'puntos-fsa': ['administrator'] },
+    requireSucursalData: true,
+  })
   @Post('anulacion')
   async anulacion(@Body() dto: OperacionDto): Promise<CreateOperacionResponse> {
     return this.transactionalRunner.runInTransaction((ctx) =>

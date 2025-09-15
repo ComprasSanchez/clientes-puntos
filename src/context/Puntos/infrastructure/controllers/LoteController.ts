@@ -1,12 +1,20 @@
 // src/infrastructure/controllers/LoteController.ts
-import { Controller, Get, Param, Query } from '@nestjs/common';
+import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
 import { LoteResponseDto } from '../dtos/LoteResponseDto';
 import { BatchEstado } from '../../core/enums/BatchEstado';
 import { LoteId } from '../../core/value-objects/LoteId';
 import { FindAllLotesUseCase } from '@puntos/application/use-cases/LoteFindAll/LoteFindAll';
 import { FindLoteByIdUseCase } from '@puntos/application/use-cases/LoteFindById/LoteFindById';
 import { FindLotesByClienteUseCase } from '@puntos/application/use-cases/LoteFindByCliente/LoteFindByCliente';
+import { ApiJwtGuard } from '@infrastructure/auth/api-jwt.guard';
+import { Authz } from '@infrastructure/auth/authz-policy.decorator';
 
+@UseGuards(ApiJwtGuard)
+@Authz({
+  allowedAzp: ['puntos-fsa'],
+  requiredClientRoles: { 'puntos-fsa': ['administrator'] },
+  requireSucursalData: false, // si no dependen de sucursal
+})
 @Controller('lotes')
 export class LoteController {
   constructor(

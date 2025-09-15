@@ -13,9 +13,20 @@ import {
   Body,
   Put,
   Delete,
+  UseGuards,
 } from '@nestjs/common';
 import { CategoriaResponseDto } from '../../application/dtos/CategoriaResponseDto';
+import { ApiJwtGuard } from '@infrastructure/auth/api-jwt.guard';
+import { Authz } from '@infrastructure/auth/authz-policy.decorator';
 
+@UseGuards(ApiJwtGuard)
+@Authz({
+  allowedAzp: ['puntos-fsa'],
+  // Lecturas habilitadas para consultant o administrator
+  requiredClientRoles: { 'puntos-fsa': ['consultant', 'administrator'] },
+  // Categorías no dependen de sucursal
+  requireSucursalData: false,
+})
 @Controller('categoria')
 export class CategoriaController {
   constructor(
@@ -26,11 +37,18 @@ export class CategoriaController {
     private readonly deleteUseCase: CategoriaDelete,
   ) {}
 
+  // Sólo administrator
+  @Authz({
+    allowedAzp: ['puntos-fsa'],
+    requiredClientRoles: { 'puntos-fsa': ['administrator'] },
+    requireSucursalData: false,
+  })
   @Post()
   async create(@Body() dto: CreateCategoriaDto): Promise<void> {
     await this.createUseCase.run(dto);
   }
 
+  // Usa la policy del controller (consultant | administrator)
   @Get()
   async findAll(): Promise<CategoriaResponseDto[]> {
     const list = await this.findAllUseCase.run();
@@ -43,6 +61,7 @@ export class CategoriaController {
     }));
   }
 
+  // Usa la policy del controller (consultant | administrator)
   @Get(':id')
   async findOne(@Param('id') id: string) {
     const c = await this.findByIdUseCase.run(id);
@@ -54,6 +73,12 @@ export class CategoriaController {
     };
   }
 
+  // Sólo administrator
+  @Authz({
+    allowedAzp: ['puntos-fsa'],
+    requiredClientRoles: { 'puntos-fsa': ['administrator'] },
+    requireSucursalData: false,
+  })
   @Put(':id')
   async update(
     @Param('id') id: string,
@@ -62,6 +87,12 @@ export class CategoriaController {
     await this.updateUseCase.run({ id, ...dto });
   }
 
+  // Sólo administrator
+  @Authz({
+    allowedAzp: ['puntos-fsa'],
+    requiredClientRoles: { 'puntos-fsa': ['administrator'] },
+    requireSucursalData: false,
+  })
   @Delete(':id')
   async remove(@Param('id') id: string): Promise<void> {
     await this.deleteUseCase.run(id);

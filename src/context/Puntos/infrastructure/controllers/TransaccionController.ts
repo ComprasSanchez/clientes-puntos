@@ -1,5 +1,5 @@
 // src/infrastructure/controllers/TransaccionController.ts
-import { Controller, Get, Param } from '@nestjs/common';
+import { Controller, Get, Param, UseGuards } from '@nestjs/common';
 import { TransaccionResponseDto } from '../dtos/TransaccionResponseDto';
 import { TransaccionId } from '../../core/value-objects/TransaccionId';
 import { LoteId } from '../../core/value-objects/LoteId';
@@ -9,7 +9,15 @@ import { FindTransaccionesByLoteUseCase } from '@puntos/application/use-cases/Tr
 import { FindTransaccionesByClienteUseCase } from '@puntos/application/use-cases/TransaccionFindByCliente/TransaccionFindByCliente';
 import { FindTransaccionesByOperationIdUseCase } from '@puntos/application/use-cases/TransaccionFindByOperacionId/TransaccionFindByOperacionId';
 import { FindTransaccionesByReferenciaUseCase } from '@puntos/application/use-cases/TransaccionFindByReferencia/TransaccionFindByReferencia';
+import { ApiJwtGuard } from '@infrastructure/auth/api-jwt.guard';
+import { Authz } from '@infrastructure/auth/authz-policy.decorator';
 
+@UseGuards(ApiJwtGuard)
+@Authz({
+  allowedAzp: ['puntos-fsa'],
+  requiredClientRoles: { 'puntos-fsa': ['administrator'] },
+  requireSucursalData: false, // no depende de sucursal
+})
 @Controller('transacciones')
 export class TransaccionController {
   constructor(

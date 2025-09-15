@@ -6,6 +6,7 @@ import {
   Body,
   Put,
   Delete,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -26,9 +27,17 @@ import { CreateClienteDto } from '@cliente/application/dtos/ClienteCreateDto';
 import { UpdateClienteDto } from '@cliente/application/dtos/ClienteUpdateDto';
 import { ClienteProfileDto } from '@cliente/application/dtos/ClienteProfileDto';
 import { ClienteResponseDto } from '../../application/dtos/ClienteResponseDto';
-import { Roles } from 'nest-keycloak-connect';
+import { ApiJwtGuard } from '@infrastructure/auth/api-jwt.guard';
+import { Authz } from '@infrastructure/auth/authz-policy.decorator';
 
 @ApiTags('Cliente')
+@UseGuards(ApiJwtGuard)
+// Por defecto, este controller acepta tokens emitidos por el SPA y exige client roles de `puntos-fsa`.
+// Si querés cambiar endpoint por endpoint, podés mover el @Authz a cada handler.
+@Authz({
+  allowedAzp: ['puntos-fsa'],
+  requiredClientRoles: { 'puntos-fsa': ['consultant', 'administrator'] },
+})
 @Controller('cliente')
 export class ClienteController {
   constructor(
@@ -45,6 +54,11 @@ export class ClienteController {
   @ApiOperation({ summary: 'Crear un cliente' })
   @ApiBody({ type: CreateClienteDto })
   @ApiResponse({ status: 201, description: 'Cliente creado.' })
+  // Si querés que crear sólo lo haga administrator:
+  @Authz({
+    allowedAzp: ['puntos-fsa'],
+    requiredClientRoles: { 'puntos-fsa': ['administrator'] },
+  })
   @Post()
   async create(@Body() dto: CreateClienteDto): Promise<void> {
     const categoria = await this.findCategoriaById.run(dto.categoriaId);
@@ -66,18 +80,20 @@ export class ClienteController {
     await this.createUseCase.run(clienteData, true);
   }
 
-  @Roles({ roles: ['consultant', 'administrator'] })
   @ApiOperation({ summary: 'Obtener todos los clientes' })
   @ApiResponse({
     status: 200,
     description: 'Lista de clientes.',
     type: [ClienteResponseDto],
   })
+  // Lectura: permití también a consultant
+  @Authz({
+    allowedAzp: ['puntos-fsa'],
+    requiredClientRoles: { 'puntos-fsa': ['consultant', 'administrator'] },
+  })
   @Get()
   async findAll(): Promise<ClienteResponseDto[] | null> {
-    const clientes = await this.findAllUseCase.run();
-
-    return clientes;
+    return this.findAllUseCase.run();
   }
 
   @ApiOperation({ summary: 'Buscar cliente por DNI' })
@@ -87,12 +103,15 @@ export class ClienteController {
     description: 'Cliente encontrado.',
     type: ClienteProfileDto,
   })
+  @Authz({
+    allowedAzp: ['puntos-fsa'],
+    requiredClientRoles: { 'puntos-fsa': ['consultant', 'administrator'] },
+  })
   @Get('dni/:dni')
   async findByDni(
     @Param('dni') dni: string,
   ): Promise<ClienteResponseDto | null> {
-    const c = await this.findByDniUseCase.run(dni);
-    return c;
+    return this.findByDniUseCase.run(dni);
   }
 
   @ApiOperation({ summary: 'Buscar cliente por ID' })
@@ -102,10 +121,13 @@ export class ClienteController {
     description: 'Cliente encontrado.',
     type: ClienteProfileDto,
   })
+  @Authz({
+    allowedAzp: ['puntos-fsa'],
+    requiredClientRoles: { 'puntos-fsa': ['consultant', 'administrator'] },
+  })
   @Get(':id')
   async findOne(@Param('id') id: string): Promise<ClienteResponseDto | null> {
-    const c = await this.findByIdUseCase.run(id);
-    return c;
+    return this.findByIdUseCase.run(id);
   }
 
   @ApiOperation({ summary: 'Obtener perfil de cliente' })
@@ -114,6 +136,10 @@ export class ClienteController {
     status: 200,
     description: 'Perfil del cliente.',
     type: ClienteProfileDto,
+  })
+  @Authz({
+    allowedAzp: ['puntos-fsa'],
+    requiredClientRoles: { 'puntos-fsa': ['consultant', 'administrator'] },
   })
   @Get(':id/profile')
   async profile(@Param('id') id: string) {
@@ -124,6 +150,10 @@ export class ClienteController {
   @ApiParam({ name: 'id', type: String })
   @ApiBody({ type: UpdateClienteDto })
   @ApiResponse({ status: 204, description: 'Cliente actualizado.' })
+  @Authz({
+    allowedAzp: ['puntos-fsa'],
+    requiredClientRoles: { 'puntos-fsa': ['administrator'] },
+  })
   @Put(':id')
   async update(
     @Param('id') id: string,
@@ -142,6 +172,10 @@ export class ClienteController {
   @ApiOperation({ summary: 'Eliminar cliente' })
   @ApiParam({ name: 'id', type: String })
   @ApiResponse({ status: 204, description: 'Cliente eliminado.' })
+  @Authz({
+    allowedAzp: ['puntos-fsa'],
+    requiredClientRoles: { 'puntos-fsa': ['administrator'] },
+  })
   @Delete(':id')
   async remove(@Param('id') id: string): Promise<void> {
     await this.deleteUseCase.run(id);

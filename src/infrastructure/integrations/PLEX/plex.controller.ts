@@ -27,11 +27,12 @@ import { IntegracionMovimientoService } from '../../database/services/Integracio
 import { UseCaseResponse } from './dto/usecase-response.dto';
 import { ConsultarEstadisticasClientePlexAdapter } from './use-cases/ConsultarEstadisticasCliente/adapters/consultar-estadisticas-cliente.adapter';
 import { codConsultarEstadisticasCliente } from './enums/consultar-estadisticas-cliente.enum';
-import { JwtGuard } from '@infrastructure/auth/jwt.guard';
 import { Auth, AuthContext } from '@infrastructure/auth/auth.decorator';
 import { Unprotected } from 'nest-keycloak-connect';
 import { codFidelizarProducto } from './enums/fidelizar-producto.enum';
 import { FidelizarProductoPlexAdapter } from './use-cases/FidelizarProducto/adapters/fidelizar-producto.adapter';
+import { ApiJwtGuard } from '@infrastructure/auth/api-jwt.guard';
+import { Authz } from '@infrastructure/auth/authz-policy.decorator';
 
 // Tipo explícito para parseo seguro
 interface MensajeFidelyGb {
@@ -60,7 +61,11 @@ export class PlexController {
   ) {}
 
   @Post()
-  @UseGuards(JwtGuard)
+  @UseGuards(ApiJwtGuard)
+  @Authz({
+    allowedAzp: ['plex-integration'],
+    requiredRealmRoles: ['integration:plex'],
+  })
   async plex(
     @Auth() auth: AuthContext,
     @Req() req: Request,
@@ -116,7 +121,7 @@ export class PlexController {
             (Object.values(codFidelizarVenta) as string[]).includes(accionValue)
           ) {
             // Si querés, podés castear a codFidelizarVenta, pero si tu handle espera string, está OK así.
-            return this.ventaAdapter.handle(xml, auth.codigoExt, ctx);
+            return this.ventaAdapter.handle(xml, auth.codigoExt!, ctx);
           }
           if (
             (Object.values(codFidelizarCliente) as string[]).includes(

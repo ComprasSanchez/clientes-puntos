@@ -2,6 +2,7 @@
 import { Global, Module } from '@nestjs/common';
 import { KeycloakConnectModule } from 'nest-keycloak-connect';
 import { JwtGuard } from './jwt.guard';
+import { ApiJwtGuard } from './api-jwt.guard';
 
 @Global()
 @Module({
@@ -9,11 +10,11 @@ import { JwtGuard } from './jwt.guard';
     KeycloakConnectModule.register({
       authServerUrl: process.env.KEYCLOAK_URL, // ej: 'http://localhost:8080/auth'
       realm: process.env.KEYCLOAK_REALM, // ej: 'puntos'
-      clientId: process.env.KEYCLOAK_CLIENT_ID, // ej: 'sistema-puntos-api'
+      clientId: process.env.KEYCLOAK_CLIENT_ID,
       secret: process.env.KEYCLOAK_CLIENT_SECRET || '', // tu secret de cliente confidencial
     }),
   ],
-  providers: [JwtGuard],
-  exports: [KeycloakConnectModule, JwtGuard],
+  providers: [JwtGuard, ApiJwtGuard],
+  exports: [KeycloakConnectModule, JwtGuard, ApiJwtGuard],
 })
 export class KeycloakModule {}

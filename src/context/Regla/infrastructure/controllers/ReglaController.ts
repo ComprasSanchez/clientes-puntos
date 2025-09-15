@@ -1,3 +1,4 @@
+// src/infrastructure/controllers/ReglaController.ts
 import {
   Controller,
   Get,
@@ -6,6 +7,7 @@ import {
   Delete,
   Param,
   Body,
+  UseGuards,
 } from '@nestjs/common';
 import { CreateReglaDto } from '@regla/application/dtos/CreateReglaDto';
 import { UpdateReglaDto } from '@regla/application/dtos/UpdateReglaDto';
@@ -20,7 +22,15 @@ import { ReglaResponseDto } from '../dtos/ReglaResponseDto';
 import { Regla } from '@regla/core/entities/Regla';
 import { ReglaNotFound } from '@regla/core/exceptions/ReglaNotFoundError';
 import { ReglaFindCotizacion } from '@regla/application/use-cases/ReglaFindCotizacion/FindCotizacion';
+import { ApiJwtGuard } from '@infrastructure/auth/api-jwt.guard';
+import { Authz } from '@infrastructure/auth/authz-policy.decorator';
 
+@UseGuards(ApiJwtGuard)
+@Authz({
+  allowedAzp: ['puntos-fsa'],
+  requiredClientRoles: { 'puntos-fsa': ['consultant', 'administrator'] },
+  requireSucursalData: false,
+})
 @Controller('regla')
 export class ReglaController {
   constructor(
@@ -40,24 +50,33 @@ export class ReglaController {
 
   @Get('/cotizacion')
   async findCotizacion(): Promise<ConversionRule> {
-    const reglas = await this.findCotizacionUseCase.run();
-    return reglas;
+    return this.findCotizacionUseCase.run();
   }
 
   @Get(':id')
   async findOne(@Param('id') id: string): Promise<ReglaResponseDto> {
     const regla = await this.findByIdUseCase.run(id);
-    if (!regla) {
-      throw new ReglaNotFound();
-    }
+    if (!regla) throw new ReglaNotFound();
     return this.toResponseDto(regla);
   }
 
+  // Solo administrator
+  @Authz({
+    allowedAzp: ['puntos-fsa'],
+    requiredClientRoles: { 'puntos-fsa': ['administrator'] },
+    requireSucursalData: false,
+  })
   @Post()
   async create(@Body() dto: CreateReglaDto): Promise<void> {
     await this.createUseCase.run(dto);
   }
 
+  // Solo administrator
+  @Authz({
+    allowedAzp: ['puntos-fsa'],
+    requiredClientRoles: { 'puntos-fsa': ['administrator'] },
+    requireSucursalData: false,
+  })
   @Put(':id')
   async update(
     @Param('id') id: string,
@@ -66,12 +85,18 @@ export class ReglaController {
     await this.updateUseCase.run(id, dto);
   }
 
+  // Solo administrator
+  @Authz({
+    allowedAzp: ['puntos-fsa'],
+    requiredClientRoles: { 'puntos-fsa': ['administrator'] },
+    requireSucursalData: false,
+  })
   @Delete(':id')
   async remove(@Param('id') id: string): Promise<void> {
     await this.deleteUseCase.run(id);
   }
 
-  // --- Mapeo de entidad de dominio a DTO de respuesta ---
+  // --- mapper dominio → DTO
   private toResponseDto(regla: Regla): ReglaResponseDto {
     const base: ReglaResponseDto = {
       id: regla.id.value,
@@ -85,7 +110,6 @@ export class ReglaController {
       descripcion: regla.descripcion?.value,
     };
 
-    // Extensión para reglas tipo CONVERSION
     if (
       regla.tipo.value === TipoRegla.CONVERSION &&
       regla instanceof ConversionRule
@@ -99,7 +123,6 @@ export class ReglaController {
         },
       };
     }
-
     return base;
   }
 }

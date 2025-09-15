@@ -1,16 +1,24 @@
 // src/infrastructure/controllers/metricas.controller.ts
-
 import {
   Controller,
   Get,
   HttpException,
   HttpStatus,
   Inject,
+  UseGuards,
 } from '@nestjs/common';
 import { GetMetricasSaldo } from '../../application/puntos/use-cases/GetMetricasSaldo';
 import { MetricasSaldo } from '../../core/puntos/entities/MetricasSaldo';
 import { GET_METRICA_SALDO_USECASE } from '../../core/puntos/tokens/tokens';
+import { Authz } from '@infrastructure/auth/authz-policy.decorator';
+import { ApiJwtGuard } from '@infrastructure/auth/api-jwt.guard';
 
+@UseGuards(ApiJwtGuard)
+@Authz({
+  allowedAzp: ['puntos-fsa'],
+  requiredClientRoles: { 'puntos-fsa': ['consultant', 'administrator'] },
+  requireSucursalData: false,
+})
 @Controller('metricas')
 export class MetricasController {
   constructor(

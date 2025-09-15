@@ -8,6 +8,7 @@ import {
   Post,
   Query,
   Body,
+  UseGuards,
 } from '@nestjs/common';
 import { UpsertProductos } from '../../application/use-cases/UpsertProductos';
 import { GetProductoById } from '../../application/use-cases/GetProductoById';
@@ -15,6 +16,8 @@ import { ListarProductos } from '../../application/use-cases/ListarProductos';
 import { TipoClasificador } from '../../core/enums/TipoClasificador.enum';
 import { Producto } from '../../core/entities/Producto';
 import { UpsertProductoPlano } from '../../core/dtos/UpsertProductoPlano';
+import { ApiJwtGuard } from '@infrastructure/auth/api-jwt.guard';
+import { Authz } from '@infrastructure/auth/authz-policy.decorator';
 
 type ProductoHttpDto = {
   idProducto: string;
@@ -31,6 +34,12 @@ type ProductoHttpDto = {
   updatedAt: Date;
 };
 
+@UseGuards(ApiJwtGuard)
+@Authz({
+  allowedAzp: ['puntos-fsa'],
+  requiredClientRoles: { 'puntos-fsa': ['consultant', 'administrator'] },
+  requireSucursalData: false,
+})
 @Controller('productos')
 export class ProductoController {
   constructor(
@@ -41,9 +50,14 @@ export class ProductoController {
 
   /**
    * Upsert masivo/individual vía JSON.
-   * Acepta: UpsertProductoPlano[] o UpsertProductoPlano
    * POST /productos/upsert
+   * (Sólo administrator)
    */
+  @Authz({
+    allowedAzp: ['puntos-fsa'],
+    requiredClientRoles: { 'puntos-fsa': ['administrator'] },
+    requireSucursalData: false,
+  })
   @Post('upsert')
   async upsertJson(
     @Body() body: UpsertProductoPlano[] | UpsertProductoPlano,
@@ -57,8 +71,8 @@ export class ProductoController {
   }
 
   /**
-   * Obtiene un producto por ID externo
    * GET /productos/:id
+   * (Lectura: consultant | administrator)
    */
   @Get(':id')
   async get(@Param('id') id: string): Promise<ProductoHttpDto> {
@@ -68,8 +82,8 @@ export class ProductoController {
   }
 
   /**
-   * Lista productos con búsqueda y filtro por clasificador
-   * GET /productos?q=texto&tipo=4&idClasificador=IBU&limit=20&offset=0
+   * GET /productos
+   * (Lectura: consultant | administrator)
    */
   @Get()
   async list(
