@@ -35,8 +35,7 @@ import { Authz } from '@infrastructure/auth/authz-policy.decorator';
 // Por defecto, este controller acepta tokens emitidos por el SPA y exige client roles de `puntos-fsa`.
 // Si querés cambiar endpoint por endpoint, podés mover el @Authz a cada handler.
 @Authz({
-  allowedAzp: ['puntos-fsa'],
-  requiredClientRoles: { 'puntos-fsa': ['consultant', 'administrator'] },
+  allowedAzp: ['puntos-fsa', 'bff'],
 })
 @Controller('cliente')
 export class ClienteController {
@@ -138,8 +137,7 @@ export class ClienteController {
     type: ClienteProfileDto,
   })
   @Authz({
-    allowedAzp: ['puntos-fsa'],
-    requiredClientRoles: { 'puntos-fsa': ['consultant', 'administrator'] },
+    requireSucursalData: false,
   })
   @Get(':id/profile')
   async profile(@Param('id') id: string) {
