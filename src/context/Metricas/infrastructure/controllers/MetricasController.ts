@@ -15,8 +15,7 @@ import { ApiJwtGuard } from '@infrastructure/auth/api-jwt.guard';
 
 @UseGuards(ApiJwtGuard)
 @Authz({
-  allowedAzp: ['puntos-fsa'],
-  requiredClientRoles: { 'puntos-fsa': ['consultant', 'administrator'] },
+  allowedAzp: ['puntos-fsa', 'bff'],
   requireSucursalData: false,
 })
 @Controller('metricas')

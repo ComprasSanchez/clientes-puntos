@@ -21,9 +21,8 @@ import { Authz } from '@infrastructure/auth/authz-policy.decorator';
 
 @UseGuards(ApiJwtGuard)
 @Authz({
-  allowedAzp: ['puntos-fsa'],
+  allowedAzp: ['puntos-fsa', 'bff'],
   // Lecturas habilitadas para consultant o administrator
-  requiredClientRoles: { 'puntos-fsa': ['consultant', 'administrator'] },
   // Categorías no dependen de sucursal
   requireSucursalData: false,
 })

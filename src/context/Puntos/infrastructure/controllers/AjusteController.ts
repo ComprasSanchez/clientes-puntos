@@ -10,8 +10,7 @@ import { TransactionalRunner } from '@shared/infrastructure/transaction/Transact
 
 @UseGuards(ApiJwtGuard)
 @Authz({
-  allowedAzp: ['puntos-fsa'],
-  requiredClientRoles: { 'puntos-fsa': ['administrator'] },
+  allowedAzp: ['puntos-fsa', 'bff'],
   requireSucursalData: true, // <- obligatorio sucursalId / codigoExt en el token
 })
 @Controller('ajuste')

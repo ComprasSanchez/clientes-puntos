@@ -17,8 +17,7 @@ import { Authz } from '@infrastructure/auth/authz-policy.decorator';
 
 @UseGuards(ApiJwtGuard)
 @Authz({
-  allowedAzp: ['puntos-fsa'],
-  requiredClientRoles: { 'puntos-fsa': ['consultant', 'administrator'] },
+  allowedAzp: ['puntos-fsa', 'bff'],
   requireSucursalData: false, // GETs no requieren sucursal
 })
 @Controller('operacion')

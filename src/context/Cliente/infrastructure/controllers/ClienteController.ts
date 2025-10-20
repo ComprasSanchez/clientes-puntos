@@ -87,8 +87,7 @@ export class ClienteController {
   })
   // Lectura: permití también a consultant
   @Authz({
-    allowedAzp: ['puntos-fsa'],
-    requiredClientRoles: { 'puntos-fsa': ['consultant', 'administrator'] },
+    requireSucursalData: false,
   })
   @Get()
   async findAll(): Promise<ClienteResponseDto[] | null> {
@@ -103,8 +102,7 @@ export class ClienteController {
     type: ClienteProfileDto,
   })
   @Authz({
-    allowedAzp: ['puntos-fsa'],
-    requiredClientRoles: { 'puntos-fsa': ['consultant', 'administrator'] },
+    requireSucursalData: false,
   })
   @Get('dni/:dni')
   async findByDni(
@@ -121,8 +119,7 @@ export class ClienteController {
     type: ClienteProfileDto,
   })
   @Authz({
-    allowedAzp: ['puntos-fsa'],
-    requiredClientRoles: { 'puntos-fsa': ['consultant', 'administrator'] },
+    requireSucursalData: false,
   })
   @Get(':id')
   async findOne(@Param('id') id: string): Promise<ClienteResponseDto | null> {
