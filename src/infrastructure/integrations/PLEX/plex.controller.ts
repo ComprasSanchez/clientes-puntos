@@ -28,7 +28,6 @@ import { UseCaseResponse } from './dto/usecase-response.dto';
 import { ConsultarEstadisticasClientePlexAdapter } from './use-cases/ConsultarEstadisticasCliente/adapters/consultar-estadisticas-cliente.adapter';
 import { codConsultarEstadisticasCliente } from './enums/consultar-estadisticas-cliente.enum';
 import { Auth, AuthContext } from '@infrastructure/auth/auth.decorator';
-import { Unprotected } from 'nest-keycloak-connect';
 import { codFidelizarProducto } from './enums/fidelizar-producto.enum';
 import { FidelizarProductoPlexAdapter } from './use-cases/FidelizarProducto/adapters/fidelizar-producto.adapter';
 import { ApiJwtGuard } from '@infrastructure/auth/api-jwt.guard';
@@ -42,7 +41,6 @@ interface MensajeFidelyGb {
   };
 }
 @Controller('onzecrm')
-@Unprotected()
 export class PlexController {
   constructor(
     @Inject(FIDELIZAR_VENTA_ADAPTER)
