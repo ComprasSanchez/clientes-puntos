@@ -95,6 +95,8 @@ export class ApiJwtGuard implements CanActivate {
       );
     }
 
+    console.log('hola');
+
     // ==== token raw ====
     const raw = req.headers['authorization'];
     const hdr = Array.isArray(raw) ? raw[0] : raw;

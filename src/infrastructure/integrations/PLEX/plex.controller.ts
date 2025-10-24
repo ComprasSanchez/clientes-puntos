@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
   Controller,
   Headers,
@@ -7,6 +6,7 @@ import {
   Req,
   Res,
   UseGuards,
+  Logger,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { FidelizarVentaPlexAdapter } from './use-cases/FidelizarVenta/adapters/fidelizar-venta.adapter';
@@ -37,27 +37,36 @@ import { Authz } from '@infrastructure/auth/authz-policy.decorator';
 // ==== Tipos auxiliares para el XML ====
 
 /**
- * Este es el shape mínimo que necesitamos del nodo raíz real
- * (MensajeFidelyGB / MensajeFidelyGb / etc.)
+ * Nodo raíz que nos importa.
  */
 interface ParsedRootNode {
   CodAccion?: string | number;
   codAccion?: string | number;
-  // ...podrías ir sumando más campos si necesitás validarlos fuerte
   [key: string]: unknown;
 }
 
 /**
- * Shape del XML parseado entero:
- * no sabemos cómo se llama la root key exactamente,
- * pero sabemos que será un objeto con al menos CodAccion.
+ * Objeto parseado del XML completo:
+ * { MensajeFidelyGB: { CodAccion: 200, ... } }
  */
 interface ParsedXml {
   [rootName: string]: ParsedRootNode;
 }
 
+// util para XML seguro en errores
+function escapeXml(s: string): string {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
+}
+
 @Controller('onzecrm')
 export class PlexController {
+  private readonly logger = new Logger(PlexController.name);
+
   constructor(
     @Inject(FIDELIZAR_VENTA_ADAPTER)
     private readonly ventaAdapter: FidelizarVentaPlexAdapter,
@@ -86,18 +95,34 @@ export class PlexController {
     @Res() res: Response,
     @Headers('content-type') contentType: string,
   ): Promise<void> {
-    // 1. Validar Content-Type
-    if (!contentType?.toLowerCase().includes('xml')) {
-      res.status(415).send('Content-Type must be application/xml');
-      return;
-    }
+    // --- LOG INICIAL DE REQUEST ---
 
-    // 2. Obtener XML entrante como string UTF-8
+    // content-type real
+    const ct = contentType?.toLowerCase() ?? '(none)';
+    // raw body (lo tomamos antes de parsear)
     const xmlIncoming =
       req.body instanceof Buffer
         ? req.body.toString('utf-8')
         : (req.body as string);
 
+    this.logger.error('HOLAAA');
+    this.logger.log({
+      step: 'controller-in',
+      method: req.method,
+      url: req.originalUrl,
+      contentType: ct,
+      authSucursalId: auth?.sucursalId,
+      authCodigoExt: auth?.codigoExt,
+      xmlIncoming,
+    });
+
+    // 1. Validar Content-Type
+    if (!ct.includes('xml')) {
+      res.status(415).send('Content-Type must be application/xml');
+      return;
+    }
+
+    // 2. Validar body no vacío
     if (
       !xmlIncoming ||
       typeof xmlIncoming !== 'string' ||
@@ -116,17 +141,25 @@ export class PlexController {
     try {
       parsedUnknown = parser.parse(xmlIncoming);
     } catch (err) {
+      this.logger.error({
+        step: 'xml-parse-error',
+        err: err instanceof Error ? err.message : String(err),
+      });
       res.status(400).send('XML inválido');
       return;
     }
 
-    // 4. Validar que parsedUnknown tenga la forma ParsedXml
-    //    y ubicar la root key tipo "MensajeFidelyGB"
+    // 4. Validar raíz MensajeFidelyGB / MensajeFidelyGb
     if (
       !parsedUnknown ||
       typeof parsedUnknown !== 'object' ||
       Array.isArray(parsedUnknown)
     ) {
+      this.logger.error({
+        step: 'xml-shape-error',
+        msg: 'parsedUnknown no es objeto',
+        parsedUnknown,
+      });
       throw new Error('XML malformado o sin MensajeFidelyGb');
     }
 
@@ -137,17 +170,24 @@ export class PlexController {
     );
 
     if (!rootKey) {
+      this.logger.error({
+        step: 'xml-root-missing',
+        keys: Object.keys(parsedObj),
+      });
       throw new Error('XML malformado o sin MensajeFidelyGb');
     }
 
     const mensajeNodeUnknown = parsedObj[rootKey];
 
-    // mensajeNode debe ser objeto simple, no array
     if (
       !mensajeNodeUnknown ||
       typeof mensajeNodeUnknown !== 'object' ||
       Array.isArray(mensajeNodeUnknown)
     ) {
+      this.logger.error({
+        step: 'xml-mensaje-node-invalid',
+        mensajeNodeUnknown,
+      });
       throw new Error('XML malformado o sin MensajeFidelyGb');
     }
 
@@ -156,7 +196,13 @@ export class PlexController {
     // 5. Extraer CodAccion
     const codAccionRaw = mensajeNode.CodAccion ?? mensajeNode.codAccion ?? '';
 
-    // registramos movimiento antes de ejecutar
+    this.logger.debug({
+      step: 'after-parse',
+      codAccionRaw,
+      mensajeNode,
+    });
+
+    // 6. Registrar movimiento en la base
     const movimiento =
       await this.integracionMovimientoService.registrarMovimiento({
         tipoIntegracion: 'ONZECRM',
@@ -166,7 +212,7 @@ export class PlexController {
       });
 
     try {
-      // 6. Ejecutar caso de uso
+      // 7. Ejecutar caso de uso en tx
       const responseXml: UseCaseResponse =
         await this.transactionalRunner.runInTransaction(async (ctx) => {
           const codAccionStr =
@@ -176,13 +222,23 @@ export class PlexController {
             throw new Error('codAccion no encontrado en el XML');
           }
 
+          // Asegurarnos de quedarnos sólo con el número (por si viene "200 " o "200\r\n")
           const accionMatch = codAccionStr.match(/\d+/);
           const accionValue = accionMatch ? accionMatch[0] : codAccionStr;
+
+          this.logger.debug({
+            step: 'accion-routing',
+            accionValue,
+          });
 
           if (
             (Object.values(codFidelizarVenta) as string[]).includes(accionValue)
           ) {
-            return this.ventaAdapter.handle(xmlIncoming, auth.codigoExt!, ctx);
+            return this.ventaAdapter.handle(
+              xmlIncoming,
+              auth.codigoExt!, // sucursal externa del token
+              ctx,
+            );
           }
 
           if (
@@ -220,7 +276,15 @@ export class PlexController {
           throw new Error('codAccion inválido o no soportado');
         });
 
-      // 7. Persist OK
+      // log respuesta OK antes de persistir
+      this.logger.debug({
+        step: 'usecase-done',
+        movimientoId: movimiento.id,
+        responseDto: responseXml.dto,
+        responseXml: responseXml.response,
+      });
+
+      // 8. Guardar OK en la tabla de movimientos
       await this.integracionMovimientoService.actualizarMovimiento(
         movimiento.id,
         {
@@ -229,21 +293,33 @@ export class PlexController {
         },
       );
 
-      // 8. Responder al caller final
-      res.set('Content-Type', 'application/xml');
+      // 9. Responder al caller final
+      res.set('Content-Type', 'application/xml; charset=utf-8');
       res.status(200).send(responseXml.response);
     } catch (error: unknown) {
-      let msg = 'Error inesperado';
+      // 10. Manejo de error
 
+      let msg: string;
       if (error instanceof Error) {
         msg = error.message;
       } else if (typeof error === 'string') {
         msg = error;
       } else {
-        msg = JSON.stringify(error);
+        try {
+          msg = JSON.stringify(error);
+        } catch {
+          msg = 'Error inesperado';
+        }
       }
 
-      // 9. Persist ERROR
+      this.logger.error({
+        step: 'usecase-error',
+        movimientoId: movimiento.id,
+        errorMsg: msg,
+        stack: error instanceof Error ? error.stack : undefined,
+      });
+
+      // persistimos el error
       await this.integracionMovimientoService.actualizarMovimiento(
         movimiento.id,
         {
@@ -252,12 +328,15 @@ export class PlexController {
         },
       );
 
-      // 10. Armar respuesta de error para PLEX
+      // respuesta xml de error (IMPORTANTE: escapamos msg)
       const errorXml =
         '<?xml version="1.0" encoding="UTF-8"?>' +
-        `<RespuestaFidelyGb><RespCode>1</RespCode><RespMsg>${msg}</RespMsg></RespuestaFidelyGb>`;
+        `<RespuestaFidelyGb>` +
+        `<RespCode>1</RespCode>` +
+        `<RespMsg>${escapeXml(msg)}</RespMsg>` +
+        `</RespuestaFidelyGb>`;
 
-      res.set('Content-Type', 'application/xml');
+      res.set('Content-Type', 'application/xml; charset=utf-8');
       res.status(500).send(errorXml);
     }
   }

@@ -9,7 +9,7 @@ import { buildOnzeDoc } from '@infrastructure/integrations/PLEX/docs/onzecrm.ope
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
-    logger: ['error', 'warn', 'log', 'debug'],
+    logger: ['error', 'warn', 'log', 'debug', 'verbose'],
   });
 
   app.enableCors({

@@ -35,9 +35,31 @@ export class PlexFidelizarVentaRequestDto {
       productosArr = [venta.Productos];
     }
 
-    const safeNumber = (val: any, def = 0) => {
-      const n = Number(val);
-      return isNaN(n) ? def : n;
+    /**
+     * Convierte valores tipo "1.234,56" o "30,00" a número JS (1234.56 o 30)
+     */
+    const parseMoneda = (val: any, def = 0): number => {
+      if (val == null) return def;
+      if (typeof val === 'number' && Number.isFinite(val)) return val;
+
+      if (typeof val === 'string') {
+        // Limpiar espacios
+        let s = val.trim();
+        if (!s) return def;
+
+        // Eliminar separador de miles "." si hay coma decimal
+        if (s.includes(',') && s.includes('.')) {
+          s = s.replace(/\./g, '');
+        }
+
+        // Reemplazar coma por punto decimal
+        s = s.replace(',', '.');
+
+        const n = Number(s);
+        return Number.isFinite(n) ? n : def;
+      }
+
+      return def;
     };
 
     return {
@@ -48,9 +70,9 @@ export class PlexFidelizarVentaRequestDto {
         ? String(venta.IdMovimiento).trim()
         : undefined,
       nroTarjeta: venta.NroTarjeta ? String(venta.NroTarjeta).trim() : '',
-      importeTotal: safeNumber(venta.ImporteTotal),
-      valorCanjePunto: safeNumber(venta.ValorCanjePunto),
-      puntosCanjeados: safeNumber(venta.PuntosCanjeados),
+      importeTotal: parseMoneda(venta.ImporteTotal),
+      valorCanjePunto: parseMoneda(venta.ValorCanjePunto),
+      puntosCanjeados: parseMoneda(venta.PuntosCanjeados),
       idComprobante: venta.IdComprobante
         ? String(venta.IdComprobante).trim()
         : '',
@@ -62,8 +84,8 @@ export class PlexFidelizarVentaRequestDto {
         : '',
       productos: productosArr.map((p) => ({
         idProducto: p.IdProducto!,
-        cantidad: safeNumber(p.Cantidad),
-        precio: safeNumber(p.Precio),
+        cantidad: parseMoneda(p.Cantidad),
+        precio: parseMoneda(p.Precio),
         idComprobanteRef: p.IdComprobanteRef
           ? String(p.IdComprobanteRef).trim()
           : '',
