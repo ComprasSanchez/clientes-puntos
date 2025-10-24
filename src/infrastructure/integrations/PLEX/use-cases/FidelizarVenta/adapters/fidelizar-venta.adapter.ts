@@ -13,6 +13,10 @@ import { TipoMoneda } from '@shared/core/enums/TipoMoneda';
 import { codFidelizarVenta } from '@infrastructure/integrations/PLEX/enums/fidelizar-venta.enum';
 import { XMLBuilder, XMLParser } from 'fast-xml-parser';
 import { UseCaseResponse } from '@infrastructure/integrations/PLEX/dto/usecase-response.dto';
+import {
+  toDec,
+  toInt,
+} from '@infrastructure/integrations/PLEX/utils/num-parse';
 
 @Injectable()
 export class FidelizarVentaPlexAdapter {
@@ -47,27 +51,29 @@ export class FidelizarVentaPlexAdapter {
     // 2.1 Validar cliente
     const cliente = await this.cliente.run(plexDto.nroTarjeta.toString());
 
-    const n = (x: unknown, fb = 0) => {
-      const v = typeof x === 'number' ? x : Number(x);
-      return Number.isFinite(v) ? v : fb;
-    };
-
     // 3. Mapeo a dominio
+    const puntosCanjeados = toDec(plexDto.puntosCanjeados) ?? 0;
+    const importeTotal = toDec(plexDto.importeTotal) ?? 0;
+
+    const refOperacionRaw = toInt(plexDto.idMovimiento);
+    const refOperacion =
+      typeof refOperacionRaw === 'number' && refOperacionRaw > 0
+        ? refOperacionRaw
+        : undefined;
+
     const domainRequest = {
       clienteId: cliente.id,
-      puntos: Number(plexDto.puntosCanjeados),
-      montoMoneda: Number(plexDto.importeTotal),
+      puntos: puntosCanjeados,
+      montoMoneda: importeTotal,
       origenTipo: 'PLEX',
       moneda: TipoMoneda.ARS,
-      referencia: plexDto.nroComprobante,
-      refOperacion: Number(plexDto.idMovimiento),
+      referencia: plexDto.nroComprobante || undefined,
+      refOperacion,
       codSucursal: sucId,
       productos: plexDto.productos?.map((p) => ({
-        // idProducto en Plex = codExt para nosotros
         codExt: p.idProducto,
-        cantidad: Math.max(1, n(p.cantidad, 1)),
-        // precio unitario (si viene total, adaptalo acá)
-        precio: n(p.precio, 0),
+        cantidad: Math.max(1, toInt(p.cantidad) ?? 1),
+        precio: toDec(p.precio) ?? 0,
       })),
     };
 

@@ -1,33 +1,14 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import {
+  toDec,
+  toInt,
+} from '@infrastructure/integrations/PLEX/utils/num-parse';
+import {
   PlexClasificadorDto,
   PlexFidelizarProductoRequestDto,
   PlexProductoDto,
 } from '../interfaces/fidelizar-producto.request';
-
-const toInt = (v: unknown): number | undefined => {
-  if (typeof v === 'number')
-    return Number.isFinite(v) ? Math.trunc(v) : undefined;
-  if (typeof v === 'string') {
-    const s = v.trim().replace(',', '.');
-    if (!s) return undefined;
-    const n = Number(s);
-    return Number.isFinite(n) ? Math.trunc(n) : undefined;
-  }
-  return undefined;
-};
-
-const toDec = (v: unknown): number | undefined => {
-  if (typeof v === 'number') return Number.isFinite(v) ? v : undefined;
-  if (typeof v === 'string') {
-    const s = v.trim().replace(',', '.');
-    if (!s) return undefined;
-    const n = Number(s);
-    return Number.isFinite(n) ? n : undefined;
-  }
-  return undefined;
-};
 
 const asArray = <T>(x: T | T[] | undefined | null): T[] =>
   Array.isArray(x) ? x : x != null ? [x] : [];
