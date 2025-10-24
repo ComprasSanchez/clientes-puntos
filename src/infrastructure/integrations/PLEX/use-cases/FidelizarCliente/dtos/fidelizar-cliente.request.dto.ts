@@ -25,12 +25,12 @@ export interface PlexFidelizarClienteRequestDto {
 export class PlexFidelizarClienteRequestMapper {
   static fromXml(obj: unknown): PlexFidelizarClienteRequestDto {
     // Cambiá el tipado para el parser nuevo
-    const { MensajeFidelyGb } = obj as PlexFidelizarClienteFXPParsed;
-    const cliente = MensajeFidelyGb.Cliente ?? {};
+    const { MensajeFidelyGB } = obj as PlexFidelizarClienteFXPParsed;
+    const cliente = MensajeFidelyGB.Cliente ?? {};
 
     return {
-      codAccion: MensajeFidelyGb.CodAccion
-        ? String(MensajeFidelyGb.CodAccion).trim()
+      codAccion: MensajeFidelyGB.CodAccion
+        ? String(MensajeFidelyGB.CodAccion).trim()
         : '',
       idClienteFidely: cliente.IDClienteFidely
         ? String(cliente.IDClienteFidely).trim()

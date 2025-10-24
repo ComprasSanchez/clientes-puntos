@@ -1,5 +1,5 @@
 export interface PlexConsultarEstadisticaClienteParsed {
-  MensajeFidelyGb: {
+  MensajeFidelyGB: {
     Proveedor?: string;
     CodAccion?: string; // "301"
     DNI?: string;

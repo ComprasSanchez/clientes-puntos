@@ -1,5 +1,5 @@
 export interface PlexFidelizarClienteFXPParsed {
-  MensajeFidelyGb: {
+  MensajeFidelyGB: {
     Proveedor?: string;
     CodAccion?: string;
     Cliente: {

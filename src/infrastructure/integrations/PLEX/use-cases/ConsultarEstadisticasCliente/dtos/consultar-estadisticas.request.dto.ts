@@ -7,10 +7,10 @@ export interface PlexConsultarEstadisticaClienteRequestDto {
 
 export class PlexConsultarEstadisticaClienteRequestMapper {
   static fromXml(obj: unknown): PlexConsultarEstadisticaClienteRequestDto {
-    const { MensajeFidelyGb } = obj as PlexConsultarEstadisticaClienteParsed;
+    const { MensajeFidelyGB } = obj as PlexConsultarEstadisticaClienteParsed;
     return {
-      codAccion: MensajeFidelyGb.CodAccion ?? '',
-      dni: MensajeFidelyGb.DNI ?? '',
+      codAccion: MensajeFidelyGB.CodAccion ?? '',
+      dni: MensajeFidelyGB.DNI ?? '',
     };
   }
 }

@@ -34,7 +34,7 @@ const asArray = <T>(x: T | T[] | undefined | null): T[] =>
 
 export class PlexFidelizarProductoRequestMapper {
   static fromXml(parsed: any): PlexFidelizarProductoRequestDto {
-    const root = parsed?.MensajeFidelyGb ?? parsed;
+    const root = parsed?.MensajeFidelyGB ?? parsed;
 
     const codAccion = toInt(root?.CodAccion);
     const idRed = toInt(root?.IdRed);

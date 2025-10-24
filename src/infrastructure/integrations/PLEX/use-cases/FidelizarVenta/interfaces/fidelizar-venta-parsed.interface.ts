@@ -1,7 +1,7 @@
 // utils/plex-fidelizar-venta-fxp.interface.ts
 
 export interface PlexFidelizarVentaFXPParsed {
-  MensajeFidelyGb: {
+  MensajeFidelyGB: {
     CodAccion?: string;
     Venta?: {
       IdMovimiento?: string;

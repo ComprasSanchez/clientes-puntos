@@ -25,8 +25,8 @@ export class PlexFidelizarVentaRequestDto {
   }>;
 
   static fromXml(obj: unknown): PlexFidelizarVentaRequestDto {
-    const { MensajeFidelyGb } = obj as PlexFidelizarVentaFXPParsed;
-    const venta = MensajeFidelyGb?.Venta || {};
+    const { MensajeFidelyGB } = obj as PlexFidelizarVentaFXPParsed;
+    const venta = MensajeFidelyGB?.Venta || {};
 
     let productosArr: ProductoParsed[] = [];
     if (Array.isArray(venta.Productos)) {
@@ -41,8 +41,8 @@ export class PlexFidelizarVentaRequestDto {
     };
 
     return {
-      codAccion: MensajeFidelyGb?.CodAccion
-        ? String(MensajeFidelyGb.CodAccion).trim()
+      codAccion: MensajeFidelyGB?.CodAccion
+        ? String(MensajeFidelyGB.CodAccion).trim()
         : '',
       idMovimiento: venta.IdMovimiento
         ? String(venta.IdMovimiento).trim()
