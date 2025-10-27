@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
   Controller,
   Headers,
@@ -6,7 +7,6 @@ import {
   Req,
   Res,
   UseGuards,
-  Logger,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { FidelizarVentaPlexAdapter } from './use-cases/FidelizarVenta/adapters/fidelizar-venta.adapter';
@@ -65,8 +65,6 @@ function escapeXml(s: string): string {
 
 @Controller('onzecrm')
 export class PlexController {
-  private readonly logger = new Logger(PlexController.name);
-
   constructor(
     @Inject(FIDELIZAR_VENTA_ADAPTER)
     private readonly ventaAdapter: FidelizarVentaPlexAdapter,
@@ -105,17 +103,6 @@ export class PlexController {
         ? req.body.toString('utf-8')
         : (req.body as string);
 
-    this.logger.error('HOLAAA');
-    this.logger.log({
-      step: 'controller-in',
-      method: req.method,
-      url: req.originalUrl,
-      contentType: ct,
-      authSucursalId: auth?.sucursalId,
-      authCodigoExt: auth?.codigoExt,
-      xmlIncoming,
-    });
-
     // 1. Validar Content-Type
     if (!ct.includes('xml')) {
       res.status(415).send('Content-Type must be application/xml');
@@ -140,11 +127,7 @@ export class PlexController {
     let parsedUnknown: unknown;
     try {
       parsedUnknown = parser.parse(xmlIncoming);
-    } catch (err) {
-      this.logger.error({
-        step: 'xml-parse-error',
-        err: err instanceof Error ? err.message : String(err),
-      });
+    } catch (err: unknown) {
       res.status(400).send('XML inválido');
       return;
     }
@@ -155,11 +138,6 @@ export class PlexController {
       typeof parsedUnknown !== 'object' ||
       Array.isArray(parsedUnknown)
     ) {
-      this.logger.error({
-        step: 'xml-shape-error',
-        msg: 'parsedUnknown no es objeto',
-        parsedUnknown,
-      });
       throw new Error('XML malformado o sin MensajeFidelyGb');
     }
 
@@ -170,10 +148,6 @@ export class PlexController {
     );
 
     if (!rootKey) {
-      this.logger.error({
-        step: 'xml-root-missing',
-        keys: Object.keys(parsedObj),
-      });
       throw new Error('XML malformado o sin MensajeFidelyGb');
     }
 
@@ -184,10 +158,6 @@ export class PlexController {
       typeof mensajeNodeUnknown !== 'object' ||
       Array.isArray(mensajeNodeUnknown)
     ) {
-      this.logger.error({
-        step: 'xml-mensaje-node-invalid',
-        mensajeNodeUnknown,
-      });
       throw new Error('XML malformado o sin MensajeFidelyGb');
     }
 
@@ -195,12 +165,6 @@ export class PlexController {
 
     // 5. Extraer CodAccion
     const codAccionRaw = mensajeNode.CodAccion ?? mensajeNode.codAccion ?? '';
-
-    this.logger.debug({
-      step: 'after-parse',
-      codAccionRaw,
-      mensajeNode,
-    });
 
     // 6. Registrar movimiento en la base
     const movimiento =
@@ -225,11 +189,6 @@ export class PlexController {
           // Asegurarnos de quedarnos sólo con el número (por si viene "200 " o "200\r\n")
           const accionMatch = codAccionStr.match(/\d+/);
           const accionValue = accionMatch ? accionMatch[0] : codAccionStr;
-
-          this.logger.debug({
-            step: 'accion-routing',
-            accionValue,
-          });
 
           if (
             (Object.values(codFidelizarVenta) as string[]).includes(accionValue)
@@ -277,12 +236,6 @@ export class PlexController {
         });
 
       // log respuesta OK antes de persistir
-      this.logger.debug({
-        step: 'usecase-done',
-        movimientoId: movimiento.id,
-        responseDto: responseXml.dto,
-        responseXml: responseXml.response,
-      });
 
       // 8. Guardar OK en la tabla de movimientos
       await this.integracionMovimientoService.actualizarMovimiento(
@@ -311,13 +264,6 @@ export class PlexController {
           msg = 'Error inesperado';
         }
       }
-
-      this.logger.error({
-        step: 'usecase-error',
-        movimientoId: movimiento.id,
-        errorMsg: msg,
-        stack: error instanceof Error ? error.stack : undefined,
-      });
 
       // persistimos el error
       await this.integracionMovimientoService.actualizarMovimiento(
