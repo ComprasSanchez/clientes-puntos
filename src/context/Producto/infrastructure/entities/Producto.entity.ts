@@ -25,7 +25,7 @@ export class ProductoEntity {
   @PrimaryColumn({ type: 'varchar', length: 64 })
   id!: string; // IdProducto externo
 
-  @Column({ type: 'int', unique: true, nullable: false })
+  @Column({ type: 'bigint', unique: true, nullable: false })
   cod_ext: number;
 
   @Column({ type: 'varchar', length: 300 })
