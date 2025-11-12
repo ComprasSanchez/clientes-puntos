@@ -36,6 +36,7 @@ import { Authz } from '@infrastructure/auth/authz-policy.decorator';
 // Si querés cambiar endpoint por endpoint, podés mover el @Authz a cada handler.
 @Authz({
   allowedAzp: ['puntos-fsa', 'bff'],
+  requireSucursalData: false,
 })
 @Controller('cliente')
 export class ClienteController {
