@@ -54,10 +54,6 @@ export class ClienteController {
   @ApiBody({ type: CreateClienteDto })
   @ApiResponse({ status: 201, description: 'Cliente creado.' })
   // Si querés que crear sólo lo haga administrator:
-  @Authz({
-    allowedAzp: ['puntos-fsa'],
-    requiredClientRoles: { 'puntos-fsa': ['administrator'] },
-  })
   @Post()
   async create(@Body() dto: CreateClienteDto): Promise<void> {
     const categoria = await this.findCategoriaById.run(dto.categoriaId);
