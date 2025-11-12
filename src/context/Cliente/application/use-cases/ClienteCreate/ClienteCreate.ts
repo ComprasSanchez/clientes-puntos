@@ -24,6 +24,7 @@ export interface ClienteCreateInput {
   localidad?: string;
   provincia?: string;
   fidely_customerid?: number;
+  tarjetaFidely?: string;
 }
 
 @Injectable()
@@ -44,9 +45,18 @@ export class ClienteCreate {
     tarjetaConDni: boolean,
     ctx?: TransactionContext,
   ): Promise<Cliente> {
+    // 1) Resolución de tarjeta:
+    // - Si tarjetaConDni => es el DNI
+    // - Si viene una tarjeta explícita no vacía => usarla
+    // - Si no => generar una nueva
     let newCard: string;
     if (tarjetaConDni) {
       newCard = input.dni;
+    } else if (
+      typeof input.tarjetaFidely === 'string' &&
+      input.tarjetaFidely.trim() !== ''
+    ) {
+      newCard = input.tarjetaFidely.trim();
     } else {
       newCard = await this.cardGen.generate();
     }

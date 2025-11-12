@@ -35,14 +35,9 @@ export class FidelizarClientePlexAdapter {
     switch (plexDto.codAccion as codFidelizarCliente) {
       case codFidelizarCliente.NUEVO:
       case codFidelizarCliente.TARJETA_VIRTUAL: {
-        // NO pases idFidely (no lo requiere el input de create)
+        // No enviar tarjetaFidely ni idFidely: el caso de uso decide la tarjeta,
+        // y la DB autogenera id_fidely si corresponde.
         const clienteRequest = {
-          // NO idFidely aquí
-          tarjetaFidely:
-            (plexDto.codAccion as codFidelizarCliente) ===
-            codFidelizarCliente.REEMPLAZAR_TARJETA
-              ? plexDto.nroTarjetaAnterior
-              : plexDto.nroTarjeta,
           dni: plexDto.dni,
           nombre: plexDto.nombre,
           apellido: plexDto.apellido,
@@ -56,10 +51,15 @@ export class FidelizarClientePlexAdapter {
           localidad: plexDto.localidad,
           provincia: plexDto.provincia,
         };
+
+        // Flag: en TARJETA_VIRTUAL la tarjeta = DNI; en NUEVO se genera.
+        const tarjetaConDni =
+          (plexDto.codAccion as codFidelizarCliente) ===
+          codFidelizarCliente.TARJETA_VIRTUAL;
+
         domainResponse = await this.clienteCreate.run(
           clienteRequest,
-          (plexDto.codAccion as codFidelizarCliente) ===
-            codFidelizarCliente.TARJETA_VIRTUAL,
+          tarjetaConDni,
           ctx,
         );
         break;
@@ -72,7 +72,8 @@ export class FidelizarClientePlexAdapter {
             'IDClienteFidely es requerido para modificar o reemplazar tarjeta',
           );
         }
-        // idFidely es requerido y seguro en este caso
+
+        // En update sí puede venir idFidely y también una tarjeta explícita
         const clienteRequest = {
           idFidely: Number(plexDto.idClienteFidely),
           tarjetaFidely:
@@ -93,6 +94,7 @@ export class FidelizarClientePlexAdapter {
           localidad: plexDto.localidad,
           provincia: plexDto.provincia,
         };
+
         domainResponse = await this.clienteUpdate.run(clienteRequest, ctx);
         break;
       }

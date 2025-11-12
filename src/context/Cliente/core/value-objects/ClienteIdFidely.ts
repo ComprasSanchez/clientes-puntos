@@ -2,8 +2,7 @@ export class ClienteIdFidely {
   value?: number; // <-- puede ser undefined
 
   constructor(value?: number | null) {
-    // <-- permite undefined y null
-    this.value = value ?? undefined;
+    this.value = value === null ? undefined : value;
     this.validate();
   }
 

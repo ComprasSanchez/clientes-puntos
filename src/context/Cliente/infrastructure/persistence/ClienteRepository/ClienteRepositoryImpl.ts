@@ -116,7 +116,6 @@ export class TypeOrmClienteRepository implements ClienteRepository {
           status_cliente = EXCLUDED.status_cliente,
           categoria_id = EXCLUDED.categoria_id,
           tarjeta_fidely = EXCLUDED.tarjeta_fidely,
-          id_fidely = EXCLUDED.id_fidely,
           email = EXCLUDED.email,
           telefono = EXCLUDED.telefono,
           direccion = EXCLUDED.direccion,
@@ -169,7 +168,7 @@ export class TypeOrmClienteRepository implements ClienteRepository {
     e.status = c.status.value;
     e.categoria = { id: c.categoria.id.value } as CategoriaEntity;
     e.tarjetaFidely = c.fidelyStatus.tarjetaFidely.value;
-    e.idFidely = c.fidelyStatus.idFidely.value ?? null;
+    e.idFidely = c.fidelyStatus.idFidely.value as number | null | undefined;
     e.email = c.email.value;
     e.telefono = c.telefono.value;
     e.direccion = c.fullAdress.direccion.value;

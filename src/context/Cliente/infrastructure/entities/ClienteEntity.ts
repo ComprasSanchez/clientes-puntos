@@ -63,7 +63,7 @@ export class ClienteEntity {
 
   @Column({ name: 'id_fidely', type: 'int', nullable: true })
   @Generated('increment')
-  idFidely: number | null;
+  idFidely?: number | null;
 
   @Column({
     name: 'tarjeta_fidely',

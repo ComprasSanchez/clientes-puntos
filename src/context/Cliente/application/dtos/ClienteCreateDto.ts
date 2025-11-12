@@ -5,8 +5,8 @@ export class CreateClienteDto {
   sexo: string;
   fechaNacimiento: string; // ISO date string
   categoriaId: string;
-  idFidely: number;
-  tarjetaFidely: string;
+  idFidely: number | null;
+  tarjetaFidely: string | null;
   email?: string | null;
   telefono?: string | null;
   direccion?: string | null;

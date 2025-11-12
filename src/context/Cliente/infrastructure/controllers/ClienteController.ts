@@ -16,7 +16,10 @@ import {
   ApiBody,
 } from '@nestjs/swagger';
 import { CategoriaFindById } from '@cliente/application/use-cases/CategoriaFindById/CategoriaFindById';
-import { ClienteCreate } from '@cliente/application/use-cases/ClienteCreate/ClienteCreate';
+import {
+  ClienteCreate,
+  ClienteCreateInput,
+} from '@cliente/application/use-cases/ClienteCreate/ClienteCreate';
 import { ClienteFindAll } from '@cliente/application/use-cases/ClienteFindAll/ClienteFindAll';
 import { ClienteFindByDni } from '@cliente/application/use-cases/ClienteFindByDni/ClienteFindByDni';
 import { ClienteGetProfile } from '@cliente/application/use-cases/ClienteGetProfile/ClienteGetProfile';
@@ -58,13 +61,20 @@ export class ClienteController {
   @Post()
   async create(@Body() dto: CreateClienteDto): Promise<void> {
     const categoria = await this.findCategoriaById.run(dto.categoriaId);
-    const clienteData = {
+
+    const trimmedCard = (dto.tarjetaFidely ?? '').toString().trim();
+    const hasCard = trimmedCard.length > 0; // viene tarjeta externa
+    const tarjetaConDni = !hasCard; // si no viene → usar DNI
+
+    const clienteData: ClienteCreateInput = {
       dni: dto.dni,
       nombre: dto.nombre,
       apellido: dto.apellido,
       sexo: dto.sexo,
-      fechaNacimiento: new Date(dto.fechaNacimiento),
-      categoria: categoria.id.value,
+      fechaNacimiento: dto.fechaNacimiento
+        ? new Date(dto.fechaNacimiento)
+        : null,
+      categoria: categoria?.id.value, // si querés respetar la categoría enviada
       fidely_customerid: dto.idFidely ?? undefined,
       email: dto.email ?? undefined,
       telefono: dto.telefono ?? undefined,
@@ -72,8 +82,10 @@ export class ClienteController {
       codPostal: dto.codPostal ?? undefined,
       localidad: dto.localidad ?? undefined,
       provincia: dto.provincia ?? undefined,
+      ...(hasCard ? { tarjetaFidely: trimmedCard } : {}), // pasa la card solo si vino
     };
-    await this.createUseCase.run(clienteData, true);
+
+    await this.createUseCase.run(clienteData, tarjetaConDni);
   }
 
   @ApiOperation({ summary: 'Obtener todos los clientes' })
