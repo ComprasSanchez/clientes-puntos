@@ -13,6 +13,15 @@ import { ClienteTarjetaFidely } from '../value-objects/ClienteTarjetaFidely';
 const isEmpty = (v: unknown) =>
   v === undefined || v === null || (typeof v === 'string' && v.trim() === '');
 
+function toTitleCase(value: string): string {
+  return value
+    .toLowerCase()
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
+
 // === Fecha de nacimiento (VO o null)
 export function safeFechaNacimiento(
   v: Date | string | ClienteFechaNacimiento | null | undefined,
@@ -28,7 +37,18 @@ export function safeEmail(
 ): ClienteEmail {
   if (v instanceof ClienteEmail) return v;
   if (isEmpty(v)) return new ClienteEmail(null);
-  return new ClienteEmail(String(v).trim());
+
+  const emailRegexStricto =
+    /^(?!.*\.\.)([A-Za-z0-9]+(?:[._%+-]?[A-Za-z0-9]+)*)@(?!-)[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*(?:\.[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*)+$/;
+
+  const str = String(v).trim();
+
+  if (!emailRegexStricto.test(str)) {
+    // en vez de tirar error, lo consideramos null
+    return new ClienteEmail(null);
+  }
+
+  return new ClienteEmail(str);
 }
 
 export function safeTelefono(
@@ -36,7 +56,16 @@ export function safeTelefono(
 ): ClienteTelefono {
   if (v instanceof ClienteTelefono) return v;
   if (isEmpty(v)) return new ClienteTelefono(null);
-  return new ClienteTelefono(String(v).trim());
+
+  const telefonoRegex = /^\+?[0-9]{7,15}$/;
+  const str = String(v).trim();
+
+  if (!telefonoRegex.test(str)) {
+    // dato inválido => lo guardamos como null para no romper
+    return new ClienteTelefono(null);
+  }
+
+  return new ClienteTelefono(str);
 }
 
 export function safeDireccion(
@@ -44,7 +73,15 @@ export function safeDireccion(
 ): ClienteDireccion {
   if (v instanceof ClienteDireccion) return v;
   if (isEmpty(v)) return new ClienteDireccion(null);
-  return new ClienteDireccion(String(v).trim());
+
+  const str = String(v).trim();
+
+  try {
+    return new ClienteDireccion(str);
+  } catch {
+    // Si no pasa las validaciones del VO (min/max length), lo dejamos en null
+    return new ClienteDireccion(null);
+  }
 }
 
 export function safeCodigoPostal(
@@ -52,7 +89,15 @@ export function safeCodigoPostal(
 ): ClienteCodigoPostal {
   if (v instanceof ClienteCodigoPostal) return v;
   if (isEmpty(v)) return new ClienteCodigoPostal(null);
-  return new ClienteCodigoPostal(String(v).trim());
+
+  const str = String(v).trim();
+
+  try {
+    return new ClienteCodigoPostal(str);
+  } catch {
+    // si el código postal es inválido según el VO, lo seteamos en null
+    return new ClienteCodigoPostal(null);
+  }
 }
 
 export function safeLocalidad(
@@ -60,7 +105,16 @@ export function safeLocalidad(
 ): ClienteLocalidad {
   if (v instanceof ClienteLocalidad) return v;
   if (isEmpty(v)) return new ClienteLocalidad(null);
-  return new ClienteLocalidad(String(v).trim());
+
+  const raw = String(v).trim();
+  const normalized = toTitleCase(raw); // "CORDOBA CAPITAL" => "Cordoba Capital"
+
+  try {
+    return new ClienteLocalidad(normalized);
+  } catch {
+    // Si la regex del VO igual no lo acepta, lo guardamos como null para no romper
+    return new ClienteLocalidad(null);
+  }
 }
 
 export function safeProvincia(
@@ -68,7 +122,16 @@ export function safeProvincia(
 ): ClienteProvincia {
   if (v instanceof ClienteProvincia) return v;
   if (isEmpty(v)) return new ClienteProvincia(null);
-  return new ClienteProvincia(String(v).trim());
+
+  const raw = String(v).trim();
+  const normalized = toTitleCase(raw);
+
+  try {
+    return new ClienteProvincia(normalized);
+  } catch {
+    // Si sigue siendo inválido según el VO, lo dejamos en null
+    return new ClienteProvincia(null);
+  }
 }
 
 // === Fidely (si querés tratarlos de forma homogénea)
