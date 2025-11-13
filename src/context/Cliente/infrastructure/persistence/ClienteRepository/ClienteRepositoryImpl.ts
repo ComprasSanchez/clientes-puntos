@@ -168,7 +168,7 @@ export class TypeOrmClienteRepository implements ClienteRepository {
     e.status = c.status.value;
     e.categoria = { id: c.categoria.id.value } as CategoriaEntity;
     e.tarjetaFidely = c.fidelyStatus.tarjetaFidely.value;
-    e.idFidely = c.fidelyStatus.idFidely.value as number | null | undefined;
+    e.idFidely = c.fidelyStatus.idFidely.value ?? undefined;
     e.email = c.email.value;
     e.telefono = c.telefono.value;
     e.direccion = c.fullAdress.direccion.value;
