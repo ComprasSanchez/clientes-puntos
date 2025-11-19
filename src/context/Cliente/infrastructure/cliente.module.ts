@@ -1,6 +1,10 @@
 // @cliente/infrastructure/ClienteInfrastructureModule.ts
 import { forwardRef, Module, Provider } from '@nestjs/common';
-import { CATEGORIA_REPO, CLIENTE_REPO } from '../core/tokens/tokens';
+import {
+  CATEGORIA_REPO,
+  CLIENTE_QUERY_PORT,
+  CLIENTE_REPO,
+} from '../core/tokens/tokens';
 import { ClienteGetProfile } from '../application/use-cases/ClienteGetProfile/ClienteGetProfile';
 import { DatabaseModule } from 'src/infrastructure/database/database.module';
 import { ClientePersistenceModule } from './persistence/cliente.module';
@@ -22,6 +26,7 @@ import { ClienteController } from './controllers/ClienteController';
 import { PuntosInfrastructureModule } from '@puntos/infrastructure/puntos.module';
 import { ClienteFindByTarjeta } from '@cliente/application/use-cases/ClienteFindByTarjeta/ClienteFindByTarjeta';
 import { uniqueCardGenerator } from '@cliente/application/services/CardGenerator';
+import { ClienteQueryAdapter } from './persistence/ClienteRepository/ClienteQueryAdapter';
 
 const providers: Provider[] = [
   // 1) Repo puro
@@ -41,6 +46,10 @@ const providers: Provider[] = [
   CategoriaUpdate,
   CategoriaDelete,
   { provide: CATEGORIA_REPO, useClass: TypeOrmCategoriaRepository },
+  {
+    provide: CLIENTE_QUERY_PORT,
+    useClass: ClienteQueryAdapter,
+  },
 
   uniqueCardGenerator,
 ];
@@ -54,6 +63,7 @@ const providers: Provider[] = [
   controllers: [CategoriaController, ClienteController],
   providers,
   exports: [
+    CLIENTE_QUERY_PORT,
     ClienteCreate,
     ClienteUpdate,
     ClienteGetProfile,

@@ -15,6 +15,9 @@ export class OperacionResponseDto {
   refAnulacion?: number | null;
   createdAt: Date;
   updatedAt: Date;
+  puntosCredito?: number | null;
+  puntosDebito?: number | null;
+  puntosDelta?: number | null;
 
   static fromDomain(this: void, operacion: Operacion): OperacionResponseDto {
     const dto = new OperacionResponseDto();

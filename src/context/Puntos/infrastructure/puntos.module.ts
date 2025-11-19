@@ -14,6 +14,7 @@ import {
   LOTE_FACTORY,
   OBTENER_SALDO_SERVICE,
   OP_FACTORY,
+  OPERACION_VALOR_SERVICE,
   SALDO_HANDLER,
   TX_BUILDER,
   TX_FACTORY,
@@ -54,10 +55,14 @@ import { AjusteHandler } from '@puntos/application/handlers/AjusteHandler';
 import { DevolucionHandler } from '@puntos/application/handlers/DevolucionHandler';
 import { AnulacionHandler } from '@puntos/application/handlers/AnulacionHandler';
 import { MetricasQueueModule } from 'src/context/Metricas/infrastructure/MetricasQueue/metricas-queue.module';
+import { OperacionValorService } from '@puntos/application/services/OperacionValorService';
+import { FindOperacionDetalleByIdUseCase } from '@puntos/application/use-cases/OperacionDetalleView/OperacionDetalleView';
+import { ClienteInfrastructureModule } from '@cliente/infrastructure/cliente.module';
 
 @Module({
   imports: [
     forwardRef(() => ReglaInfrastructureModule),
+    forwardRef(() => ClienteInfrastructureModule),
     forwardRef(() => MetricasQueueModule),
     DatabaseModule,
     PuntosPersistenceModule,
@@ -97,6 +102,7 @@ import { MetricasQueueModule } from 'src/context/Metricas/infrastructure/Metrica
     // Servicio de aplicación y adapter de regla
     { provide: CREATE_OPERACION_SERVICE, useClass: CreateOperacionService },
     { provide: OBTENER_SALDO_SERVICE, useClass: ObtenerSaldo },
+    { provide: OPERACION_VALOR_SERVICE, useClass: OperacionValorService },
 
     {
       provide: IPUNTOS_SERVICE, // el token del puerto
@@ -123,6 +129,7 @@ import { MetricasQueueModule } from 'src/context/Metricas/infrastructure/Metrica
     FindOperacionByIdUseCase,
     FindOperacionesByClienteUseCase,
     FindOperacionesByReferenciaUseCase,
+    FindOperacionDetalleByIdUseCase,
   ],
   exports: [
     PuntosPersistenceModule,
@@ -136,6 +143,7 @@ import { MetricasQueueModule } from 'src/context/Metricas/infrastructure/Metrica
     SALDO_HANDLER,
     CREATE_OPERACION_SERVICE,
     IPUNTOS_SERVICE,
+    OPERACION_VALOR_SERVICE,
   ],
 })
 export class PuntosInfrastructureModule {}

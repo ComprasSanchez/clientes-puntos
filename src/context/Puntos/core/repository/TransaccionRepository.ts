@@ -39,6 +39,11 @@ export interface TransaccionRepository {
   findByOperationId(opId: number): Promise<Transaccion[]>;
 
   /**
+   * Devuelve todas las transacciones asociadas a las operaciones dadas.
+   */
+  findByOperacionIds(operationIds: number[]): Promise<Transaccion[]>;
+
+  /**
    * Obtiene todas las transacciones de un cliente, a partir de una OperacionId.
    * @param ref Identificador de la referencia.
    */

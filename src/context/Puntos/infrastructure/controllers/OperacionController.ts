@@ -1,5 +1,16 @@
 // src/infrastructure/controllers/OperacionController.ts
-import { Controller, Get, Post, Body, Param, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  UseGuards,
+  Query,
+  ParseIntPipe,
+  NotFoundException,
+  Inject,
+} from '@nestjs/common';
 import { OperacionResponseDto } from '../dtos/OperacionResponseDto';
 import { OperacionId } from '../../core/value-objects/OperacionId';
 import { FindAllOperacionesUseCase } from '@puntos/application/use-cases/OperacionFindAll/OperacionFindAll';
@@ -14,6 +25,12 @@ import { CreateOperacionResponse } from '@puntos/application/dtos/CreateOperacio
 import { TransactionalRunner } from '@shared/infrastructure/transaction/TransactionalRunner';
 import { ApiJwtGuard } from '@infrastructure/auth/api-jwt.guard';
 import { Authz } from '@infrastructure/auth/authz-policy.decorator';
+import { PaginatedOperacionResponseDto } from '../dtos/PaginatedOperacionResponseDto';
+import { OperacionValorService } from '@puntos/application/services/OperacionValorService';
+import { PaginationQueryDto } from '@shared/infrastructure/dtos/pagination-query.dto';
+import { OperacionDetalleResponseDto } from '../dtos/OperacionDetalleResponseDto';
+import { FindOperacionDetalleByIdUseCase } from '@puntos/application/use-cases/OperacionDetalleView/OperacionDetalleView';
+import { OPERACION_VALOR_SERVICE } from '@puntos/core/tokens/tokens';
 
 @UseGuards(ApiJwtGuard)
 @Authz({
@@ -23,10 +40,13 @@ import { Authz } from '@infrastructure/auth/authz-policy.decorator';
 @Controller('operacion')
 export class OperacionController {
   constructor(
+    @Inject(OPERACION_VALOR_SERVICE)
+    private readonly operacionValorService: OperacionValorService,
     private readonly findAllOperaciones: FindAllOperacionesUseCase,
     private readonly findOperacionById: FindOperacionByIdUseCase,
     private readonly findByCliente: FindOperacionesByClienteUseCase,
     private readonly findByReferencia: FindOperacionesByReferenciaUseCase,
+    private readonly findOperacionDetalleById: FindOperacionDetalleByIdUseCase,
     private readonly compraUseCase: CompraUseCase,
     private readonly devolucionUseCase: DevolucionUseCase,
     private readonly anulacionUseCase: AnulacionUseCase,
@@ -34,9 +54,52 @@ export class OperacionController {
   ) {}
 
   @Get()
-  async getAll(): Promise<OperacionResponseDto[]> {
-    const operaciones = await this.findAllOperaciones.run();
-    return operaciones.map(OperacionResponseDto.fromDomain);
+  async getAll(
+    @Query() query: PaginationQueryDto,
+  ): Promise<PaginatedOperacionResponseDto> {
+    // 1) Operaciones paginadas
+    const pageResult = await this.findAllOperaciones.run(query.toParams());
+
+    // 2) Calcular valor (crédito/debito/delta) en batch
+    const valorMap = await this.operacionValorService.calcularParaOperaciones(
+      pageResult.items,
+    );
+
+    // 3) Mapear a DTO + inyectar los campos resumidos
+    const items = pageResult.items.map((op) => {
+      const dto = OperacionResponseDto.fromDomain(op);
+      const valor = valorMap.get(op.id.value);
+
+      if (valor) {
+        dto.puntosCredito = valor.puntosCredito;
+        dto.puntosDebito = valor.puntosDebito;
+        dto.puntosDelta = valor.puntosDelta;
+      }
+
+      return dto;
+    });
+
+    return {
+      items,
+      total: pageResult.total,
+      page: pageResult.page,
+      limit: pageResult.limit,
+      hasNext: pageResult.page * pageResult.limit < pageResult.total,
+    };
+  }
+
+  @Get(':id/detalle')
+  async getDetalle(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<OperacionDetalleResponseDto> {
+    const opId = OperacionId.instance(id);
+    const detalle = await this.findOperacionDetalleById.run(opId);
+
+    if (!detalle) {
+      throw new NotFoundException(`Operación ${id} no encontrada`);
+    }
+
+    return OperacionDetalleResponseDto.fromView(detalle);
   }
 
   @Get(':id')

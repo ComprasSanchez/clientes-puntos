@@ -8,6 +8,10 @@ import { OperacionId } from '@puntos/core/value-objects/OperacionId';
 import { TransactionContext } from '@shared/core/interfaces/TransactionContext';
 import { TypeOrmBaseRepository } from '@shared/infrastructure/transaction/TypeOrmBaseRepository';
 import { FechaOperacion } from '@puntos/core/value-objects/FechaOperacion';
+import {
+  PaginatedResult,
+  PaginationParams,
+} from '@shared/core/contracts/pagination';
 
 @Injectable()
 export class TypeOrmOperacionRepository
@@ -21,9 +25,27 @@ export class TypeOrmOperacionRepository
     super();
   }
 
-  async findAll(): Promise<Operacion[]> {
-    const entities = await this.ormRepo.find();
-    return entities.map((e) => e.toDomain());
+  async findAll(params: PaginationParams): Promise<PaginatedResult<Operacion>> {
+    const page = params.page ?? 1;
+    const limit = params.limit ?? 20;
+
+    const [entities, total] = await this.ormRepo.findAndCount({
+      order: {
+        createdAt: 'DESC', // más nuevo → más viejo
+        id: 'DESC', // desempate estable
+      },
+      skip: (page - 1) * limit,
+      take: limit,
+    });
+
+    const items = entities.map((e) => e.toDomain());
+
+    return {
+      items,
+      total,
+      page,
+      limit,
+    };
   }
 
   async findById(id: OperacionId): Promise<Operacion | null> {

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { TransaccionRepository } from '@puntos/core/repository/TransaccionRepository';
-import { Repository, FindOptionsWhere } from 'typeorm';
+import { Repository, FindOptionsWhere, In } from 'typeorm';
 import { TransaccionEntity } from '../../entities/transaccion.entity';
 import { Transaccion } from '@puntos/core/entities/Transaccion';
 import { TransaccionId } from '@puntos/core/value-objects/TransaccionId';
@@ -19,6 +19,20 @@ export class TypeOrmTransaccionRepository
     private readonly repo: Repository<TransaccionEntity>,
   ) {
     super();
+  }
+
+  async findByOperacionIds(operationIds: number[]): Promise<Transaccion[]> {
+    if (operationIds.length === 0) {
+      return [];
+    }
+
+    const entities = await this.repo.find({
+      where: {
+        operationId: In(operationIds),
+      },
+    });
+
+    return entities.map((e) => e.toDomain());
   }
 
   async findAll(): Promise<Transaccion[]> {

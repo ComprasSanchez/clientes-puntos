@@ -3,6 +3,10 @@ import { TransactionContext } from '@shared/core/interfaces/TransactionContext';
 import { Operacion } from '../entities/Operacion';
 import { OperacionId } from '../value-objects/OperacionId';
 import { FechaOperacion } from '../value-objects/FechaOperacion';
+import {
+  PaginatedResult,
+  PaginationParams,
+} from '@shared/core/contracts/pagination';
 
 /**
  * Puerto de repositorio para la entidad Operacion (operación del sistema de puntos).
@@ -12,7 +16,7 @@ export interface OperacionRepository {
   /**
    * Obtiene todas las operaciones registradas en el sistema.
    */
-  findAll(): Promise<Operacion[]>;
+  findAll(params: PaginationParams): Promise<PaginatedResult<Operacion>>;
 
   /**
    * Busca una operación por su identificador.

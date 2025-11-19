@@ -19,3 +19,4 @@ export const ANULACION_HANDLER = Symbol('AnulacionHandler');
 export const EXECUTE_RULES_USE_CASE = Symbol('ExecuteRulesUseCase');
 export const OBTENER_SALDO_SERVICE = Symbol('ObtenerSaldoService');
 export const DATA_SOURCE = Symbol('DataSource');
+export const OPERACION_VALOR_SERVICE = Symbol('OperacionValorService');
