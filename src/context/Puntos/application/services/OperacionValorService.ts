@@ -3,6 +3,8 @@ import { TransaccionRepository } from '@puntos/core/repository/TransaccionReposi
 import { Operacion } from '@puntos/core/entities/Operacion';
 import { Transaccion } from '@puntos/core/entities/Transaccion';
 import { TxTipo } from '@puntos/core/enums/TxTipo';
+import { Inject } from '@nestjs/common';
+import { TX_REPO } from '@puntos/core/tokens/tokens';
 
 export interface ValorOperacionResumido {
   puntosCredito: number;
@@ -21,7 +23,9 @@ export interface DetalleOperacionValor {
 }
 
 export class OperacionValorService {
-  constructor(private readonly transaccionRepo: TransaccionRepository) {}
+  constructor(
+    @Inject(TX_REPO) private readonly transaccionRepo: TransaccionRepository,
+  ) {}
 
   /**
    * Calcula el valor de muchas operaciones (lista) en batch.
