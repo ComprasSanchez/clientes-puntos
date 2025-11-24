@@ -53,9 +53,31 @@ export class TypeOrmOperacionRepository
     return entity ? entity.toDomain() : null;
   }
 
-  async findByCliente(clienteId: string): Promise<Operacion[]> {
-    const entities = await this.ormRepo.find({ where: { clienteId } });
-    return entities.map((e) => e.toDomain());
+  async findByCliente(
+    clienteId: string,
+    params: PaginationParams,
+  ): Promise<PaginatedResult<Operacion>> {
+    const page = params.page ?? 1;
+    const limit = params.limit ?? 20;
+
+    const [entities, total] = await this.ormRepo.findAndCount({
+      where: { clienteId },
+      order: {
+        createdAt: 'DESC',
+        id: 'DESC',
+      },
+      skip: (page - 1) * limit,
+      take: limit,
+    });
+
+    const items = entities.map((e) => e.toDomain());
+
+    return {
+      items,
+      total,
+      page,
+      limit,
+    };
   }
 
   async findByReferencia(referenciaId: string): Promise<Operacion[]> {

@@ -116,9 +116,44 @@ export class OperacionController {
   @Get('/cliente/:clienteId')
   async getByCliente(
     @Param('clienteId') clienteId: string,
-  ): Promise<OperacionResponseDto[]> {
-    const operaciones = await this.findByCliente.run(clienteId);
-    return operaciones.map(OperacionResponseDto.fromDomain);
+    @Query() query: PaginationQueryDto,
+  ): Promise<PaginatedOperacionResponseDto> {
+    // 1) Operaciones paginadas por cliente
+    const pageResult = await this.findByCliente.run(
+      clienteId,
+      query.toParams(),
+    );
+
+    // 2) Calcular valor (crédito/debito/delta) en batch
+    const valorMap = await this.operacionValorService.calcularParaOperaciones(
+      pageResult.items,
+    );
+
+    // 3) Mapear a DTO + inyectar los campos resumidos
+    const items = pageResult.items.map((op) => {
+      const dto = OperacionResponseDto.fromDomain(op);
+      const valor = valorMap.get(op.id.value);
+
+      if (valor) {
+        dto.puntosCredito = valor.puntosCredito;
+        dto.puntosDebito = valor.puntosDebito;
+        dto.puntosDelta = valor.puntosDelta;
+      }
+
+      return dto;
+    });
+
+    const hasNext =
+      pageResult.total > 0 &&
+      pageResult.page < Math.ceil(pageResult.total / pageResult.limit);
+
+    return {
+      items,
+      total: pageResult.total,
+      page: pageResult.page,
+      limit: pageResult.limit,
+      hasNext: hasNext,
+    };
   }
 
   @ClientPerms('operacion:read')

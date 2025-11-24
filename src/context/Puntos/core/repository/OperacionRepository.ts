@@ -24,11 +24,10 @@ export interface OperacionRepository {
    */
   findById(id: OperacionId): Promise<Operacion | null>;
 
-  /**
-   * Obtiene todas las operaciones de un cliente.
-   * @param clienteId Identificador del cliente
-   */
-  findByCliente(clienteId: string): Promise<Operacion[]>;
+  findByCliente(
+    clienteId: string,
+    params: PaginationParams,
+  ): Promise<PaginatedResult<Operacion>>;
 
   /**
    * Obtiene operaciones a partir de una referencia.
