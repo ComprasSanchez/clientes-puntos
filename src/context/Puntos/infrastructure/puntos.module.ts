@@ -12,6 +12,7 @@ import {
   CREATE_OPERACION_SERVICE,
   DEVOLUCION_HANDLER,
   LOTE_FACTORY,
+  OBTENER_HSITORIAL_SALDO,
   OBTENER_SALDO_SERVICE,
   OP_FACTORY,
   OPERACION_VALOR_SERVICE,
@@ -58,6 +59,7 @@ import { MetricasQueueModule } from 'src/context/Metricas/infrastructure/Metrica
 import { OperacionValorService } from '@puntos/application/services/OperacionValorService';
 import { FindOperacionDetalleByIdUseCase } from '@puntos/application/use-cases/OperacionDetalleView/OperacionDetalleView';
 import { ClienteInfrastructureModule } from '@cliente/infrastructure/cliente.module';
+import { GetHistorialSaldoCliente } from '@puntos/application/use-cases/ObtenerHistorialSaldo/GetHistorialSaldoCliente';
 
 @Module({
   imports: [
@@ -103,6 +105,7 @@ import { ClienteInfrastructureModule } from '@cliente/infrastructure/cliente.mod
     { provide: CREATE_OPERACION_SERVICE, useClass: CreateOperacionService },
     { provide: OBTENER_SALDO_SERVICE, useClass: ObtenerSaldo },
     { provide: OPERACION_VALOR_SERVICE, useClass: OperacionValorService },
+    { provide: OBTENER_HSITORIAL_SALDO, useClass: GetHistorialSaldoCliente },
 
     {
       provide: IPUNTOS_SERVICE, // el token del puerto
@@ -144,6 +147,7 @@ import { ClienteInfrastructureModule } from '@cliente/infrastructure/cliente.mod
     CREATE_OPERACION_SERVICE,
     IPUNTOS_SERVICE,
     OPERACION_VALOR_SERVICE,
+    OBTENER_HSITORIAL_SALDO,
   ],
 })
 export class PuntosInfrastructureModule {}

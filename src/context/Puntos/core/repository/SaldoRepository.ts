@@ -55,5 +55,5 @@ export interface SaldoRepository {
    * @param clienteId  Identificador del cliente
    * @returns Lista de cambios de saldo (puede ser una entidad/DTO HistorialSaldo)
    */
-  findHistorialByClienteId(clienteId: string): Promise<any[]>; // Puedes tipar esto según tu entidad de historial
+  findHistorialByClienteId(clienteId: string): Promise<HistorialSaldo[]>; // Puedes tipar esto según tu entidad de historial
 }

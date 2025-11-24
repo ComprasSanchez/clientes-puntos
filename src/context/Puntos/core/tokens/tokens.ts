@@ -18,5 +18,6 @@ export const DEVOLUCION_HANDLER = Symbol('DevolucionHandler');
 export const ANULACION_HANDLER = Symbol('AnulacionHandler');
 export const EXECUTE_RULES_USE_CASE = Symbol('ExecuteRulesUseCase');
 export const OBTENER_SALDO_SERVICE = Symbol('ObtenerSaldoService');
+export const OBTENER_HSITORIAL_SALDO = Symbol('ObtenerHistorialSaldoCliente');
 export const DATA_SOURCE = Symbol('DataSource');
 export const OPERACION_VALOR_SERVICE = Symbol('OperacionValorService');

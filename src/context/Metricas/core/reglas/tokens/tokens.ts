@@ -14,3 +14,7 @@ export const CALCULAR_METRICAS_SERVICE = Symbol(
 export const CALCULAR_SALDO_METRICAS_SERVICE = Symbol(
   'CalcularMetricasSaldoService',
 );
+
+export const GET_CLIENTE_METRICAS_DASHBOARD_CLIENTE = Symbol(
+  'GetClienteMetricasDashboardCliente',
+);

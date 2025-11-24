@@ -10,6 +10,7 @@ import {
   CLIENTE_CALCULATOR,
   CREAR_METRICA_CLIENTE_SERVICE,
   CREAR_METRICA_CLIENTE_USECASE,
+  GET_CLIENTE_METRICAS_DASHBOARD_CLIENTE,
   GET_METRICAS_CLIENTE_USECASE,
   RULE_COTIZACION_FINDER,
 } from '../core/reglas/tokens/tokens';
@@ -42,6 +43,7 @@ import { CargarMetricasSaldo } from '../application/puntos/use-cases/CargarMetri
 import { GetMetricasSaldo } from '../application/puntos/use-cases/GetMetricasSaldo';
 import { ClienteInfrastructureModule } from '@cliente/infrastructure/cliente.module';
 import { MetricasController } from './controllers/MetricasController';
+import { GetClienteMetricasDashboard } from '../application/clientes/services/GetClientesMetricasDashboard';
 
 @Module({
   imports: [
@@ -110,6 +112,10 @@ import { MetricasController } from './controllers/MetricasController';
       provide: CALCULAR_SALDO_METRICAS_SERVICE,
       useClass: CalcularMetricasSaldoService,
     },
+    {
+      provide: GET_CLIENTE_METRICAS_DASHBOARD_CLIENTE,
+      useClass: GetClienteMetricasDashboard,
+    },
     MetricasOperacionScheduler,
   ],
   exports: [
@@ -122,6 +128,7 @@ import { MetricasController } from './controllers/MetricasController';
     GET_METRICAS_CLIENTE_USECASE,
     GET_METRICA_SALDO_USECASE,
     CARGAR_METRICA_SALDO_USECASE,
+    GET_CLIENTE_METRICAS_DASHBOARD_CLIENTE,
   ],
 })
 export class MetricasModule {}
