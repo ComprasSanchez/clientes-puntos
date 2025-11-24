@@ -11,6 +11,7 @@ import { FindTransaccionesByOperationIdUseCase } from '@puntos/application/use-c
 import { FindTransaccionesByReferenciaUseCase } from '@puntos/application/use-cases/TransaccionFindByReferencia/TransaccionFindByReferencia';
 import { ApiJwtGuard } from '@infrastructure/auth/api-jwt.guard';
 import { Authz } from '@infrastructure/auth/authz-policy.decorator';
+import { ClientPerms } from '@sistemas-fsa/authz/nest';
 
 @UseGuards(ApiJwtGuard)
 @Authz({
@@ -28,12 +29,14 @@ export class TransaccionController {
     private readonly findByReferencia: FindTransaccionesByReferenciaUseCase,
   ) {}
 
+  @ClientPerms('transaccion:read')
   @Get()
   async getAll(): Promise<TransaccionResponseDto[]> {
     const transacciones = await this.findAllTransacciones.run();
     return transacciones.map(TransaccionResponseDto.fromDomain);
   }
 
+  @ClientPerms('transaccion:read')
   @Get(':id')
   async getById(
     @Param('id') id: string,
@@ -44,6 +47,7 @@ export class TransaccionController {
     return transaccion ? TransaccionResponseDto.fromDomain(transaccion) : null;
   }
 
+  @ClientPerms('transaccion:read')
   @Get('/lote/:loteId')
   async getByLote(
     @Param('loteId') loteId: string,
@@ -52,6 +56,7 @@ export class TransaccionController {
     return transacciones.map(TransaccionResponseDto.fromDomain);
   }
 
+  @ClientPerms('transaccion:read')
   @Get('/cliente/:clienteId')
   async getByCliente(
     @Param('clienteId') clienteId: string,
@@ -60,6 +65,7 @@ export class TransaccionController {
     return transacciones.map(TransaccionResponseDto.fromDomain);
   }
 
+  @ClientPerms('transaccion:read')
   @Get('/operacion/:opId')
   async getByOperacionId(
     @Param('opId') opId: number,
@@ -68,6 +74,7 @@ export class TransaccionController {
     return transacciones.map(TransaccionResponseDto.fromDomain);
   }
 
+  @ClientPerms('transaccion:read')
   @Get('/referencia/:ref')
   async getByReferencia(
     @Param('ref') ref: string,

@@ -24,6 +24,7 @@ import { ReglaNotFound } from '@regla/core/exceptions/ReglaNotFoundError';
 import { ReglaFindCotizacion } from '@regla/application/use-cases/ReglaFindCotizacion/FindCotizacion';
 import { ApiJwtGuard } from '@infrastructure/auth/api-jwt.guard';
 import { Authz } from '@infrastructure/auth/authz-policy.decorator';
+import { ClientPerms } from '@sistemas-fsa/authz/nest';
 
 @UseGuards(ApiJwtGuard)
 @Authz({
@@ -41,17 +42,20 @@ export class ReglaController {
     private readonly deleteUseCase: ReglaDelete,
   ) {}
 
+  @ClientPerms('regla:read')
   @Get()
   async findAll(): Promise<ReglaResponseDto[]> {
     const reglas = await this.findAllUseCase.run();
     return reglas.map((r) => this.toResponseDto(r));
   }
 
+  @ClientPerms('regla:read')
   @Get('/cotizacion')
   async findCotizacion(): Promise<ConversionRule> {
     return this.findCotizacionUseCase.run();
   }
 
+  @ClientPerms('regla:read')
   @Get(':id')
   async findOne(@Param('id') id: string): Promise<ReglaResponseDto> {
     const regla = await this.findByIdUseCase.run(id);
@@ -62,9 +66,9 @@ export class ReglaController {
   // Solo administrator
   @Authz({
     allowedAzp: ['puntos-fsa'],
-    requiredClientRoles: { 'puntos-fsa': ['administrator'] },
     requireSucursalData: false,
   })
+  @ClientPerms('regla:write')
   @Post()
   async create(@Body() dto: CreateReglaDto): Promise<void> {
     await this.createUseCase.run(dto);
@@ -73,9 +77,9 @@ export class ReglaController {
   // Solo administrator
   @Authz({
     allowedAzp: ['puntos-fsa'],
-    requiredClientRoles: { 'puntos-fsa': ['administrator'] },
     requireSucursalData: false,
   })
+  @ClientPerms('regla:write')
   @Put(':id')
   async update(
     @Param('id') id: string,
@@ -87,9 +91,9 @@ export class ReglaController {
   // Solo administrator
   @Authz({
     allowedAzp: ['puntos-fsa'],
-    requiredClientRoles: { 'puntos-fsa': ['administrator'] },
     requireSucursalData: false,
   })
+  @ClientPerms('regla:write')
   @Delete(':id')
   async remove(@Param('id') id: string): Promise<void> {
     await this.deleteUseCase.run(id);

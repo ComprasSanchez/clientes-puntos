@@ -32,6 +32,7 @@ import { ClienteProfileDto } from '@cliente/application/dtos/ClienteProfileDto';
 import { ClienteResponseDto } from '../../application/dtos/ClienteResponseDto';
 import { ApiJwtGuard } from '@infrastructure/auth/api-jwt.guard';
 import { Authz } from '@infrastructure/auth/authz-policy.decorator';
+import { ClientPerms } from '@sistemas-fsa/authz/nest';
 
 @ApiTags('Cliente')
 @UseGuards(ApiJwtGuard)
@@ -58,6 +59,7 @@ export class ClienteController {
   @ApiBody({ type: CreateClienteDto })
   @ApiResponse({ status: 201, description: 'Cliente creado.' })
   // Si querés que crear sólo lo haga administrator:
+  @ClientPerms('cliente:write')
   @Post()
   async create(@Body() dto: CreateClienteDto): Promise<void> {
     const categoria = await this.findCategoriaById.run(dto.categoriaId);
@@ -95,9 +97,7 @@ export class ClienteController {
     type: [ClienteResponseDto],
   })
   // Lectura: permití también a consultant
-  @Authz({
-    requireSucursalData: false,
-  })
+  @ClientPerms('cliente:read')
   @Get()
   async findAll(): Promise<ClienteResponseDto[] | null> {
     return this.findAllUseCase.run();
@@ -110,9 +110,7 @@ export class ClienteController {
     description: 'Cliente encontrado.',
     type: ClienteProfileDto,
   })
-  @Authz({
-    requireSucursalData: false,
-  })
+  @ClientPerms('cliente:read')
   @Get('dni/:dni')
   async findByDni(
     @Param('dni') dni: string,
@@ -127,9 +125,7 @@ export class ClienteController {
     description: 'Cliente encontrado.',
     type: ClienteProfileDto,
   })
-  @Authz({
-    requireSucursalData: false,
-  })
+  @ClientPerms('cliente:read')
   @Get(':id')
   async findOne(@Param('id') id: string): Promise<ClienteResponseDto | null> {
     return this.findByIdUseCase.run(id);
@@ -142,9 +138,7 @@ export class ClienteController {
     description: 'Perfil del cliente.',
     type: ClienteProfileDto,
   })
-  @Authz({
-    requireSucursalData: false,
-  })
+  @ClientPerms('cliente:read')
   @Get(':id/profile')
   async profile(@Param('id') id: string) {
     return this.getProfileUseCase.run(id);
@@ -156,8 +150,8 @@ export class ClienteController {
   @ApiResponse({ status: 204, description: 'Cliente actualizado.' })
   @Authz({
     allowedAzp: ['puntos-fsa'],
-    requiredClientRoles: { 'puntos-fsa': ['administrator'] },
   })
+  @ClientPerms('cliente:write')
   @Put(':id')
   async update(
     @Param('id') id: string,
@@ -178,8 +172,8 @@ export class ClienteController {
   @ApiResponse({ status: 204, description: 'Cliente eliminado.' })
   @Authz({
     allowedAzp: ['puntos-fsa'],
-    requiredClientRoles: { 'puntos-fsa': ['administrator'] },
   })
+  @ClientPerms('cliente:write')
   @Delete(':id')
   async remove(@Param('id') id: string): Promise<void> {
     await this.deleteUseCase.run(id);

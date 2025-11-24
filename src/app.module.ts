@@ -7,7 +7,7 @@ import { SharedModule } from '@shared/shared.module';
 import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { AppExceptionFilter } from '@shared/core/exceptions/AppExceptionFilter';
 import { KeycloakModule } from '@infrastructure/auth/keycloak.module';
-import { AuthGuard, ResourceGuard, RoleGuard } from 'nest-keycloak-connect';
+import { AuthGuard } from 'nest-keycloak-connect';
 import { IntegrationsModule } from '@infrastructure/integrations/integrations.module';
 import { RedisCacheModule } from '@infrastructure/cache/redis/redis-cache.module';
 import { RulesCacheModule } from '@infrastructure/cache/rules-cache/rules-cache.module';
@@ -16,10 +16,12 @@ import { MetricasQueueModule } from './context/Metricas/infrastructure/MetricasQ
 import { SaldoCacheModule } from '@infrastructure/cache/saldo-cache/saldo-cache.module';
 import { SucursalInfrastructureModule } from './context/Sucursal/infrastructure/sucursal.module';
 import { ProductoModule } from './context/Producto/infrastructure/producto.module';
+import { AuthzModule } from '@infrastructure/auth/V2/auth.module';
 
 @Module({
   imports: [
     ConfigModule,
+    AuthzModule,
     KeycloakModule,
     SharedModule,
     RedisCacheModule,
@@ -39,14 +41,6 @@ import { ProductoModule } from './context/Producto/infrastructure/producto.modul
     {
       provide: APP_GUARD,
       useClass: AuthGuard, // 👈 Este es el guard base, obligatorio
-    },
-    {
-      provide: APP_GUARD,
-      useClass: ResourceGuard, // 👈 Solo si usás @Resource y @Scopes (opcional)
-    },
-    {
-      provide: APP_GUARD,
-      useClass: RoleGuard, // 👈 Solo si usás @Roles (muy recomendable)
     },
     {
       provide: APP_FILTER,

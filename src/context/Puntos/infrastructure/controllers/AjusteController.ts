@@ -7,6 +7,7 @@ import { AjusteUseCase } from '@puntos/application/use-cases/Ajuste/Ajuste';
 import { TxTipo } from '@puntos/core/enums/TxTipo';
 import { UserId } from '@shared/infrastructure/decorators/user-id.decorator';
 import { TransactionalRunner } from '@shared/infrastructure/transaction/TransactionalRunner';
+import { ClientPerms } from '@sistemas-fsa/authz/nest';
 
 @UseGuards(ApiJwtGuard)
 @Authz({
@@ -21,6 +22,7 @@ export class AjusteController {
   ) {}
 
   @Post('acreditar')
+  @ClientPerms('ajuste:write')
   async registrarAjusteAcreditacion(
     @Body() dto: AjusteDto,
     @UserId() userId: string,
@@ -32,6 +34,7 @@ export class AjusteController {
   }
 
   @Post('gastar')
+  @ClientPerms('ajuste:write')
   async registrarAjusteGasto(
     @Body() dto: AjusteDto,
     @UserId() userId: string,

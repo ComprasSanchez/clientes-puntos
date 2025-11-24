@@ -12,6 +12,7 @@ import { MetricasSaldo } from '../../core/puntos/entities/MetricasSaldo';
 import { GET_METRICA_SALDO_USECASE } from '../../core/puntos/tokens/tokens';
 import { Authz } from '@infrastructure/auth/authz-policy.decorator';
 import { ApiJwtGuard } from '@infrastructure/auth/api-jwt.guard';
+import { ClientPerms } from '@sistemas-fsa/authz/nest';
 
 @UseGuards(ApiJwtGuard)
 @Authz({
@@ -29,6 +30,7 @@ export class MetricasController {
    * GET /metricas/saldo
    * Devuelve las métricas actuales de saldo (cacheadas o calculadas)
    */
+  @ClientPerms('metricas:read')
   @Get('saldo')
   async getSaldo(): Promise<MetricasSaldo> {
     try {

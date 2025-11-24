@@ -18,6 +18,7 @@ import { Producto } from '../../core/entities/Producto';
 import { UpsertProductoPlano } from '../../core/dtos/UpsertProductoPlano';
 import { ApiJwtGuard } from '@infrastructure/auth/api-jwt.guard';
 import { Authz } from '@infrastructure/auth/authz-policy.decorator';
+import { ClientPerms } from '@sistemas-fsa/authz/nest';
 
 type ProductoHttpDto = {
   idProducto: string;
@@ -52,11 +53,7 @@ export class ProductoController {
    * POST /productos/upsert
    * (Sólo administrator)
    */
-  @Authz({
-    allowedAzp: ['puntos-fsa'],
-    requiredClientRoles: { 'puntos-fsa': ['administrator'] },
-    requireSucursalData: false,
-  })
+  @ClientPerms('producto:write')
   @Post('upsert')
   async upsertJson(
     @Body() body: UpsertProductoPlano[] | UpsertProductoPlano,
@@ -73,6 +70,7 @@ export class ProductoController {
    * GET /productos/:id
    * (Lectura: consultant | administrator)
    */
+  @ClientPerms('producto:read')
   @Get(':id')
   async get(@Param('id') id: string): Promise<ProductoHttpDto> {
     const p = await this.getById.run(id);

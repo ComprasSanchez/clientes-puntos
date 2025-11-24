@@ -5,7 +5,6 @@ import {
   Post,
   Body,
   Param,
-  UseGuards,
   Query,
   ParseIntPipe,
   NotFoundException,
@@ -23,7 +22,6 @@ import { AnulacionUseCase } from '@puntos/application/use-cases/Anulacion/Anulac
 import { OperacionDto } from '@puntos/application/dtos/OperacionDto';
 import { CreateOperacionResponse } from '@puntos/application/dtos/CreateOperacionResponse';
 import { TransactionalRunner } from '@shared/infrastructure/transaction/TransactionalRunner';
-import { ApiJwtGuard } from '@infrastructure/auth/api-jwt.guard';
 import { Authz } from '@infrastructure/auth/authz-policy.decorator';
 import { PaginatedOperacionResponseDto } from '../dtos/PaginatedOperacionResponseDto';
 import { OperacionValorService } from '@puntos/application/services/OperacionValorService';
@@ -31,12 +29,13 @@ import { PaginationQueryDto } from '@shared/infrastructure/dtos/pagination-query
 import { OperacionDetalleResponseDto } from '../dtos/OperacionDetalleResponseDto';
 import { FindOperacionDetalleByIdUseCase } from '@puntos/application/use-cases/OperacionDetalleView/OperacionDetalleView';
 import { OPERACION_VALOR_SERVICE } from '@puntos/core/tokens/tokens';
+import { ClientPerms } from '@sistemas-fsa/authz/nest';
 
-@UseGuards(ApiJwtGuard)
-@Authz({
-  allowedAzp: ['puntos-fsa', 'bff'],
-  requireSucursalData: false, // GETs no requieren sucursal
-})
+// @UseGuards(ApiJwtGuard)
+// @Authz({
+//   allowedAzp: ['puntos-fsa', 'bff'],
+//   requireSucursalData: false, // GETs no requieren sucursal
+// })
 @Controller('operacion')
 export class OperacionController {
   constructor(
@@ -54,6 +53,7 @@ export class OperacionController {
   ) {}
 
   @Get()
+  @ClientPerms('operacion:read')
   async getAll(
     @Query() query: PaginationQueryDto,
   ): Promise<PaginatedOperacionResponseDto> {
@@ -88,6 +88,7 @@ export class OperacionController {
     };
   }
 
+  @ClientPerms('operacion:read')
   @Get(':id/detalle')
   async getDetalle(
     @Param('id', ParseIntPipe) id: number,
@@ -102,6 +103,7 @@ export class OperacionController {
     return OperacionDetalleResponseDto.fromView(detalle);
   }
 
+  @ClientPerms('operacion:read')
   @Get(':id')
   async getById(@Param('id') id: number): Promise<OperacionResponseDto | null> {
     const operacion = await this.findOperacionById.run(
@@ -110,6 +112,7 @@ export class OperacionController {
     return operacion ? OperacionResponseDto.fromDomain(operacion) : null;
   }
 
+  @ClientPerms('operacion:read')
   @Get('/cliente/:clienteId')
   async getByCliente(
     @Param('clienteId') clienteId: string,
@@ -118,6 +121,7 @@ export class OperacionController {
     return operaciones.map(OperacionResponseDto.fromDomain);
   }
 
+  @ClientPerms('operacion:read')
   @Get('/referencia/:referenciaId')
   async getByReferencia(
     @Param('referenciaId') referenciaId: string,
@@ -129,9 +133,9 @@ export class OperacionController {
   // --- POSTs: sólo administrator y requieren sucursal ---
   @Authz({
     allowedAzp: ['puntos-fsa'],
-    requiredClientRoles: { 'puntos-fsa': ['administrator'] },
     requireSucursalData: true,
   })
+  @ClientPerms('operacion:write')
   @Post('compra')
   async compra(@Body() dto: OperacionDto): Promise<CreateOperacionResponse> {
     return this.transactionalRunner.runInTransaction((ctx) =>
@@ -141,9 +145,9 @@ export class OperacionController {
 
   @Authz({
     allowedAzp: ['puntos-fsa'],
-    requiredClientRoles: { 'puntos-fsa': ['administrator'] },
     requireSucursalData: true,
   })
+  @ClientPerms('operacion:write')
   @Post('devolucion')
   async devolucion(
     @Body() dto: OperacionDto,
@@ -155,9 +159,9 @@ export class OperacionController {
 
   @Authz({
     allowedAzp: ['puntos-fsa'],
-    requiredClientRoles: { 'puntos-fsa': ['administrator'] },
     requireSucursalData: true,
   })
+  @ClientPerms('operacion:write')
   @Post('anulacion')
   async anulacion(@Body() dto: OperacionDto): Promise<CreateOperacionResponse> {
     return this.transactionalRunner.runInTransaction((ctx) =>

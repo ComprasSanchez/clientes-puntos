@@ -83,6 +83,7 @@ export class PlexController {
 
   @Post()
   @UseGuards(ApiJwtGuard)
+  //Authz V1 local integrado con kaycloak
   @Authz({
     allowedAzp: ['plex-integration'],
     requiredRealmRoles: ['integration:plex'],

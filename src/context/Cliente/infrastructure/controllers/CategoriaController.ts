@@ -18,6 +18,7 @@ import {
 import { CategoriaResponseDto } from '../../application/dtos/CategoriaResponseDto';
 import { ApiJwtGuard } from '@infrastructure/auth/api-jwt.guard';
 import { Authz } from '@infrastructure/auth/authz-policy.decorator';
+import { ClientPerms } from '@sistemas-fsa/authz/nest';
 
 @UseGuards(ApiJwtGuard)
 @Authz({
@@ -39,15 +40,16 @@ export class CategoriaController {
   // Sólo administrator
   @Authz({
     allowedAzp: ['puntos-fsa'],
-    requiredClientRoles: { 'puntos-fsa': ['administrator'] },
     requireSucursalData: false,
   })
+  @ClientPerms('categoria:write')
   @Post()
   async create(@Body() dto: CreateCategoriaDto): Promise<void> {
     await this.createUseCase.run(dto);
   }
 
   // Usa la policy del controller (consultant | administrator)
+  @ClientPerms('categoria:read')
   @Get()
   async findAll(): Promise<CategoriaResponseDto[]> {
     const list = await this.findAllUseCase.run();
@@ -61,6 +63,7 @@ export class CategoriaController {
   }
 
   // Usa la policy del controller (consultant | administrator)
+  @ClientPerms('categoria:read')
   @Get(':id')
   async findOne(@Param('id') id: string) {
     const c = await this.findByIdUseCase.run(id);
@@ -75,9 +78,9 @@ export class CategoriaController {
   // Sólo administrator
   @Authz({
     allowedAzp: ['puntos-fsa'],
-    requiredClientRoles: { 'puntos-fsa': ['administrator'] },
     requireSucursalData: false,
   })
+  @ClientPerms('categoria:write')
   @Put(':id')
   async update(
     @Param('id') id: string,
@@ -89,9 +92,9 @@ export class CategoriaController {
   // Sólo administrator
   @Authz({
     allowedAzp: ['puntos-fsa'],
-    requiredClientRoles: { 'puntos-fsa': ['administrator'] },
     requireSucursalData: false,
   })
+  @ClientPerms('categoria:write')
   @Delete(':id')
   async remove(@Param('id') id: string): Promise<void> {
     await this.deleteUseCase.run(id);
