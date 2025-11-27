@@ -91,6 +91,25 @@ export class TypeOrmClienteRepository implements ClienteRepository {
     await this.insertOnConflictUpdateByDni(entity);
   }
 
+  async findPagedByIdAsc(params: {
+    lastId?: ClienteId | null;
+    limit: number;
+  }): Promise<Cliente[]> {
+    const qb = this.ormRepo
+      .createQueryBuilder('c')
+      .leftJoinAndSelect('c.categoria', 'categoria') // 👈 importante
+      .orderBy('c.id', 'ASC')
+      .take(params.limit);
+
+    if (params.lastId) {
+      qb.where('c.id > :lastId', { lastId: params.lastId.value });
+    }
+
+    const rows = await qb.getMany();
+
+    return rows.map((row) => this.toDomain(row));
+  }
+
   // ---------- helpers ----------
 
   /**
