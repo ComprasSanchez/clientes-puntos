@@ -1,0 +1,1 @@
+export const CLIENTES_HTTP = 'CLIENTES_HTTP';

@@ -15,7 +15,7 @@ export class ClienteDni {
     }
 
     // Validar formato de DNI español (7 a 10 digitos)
-    const dniRegex = /^\d{7,10}$/;
+    const dniRegex = /^\d{6,10}$/;
     if (!dniRegex.test(this.value)) {
       throw new InvalidFormatError(this.value);
     }

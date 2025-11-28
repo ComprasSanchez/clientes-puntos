@@ -20,11 +20,13 @@ import { MetricasModule } from 'src/context/Metricas/infrastructure/metricas.mod
 import { JwtGuard } from '@infrastructure/auth/jwt.guard';
 import { FidelizarProductoPlexAdapter } from './use-cases/FidelizarProducto/adapters/fidelizar-producto.adapter';
 import { ProductoModule } from 'src/context/Producto/infrastructure/producto.module';
+import { ClientesIntegrationModule } from '../CLIENTES/clientes.integration.module';
 
 @Module({
   imports: [
     forwardRef(() => PuntosInfrastructureModule),
     forwardRef(() => ClienteInfrastructureModule),
+    forwardRef(() => ClientesIntegrationModule),
     forwardRef(() => ReglaInfrastructureModule),
     forwardRef(() => MetricasModule),
     forwardRef(() => ProductoModule),

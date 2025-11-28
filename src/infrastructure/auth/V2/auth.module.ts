@@ -1,3 +1,4 @@
+import { CLIENTES_HTTP } from '@infrastructure/integrations/CLIENTES/tokens/tokens';
 import { Global, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import {
@@ -82,12 +83,19 @@ function parseIssuer(issuer: string): {
           clockSkewSeconds: 8,
         };
         const runtime: AuthzRuntimeConfig = {
-          downstreams: [],
+          downstreams: [
+            {
+              name: CLIENTES_HTTP,
+              audience: 'clientes-fsa',
+              baseURL: String(cfg.get<string>('CLIENTES_API_URL') ?? ''),
+              fallbackClientCredentials: true,
+            },
+          ],
         };
 
         return { core, runtime };
       },
-      namesFactory: () => [],
+      namesFactory: () => [CLIENTES_HTTP],
     }),
   ],
 

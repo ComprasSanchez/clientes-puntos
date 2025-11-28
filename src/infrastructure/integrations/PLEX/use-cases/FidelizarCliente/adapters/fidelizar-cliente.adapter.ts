@@ -8,6 +8,7 @@ import { Cliente } from '@cliente/core/entities/Cliente';
 import { ClienteUpdate } from '@cliente/application/use-cases/ClienteUpdate/ClienteUpdate';
 import { PlexFidelizarClienteResponseMapper } from '../dtos/fidelizar-cliente.response.dto';
 import { UseCaseResponse } from '@infrastructure/integrations/PLEX/dto/usecase-response.dto';
+import { ClientesSyncFromPuntosService } from '@infrastructure/integrations/CLIENTES/services/clientes-sync-from-puntos.service';
 
 @Injectable()
 export class FidelizarClientePlexAdapter {
@@ -16,6 +17,8 @@ export class FidelizarClientePlexAdapter {
     private readonly clienteCreate: ClienteCreate,
     @Inject(ClienteUpdate)
     private readonly clienteUpdate: ClienteUpdate,
+    @Inject(ClientesSyncFromPuntosService)
+    private readonly clientesSyncFromPuntos: ClientesSyncFromPuntosService,
   ) {}
 
   async handle(
@@ -102,6 +105,16 @@ export class FidelizarClientePlexAdapter {
       default:
         throw new Error(`CodAccion desconocido: ${plexDto.codAccion}`);
     }
+
+    const puntosId = domainResponse.id.value;
+    const dni = domainResponse.dni.value;
+
+    // Llamada al MS de clientes (axios) para vincular PUNTOS ←→ Clientes
+    // Fire & forget: no bloquea la respuesta a PLEX si falla
+    void this.clientesSyncFromPuntos.notifyClienteFidelizado({
+      puntosId,
+      dni,
+    });
 
     const response = PlexFidelizarClienteResponseMapper.fromDomain({
       idClienteFidely: domainResponse.fidelyStatus.idFidely.value!.toString(),
