@@ -4,10 +4,9 @@ import { ReglaInfrastructureModule } from './context/Regla/infrastructure/regla.
 import { PuntosInfrastructureModule } from './context/Puntos/infrastructure/puntos.module';
 import { ConfigModule } from './infrastructure/config/config.module';
 import { SharedModule } from '@shared/shared.module';
-import { APP_FILTER, APP_GUARD } from '@nestjs/core';
+import { APP_FILTER } from '@nestjs/core';
 import { AppExceptionFilter } from '@shared/core/exceptions/AppExceptionFilter';
 import { KeycloakModule } from '@infrastructure/auth/keycloak.module';
-import { AuthGuard } from 'nest-keycloak-connect';
 import { IntegrationsModule } from '@infrastructure/integrations/integrations.module';
 import { RedisCacheModule } from '@infrastructure/cache/redis/redis-cache.module';
 import { RulesCacheModule } from '@infrastructure/cache/rules-cache/rules-cache.module';
@@ -38,10 +37,6 @@ import { AuthzModule } from '@infrastructure/auth/V2/auth.module';
   ],
   controllers: [],
   providers: [
-    {
-      provide: APP_GUARD,
-      useClass: AuthGuard, // 👈 Este es el guard base, obligatorio
-    },
     {
       provide: APP_FILTER,
       useClass: AppExceptionFilter,
