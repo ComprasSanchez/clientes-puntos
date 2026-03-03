@@ -169,13 +169,25 @@ export class ApiJwtGuard implements CanActivate {
     }
 
     // ==== azp ====
-    if (policy.allowedAzp && policy.allowedAzp.length) {
-      const azp = payload.azp;
-      if (!azp || !policy.allowedAzp.includes(azp)) {
-        const expectedAzpStr = policy.allowedAzp.join(',');
+    const policyAllowedAzp = toArray(policy.allowedAzp)
+      .map((v) => String(v).trim())
+      .filter(Boolean);
+    const effectiveAllowedAzp = Array.from(
+      new Set([...policyAllowedAzp, ...this.defaultAllowedAzp]),
+    );
+
+    if (effectiveAllowedAzp.length) {
+      const azpRaw = String(payload.azp ?? '').trim();
+      const azp = azpRaw.toLowerCase();
+      const normalizedAllowed = effectiveAllowedAzp.map((v) =>
+        v.toLowerCase().trim(),
+      );
+
+      if (!azp || !normalizedAllowed.includes(azp)) {
+        const expectedAzpStr = effectiveAllowedAzp.join(',');
         throw new ForbiddenException(
           `AZP not allowed for this route: expected one of [${expectedAzpStr}], got ${String(
-            azp ?? '-',
+            payload.azp ?? '-',
           )}`,
         );
       }
