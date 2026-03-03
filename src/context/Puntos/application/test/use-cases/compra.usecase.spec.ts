@@ -1,57 +1,76 @@
 /* eslint-disable @typescript-eslint/unbound-method */
-// src/application/usecases/CompraUseCase.spec.ts
 import { OpTipo } from '@shared/core/enums/OpTipo';
 import { CreateOperacionService } from '../../services/CreateOperacionService';
 import { CompraUseCase } from '../../use-cases/Compra/Compra';
 import { OperacionDto } from '../../dtos/OperacionDto';
 import { CreateOperacionResponse } from '../../dtos/CreateOperacionResponse';
-import { OperacionId } from '@puntos/core/value-objects/OperacionId';
-import { LoteId } from '@puntos/core/value-objects/LoteId';
+import { Operacion } from '@puntos/core/entities/Operacion';
+import { Transaccion } from '@puntos/core/entities/Transaccion';
 import { OrigenOperacion } from '@puntos/core/value-objects/OrigenOperacion';
 import { ReferenciaMovimiento } from '@puntos/core/value-objects/ReferenciaMovimiento';
+import { MetricasQueueService } from 'src/context/Metricas/infrastructure/MetricasQueue/MetricasQueueService';
 
 describe('CompraUseCase', () => {
   let service: jest.Mocked<CreateOperacionService>;
+  let metricasQueue: jest.Mocked<MetricasQueueService>;
   let useCase: CompraUseCase;
 
   beforeEach(() => {
     service = {
       execute: jest.fn(),
     } as unknown as jest.Mocked<CreateOperacionService>;
-    useCase = new CompraUseCase(service);
+    metricasQueue = {
+      crearMetricaCliente: jest.fn(),
+    } as unknown as jest.Mocked<MetricasQueueService>;
+    useCase = new CompraUseCase(service, metricasQueue);
   });
 
-  it('debe invocar service.execute con OpTipo.COMPRA y devolver su respuesta', async () => {
-    const origen = 'TEST';
-    const ref = 'ref-1';
-    const opId = Number(OperacionId.create());
+  it('mapea OperacionDto a request interno y delega en CreateOperacionService', async () => {
     const input: OperacionDto = {
       clienteId: '42d27718-7c8f-4f15-a8df-d4bfe45bcd54',
-      origenTipo: origen,
+      origenTipo: 'TEST',
       puntos: 10,
       montoMoneda: 100,
       moneda: 'ARS',
-      referencia: ref,
+      referencia: 'ref-1',
+      productos: [{ codExt: 123, cantidad: 0, precio: 125.5 }],
     };
-    const fakeResp: CreateOperacionResponse = {
-      operacionId: opId,
-      lotesAfectados: [new LoteId('42d27718-7c8f-4f15-a8df-d4bfe45bcd54')],
+    const fakeResponse = {
+      handlerResult: {
+        operacion: { id: { value: 1001 } } as unknown as Operacion,
+        transacciones: [{ id: { value: 'tx-1' } }] as unknown as Transaccion[],
+        lotesActualizados: [],
+        saldoAnterior: 0,
+        saldoNuevo: 10,
+      },
+      lotesAfectados: [],
       transacciones: [],
-    };
-    service.execute.mockResolvedValue(fakeResp);
+      puntosDebito: 0,
+      puntosCredito: 10,
+    } as CreateOperacionResponse;
+    service.execute.mockResolvedValue(fakeResponse);
 
     const result = await useCase.run(input);
 
-    expect(service.execute).toHaveBeenCalledWith({
-      clienteId: '42d27718-7c8f-4f15-a8df-d4bfe45bcd54',
-      tipo: OpTipo.COMPRA,
-      origenTipo: new OrigenOperacion(origen),
-      puntos: 10,
-      montoMoneda: 100,
-      moneda: 'ARS',
-      referencia: new ReferenciaMovimiento(ref),
-      operacionId: undefined,
-    });
-    expect(result).toBe(fakeResp);
+    expect(service.execute).toHaveBeenCalledWith(
+      {
+        clienteId: input.clienteId,
+        tipo: OpTipo.COMPRA,
+        origenTipo: new OrigenOperacion('TEST'),
+        puntos: 10,
+        montoMoneda: 100,
+        moneda: 'ARS',
+        referencia: new ReferenciaMovimiento('ref-1'),
+        operacionId: undefined,
+        codSucursal: undefined,
+        productos: [{ codExt: 123, cantidad: 1, precio: 125.5 }],
+      },
+      undefined,
+    );
+    expect(metricasQueue.crearMetricaCliente).toHaveBeenCalledWith(
+      fakeResponse.handlerResult.operacion,
+      fakeResponse.handlerResult.transacciones,
+    );
+    expect(result).toBe(fakeResponse);
   });
 });
