@@ -65,6 +65,14 @@ export interface TransaccionRepository {
   save(transaccion: Transaccion, ctx?: TransactionContext): Promise<void>;
 
   /**
+   * Persiste múltiples transacciones en el ledger.
+   */
+  saveMany(
+    transacciones: Transaccion[],
+    ctx?: TransactionContext,
+  ): Promise<void>;
+
+  /**
    * Elimina (o marca como eliminada) una transacción.
    * @param id Identificador de la transacción
    */

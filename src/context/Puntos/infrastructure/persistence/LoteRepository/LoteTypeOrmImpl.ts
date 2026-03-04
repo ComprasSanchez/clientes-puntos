@@ -64,6 +64,21 @@ export class TypeOrmLoteRepository
     }
   }
 
+  async updateMany(lotes: Lote[], ctx?: TransactionContext): Promise<void> {
+    if (lotes.length === 0) {
+      return;
+    }
+
+    const entities = lotes.map((lote) => LoteEntity.fromDomain(lote));
+    const manager = this.extractManager(ctx);
+    if (manager) {
+      await manager.save(LoteEntity, entities);
+      return;
+    }
+
+    await this.repo.save(entities);
+  }
+
   async delete(id: LoteId, ctx?: TransactionContext): Promise<void> {
     const manager = this.extractManager(ctx);
     if (manager) {

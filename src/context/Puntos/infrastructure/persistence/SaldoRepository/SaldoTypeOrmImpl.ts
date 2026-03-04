@@ -8,16 +8,23 @@ import { SaldoClienteDto } from '@puntos/core/interfaces/SaldoResponseDTO';
 import { HistorialSaldoCliente } from '@puntos/infrastructure/entities/historial-saldo.entity';
 import { SaldoCliente } from '@puntos/infrastructure/entities/saldo.entity';
 import { OpTipo } from '@shared/core/enums/OpTipo';
+import { TransactionContext } from '@shared/core/interfaces/TransactionContext';
+import { TypeOrmBaseRepository } from '@shared/infrastructure/transaction/TypeOrmBaseRepository';
 import { Repository } from 'typeorm';
 
 @Injectable()
-export class TypeOrmSaldoRepository implements SaldoRepository {
+export class TypeOrmSaldoRepository
+  extends TypeOrmBaseRepository
+  implements SaldoRepository
+{
   constructor(
     @InjectRepository(SaldoCliente)
     private readonly saldoRepo: Repository<SaldoCliente>,
     @InjectRepository(HistorialSaldoCliente)
     private readonly historialRepo: Repository<HistorialSaldoCliente>,
-  ) {}
+  ) {
+    super();
+  }
 
   async findAll(): Promise<SaldoClienteDto[]> {
     const saldos = await this.saldoRepo.find();
@@ -39,22 +46,32 @@ export class TypeOrmSaldoRepository implements SaldoRepository {
     await this.saldoRepo.save(saldo);
   }
 
-  async updateSaldo(clienteId: string, nuevoSaldo: number): Promise<void> {
-    // Busca el saldo anterior
-    const saldoActual = await this.saldoRepo.findOneBy({
-      cliente_id: clienteId,
-    });
+  async updateSaldo(
+    clienteId: string,
+    nuevoSaldo: number,
+    ctx?: TransactionContext,
+  ): Promise<void> {
+    const manager = this.extractManager(ctx);
 
-    // Actualiza o crea saldo
-    if (saldoActual) {
-      saldoActual.saldo_total = nuevoSaldo;
-      await this.saldoRepo.save(saldoActual);
-    } else {
-      await this.saldoRepo.insert({
+    if (manager) {
+      await manager.upsert(
+        SaldoCliente,
+        {
+          cliente_id: clienteId,
+          saldo_total: nuevoSaldo,
+        },
+        ['cliente_id'],
+      );
+      return;
+    }
+
+    await this.saldoRepo.upsert(
+      {
         cliente_id: clienteId,
         saldo_total: nuevoSaldo,
-      });
-    }
+      },
+      ['cliente_id'],
+    );
   }
 
   async delete(clienteId: string): Promise<void> {
@@ -62,16 +79,27 @@ export class TypeOrmSaldoRepository implements SaldoRepository {
     // Podrías registrar la eliminación en el historial si lo necesitás
   }
 
-  async saveHistorial(historial: HistorialSaldo): Promise<void> {
-    await this.historialRepo.insert({
-      id: historial.id, // o deja que TypeORM genere el UUID si null
+  async saveHistorial(
+    historial: HistorialSaldo,
+    ctx?: TransactionContext,
+  ): Promise<void> {
+    const payload = {
+      id: historial.id,
       cliente_id: historial.clienteId,
       saldo_anterior: historial.saldoAnterior.value,
       saldo_nuevo: historial.saldoNuevo.value,
       motivo: historial.motivo,
       referencia_operacion: historial.referenciaOperacion?.value,
       fecha_cambio: historial.fechaCambio,
-    });
+    };
+
+    const manager = this.extractManager(ctx);
+    if (manager) {
+      await manager.insert(HistorialSaldoCliente, payload);
+      return;
+    }
+
+    await this.historialRepo.insert(payload);
   }
 
   async findHistorialByClienteId(clienteId: string): Promise<HistorialSaldo[]> {

@@ -42,6 +42,11 @@ export interface LoteRepository {
   update(lote: Lote, ctx?: TransactionContext): Promise<void>;
 
   /**
+   * Actualiza múltiples lotes en una sola operación de persistencia.
+   */
+  updateMany(lotes: Lote[], ctx?: TransactionContext): Promise<void>;
+
+  /**
    * Elimina (o marca como eliminado) un lote.
    * @param id  Identificador del lote
    */

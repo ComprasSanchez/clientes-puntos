@@ -159,17 +159,13 @@ export class CreateOperacionService {
 
     // 3️⃣ Persistir cambios: lotes, nuevo lote, transacciones, operación
     // Guardar lotes actualizados
-    for (const lote of handlerResult.lotesActualizados) {
-      await this.loteRepo.update(lote, ctx);
-    }
+    await this.loteRepo.updateMany(handlerResult.lotesActualizados, ctx);
     // Guardar nuevo lote (si hay)
     if (handlerResult.nuevoLote) {
       await this.loteRepo.save(handlerResult.nuevoLote, ctx);
     }
     // Guardar transacciones
-    for (const tx of handlerResult.transacciones) {
-      await this.txRepo.save(tx, ctx);
-    }
+    await this.txRepo.saveMany(handlerResult.transacciones, ctx);
     // Guardar operación
     await this.operacionRepo.save(handlerResult.operacion, ctx);
 

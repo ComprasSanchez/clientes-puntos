@@ -9,9 +9,7 @@ import { buildOnzeDoc } from '@infrastructure/integrations/PLEX/docs/onzecrm.ope
 import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, {
-    logger: ['error', 'warn', 'log', 'debug'],
-  });
+  const app = await NestFactory.create(AppModule);
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,

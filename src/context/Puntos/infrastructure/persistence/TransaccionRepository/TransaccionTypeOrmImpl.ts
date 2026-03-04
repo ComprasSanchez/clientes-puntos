@@ -103,6 +103,26 @@ export class TypeOrmTransaccionRepository
     }
   }
 
+  async saveMany(
+    transacciones: Transaccion[],
+    ctx?: TransactionContext,
+  ): Promise<void> {
+    if (transacciones.length === 0) {
+      return;
+    }
+
+    const entities = transacciones.map((transaccion) =>
+      TransaccionEntity.fromDomain(transaccion),
+    );
+    const manager = this.extractManager(ctx);
+    if (manager) {
+      await manager.save(TransaccionEntity, entities);
+      return;
+    }
+
+    await this.repo.save(entities);
+  }
+
   async delete(id: TransaccionId, ctx?: TransactionContext): Promise<void> {
     const manager = this.extractManager(ctx);
     if (manager) {

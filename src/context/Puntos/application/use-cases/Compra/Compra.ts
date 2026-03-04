@@ -52,17 +52,19 @@ export class CompraUseCase {
       })),
     };
 
-    const response = this.service.execute(req, ctx);
+    const response = await this.service.execute(req, ctx);
 
     // Dispara el proceso de métricas en background
     if (
-      (await response).handlerResult.operacion &&
-      (await response).handlerResult.transacciones
+      response.handlerResult.operacion &&
+      response.handlerResult.transacciones
     ) {
-      await this.metricasQueue.crearMetricaCliente(
-        (await response).handlerResult.operacion,
-        (await response).handlerResult.transacciones,
-      );
+      void this.metricasQueue
+        .crearMetricaCliente(
+          response.handlerResult.operacion,
+          response.handlerResult.transacciones,
+        )
+        .catch(() => undefined);
     }
 
     // 3️⃣ Delegar al service

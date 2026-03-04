@@ -2,6 +2,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
+import { join } from 'path';
 import { ConfigModule } from '../config/config.module';
 import { IntegracionMovimientoEntity } from './entities/integracion-movimiento.entity';
 import { IntegracionMovimientoService } from './services/IntegracionMovimientoService';
@@ -20,6 +21,9 @@ import { IntegracionMovimientoService } from './services/IntegracionMovimientoSe
         database: cfg.get<string>('dbName'),
         autoLoadEntities: true,
         synchronize: cfg.get<string>('nodeEnv') !== 'production',
+        migrations: [join(__dirname, '../../migrations/*{.ts,.js}')],
+        migrationsRun: cfg.get<string>('nodeEnv') === 'production',
+        migrationsTableName: 'typeorm_migrations',
         extra: {
           max: cfg.get<number>('dbPoolMax') ?? 20,
           min: cfg.get<number>('dbPoolMin') ?? 2,
