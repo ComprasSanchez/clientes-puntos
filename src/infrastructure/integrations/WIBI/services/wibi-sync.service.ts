@@ -11,9 +11,11 @@ import { TxTipo } from '@puntos/core/enums/TxTipo';
 import { SaldoRepository } from '@puntos/core/repository/SaldoRepository';
 import { TransactionalRunner } from '@shared/infrastructure/transaction/TransactionalRunner';
 import { OperacionEntity } from '@puntos/infrastructure/entities/operacion.entity';
+import { LoteEntity } from '@puntos/infrastructure/entities/lote.entity';
 import { DataSource, In, Repository } from 'typeorm';
 import { Pool } from 'pg';
 import { randomUUID } from 'crypto';
+import { BatchEstado } from '@puntos/core/enums/BatchEstado';
 
 interface WibiSyncInput {
   batchSize?: number;
@@ -53,6 +55,8 @@ interface SyncRunCounters {
   clientesActualizados: number;
   clientesSinMatch: number;
   saldosActualizados: number;
+  lotesSaldoCreados: number;
+  lotesSaldoActualizados: number;
   movimientosLeidos: number;
   movimientosInsertados: number;
   movimientosDuplicados: number;
@@ -77,6 +81,8 @@ export class WibiSyncService implements OnModuleDestroy {
     private readonly clienteRepo: Repository<ClienteEntity>,
     @InjectRepository(OperacionEntity)
     private readonly operacionRepo: Repository<OperacionEntity>,
+    @InjectRepository(LoteEntity)
+    private readonly loteRepo: Repository<LoteEntity>,
   ) {}
 
   async onModuleDestroy(): Promise<void> {
@@ -109,6 +115,8 @@ export class WibiSyncService implements OnModuleDestroy {
       clientesActualizados: 0,
       clientesSinMatch: 0,
       saldosActualizados: 0,
+      lotesSaldoCreados: 0,
+      lotesSaldoActualizados: 0,
       movimientosLeidos: 0,
       movimientosInsertados: 0,
       movimientosDuplicados: 0,
@@ -414,6 +422,12 @@ export class WibiSyncService implements OnModuleDestroy {
 
         if (!dryRun) {
           await this.saldoRepo.updateSaldo(cliente.id, this.normalizePoints(row.saldo));
+          await this.upsertSaldoLote(
+            cliente.id,
+            sourceId,
+            this.normalizePoints(row.saldo),
+            counters,
+          );
         }
         counters.saldosActualizados += 1;
       }
@@ -741,6 +755,63 @@ export class WibiSyncService implements OnModuleDestroy {
       return 0;
     }
     return Math.max(0, Math.trunc(Math.abs(num)));
+  }
+
+  private async upsertSaldoLote(
+    clienteId: string,
+    sourceId: number,
+    saldo: number,
+    counters: SyncRunCounters,
+  ): Promise<void> {
+    const referencia = this.getSaldoLoteRef(sourceId);
+    const origen = this.getSaldoLoteOrigen();
+
+    const existing = await this.loteRepo.findOne({
+      where: {
+        clienteId,
+        referenciaId: referencia,
+      },
+      select: {
+        id: true,
+        cantidadOriginal: true,
+        remaining: true,
+        estado: true,
+      },
+    });
+
+    if (!existing) {
+      const nuevo = this.loteRepo.create({
+        id: randomUUID(),
+        clienteId,
+        cantidadOriginal: saldo,
+        remaining: saldo,
+        estado: BatchEstado.DISPONIBLE,
+        origenTipo: origen,
+        referenciaId: referencia,
+      });
+      await this.loteRepo.insert(nuevo);
+      counters.lotesSaldoCreados += 1;
+      return;
+    }
+
+    await this.loteRepo.update(
+      { id: existing.id },
+      {
+        cantidadOriginal: saldo,
+        remaining: saldo,
+        estado: BatchEstado.DISPONIBLE,
+        origenTipo: origen,
+      },
+    );
+    counters.lotesSaldoActualizados += 1;
+  }
+
+  private getSaldoLoteRef(sourceId: number): string {
+    return `WIBI-SALDO:${sourceId}`;
+  }
+
+  private getSaldoLoteOrigen(): string {
+    return this.config.get<string>('WIBI_SALDO_LOTE_ORIGEN') ?? 'WIBI_SYNC_SALDO';
   }
 
   private resolveTableRef(raw: string): string {

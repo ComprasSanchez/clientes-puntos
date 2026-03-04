@@ -4,6 +4,7 @@ import { ClienteInfrastructureModule } from '@cliente/infrastructure/cliente.mod
 import { PuntosInfrastructureModule } from '@puntos/infrastructure/puntos.module';
 import { ClienteEntity } from '@cliente/infrastructure/entities/ClienteEntity';
 import { OperacionEntity } from '@puntos/infrastructure/entities/operacion.entity';
+import { LoteEntity } from '@puntos/infrastructure/entities/lote.entity';
 import { WibiSyncController } from './controller/wibi-sync.controller';
 import { WibiSyncService } from './services/wibi-sync.service';
 
@@ -11,7 +12,7 @@ import { WibiSyncService } from './services/wibi-sync.service';
   imports: [
     ClienteInfrastructureModule,
     PuntosInfrastructureModule,
-    TypeOrmModule.forFeature([ClienteEntity, OperacionEntity]),
+    TypeOrmModule.forFeature([ClienteEntity, OperacionEntity, LoteEntity]),
   ],
   controllers: [WibiSyncController],
   providers: [WibiSyncService],
