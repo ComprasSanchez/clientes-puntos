@@ -2,20 +2,17 @@ import { Inject, Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ClienteEntity } from '@cliente/infrastructure/entities/ClienteEntity';
-import { CREATE_OPERACION_SERVICE, SALDO_REPO } from '@puntos/core/tokens/tokens';
-import { CreateOperacionService } from '@puntos/application/services/CreateOperacionService';
-import { ReferenciaMovimiento } from '@puntos/core/value-objects/ReferenciaMovimiento';
-import { OrigenOperacion } from '@puntos/core/value-objects/OrigenOperacion';
+import { CategoriaEntity } from '@cliente/infrastructure/entities/CategoriaEntity';
+import { SALDO_REPO } from '@puntos/core/tokens/tokens';
 import { OpTipo } from '@shared/core/enums/OpTipo';
-import { TxTipo } from '@puntos/core/enums/TxTipo';
 import { SaldoRepository } from '@puntos/core/repository/SaldoRepository';
-import { TransactionalRunner } from '@shared/infrastructure/transaction/TransactionalRunner';
 import { OperacionEntity } from '@puntos/infrastructure/entities/operacion.entity';
 import { LoteEntity } from '@puntos/infrastructure/entities/lote.entity';
 import { DataSource, In, Repository } from 'typeorm';
 import { Pool } from 'pg';
 import { randomUUID } from 'crypto';
 import { BatchEstado } from '@puntos/core/enums/BatchEstado';
+import { StatusCliente } from '@cliente/core/enums/StatusCliente';
 
 interface WibiSyncInput {
   batchSize?: number;
@@ -30,6 +27,16 @@ interface SyncPhaseResult {
 
 interface ClienteSourceRow {
   sourceId: number;
+  dni: string | null;
+  nombre: string | null;
+  apellido: string | null;
+  sexo: string | null;
+  email: string | null;
+  telefono: string | null;
+  domicilio: string | null;
+  codPostal: string | null;
+  localidad: string | null;
+  provincia: string | null;
   tarjeta: string | null;
   saldo: number;
 }
@@ -52,6 +59,7 @@ interface SyncCheckpoint {
 
 interface SyncRunCounters {
   clientesLeidos: number;
+  clientesCreados: number;
   clientesActualizados: number;
   clientesSinMatch: number;
   saldosActualizados: number;
@@ -68,17 +76,17 @@ interface SyncRunCounters {
 export class WibiSyncService implements OnModuleDestroy {
   private readonly logger = new Logger(WibiSyncService.name);
   private pool: Pool | null = null;
+  private lastGeneratedOperacionId = 0;
 
   constructor(
     private readonly config: ConfigService,
     private readonly dataSource: DataSource,
-    private readonly txRunner: TransactionalRunner,
-    @Inject(CREATE_OPERACION_SERVICE)
-    private readonly createOperacionService: CreateOperacionService,
     @Inject(SALDO_REPO)
     private readonly saldoRepo: SaldoRepository,
     @InjectRepository(ClienteEntity)
     private readonly clienteRepo: Repository<ClienteEntity>,
+    @InjectRepository(CategoriaEntity)
+    private readonly categoriaRepo: Repository<CategoriaEntity>,
     @InjectRepository(OperacionEntity)
     private readonly operacionRepo: Repository<OperacionEntity>,
     @InjectRepository(LoteEntity)
@@ -112,6 +120,7 @@ export class WibiSyncService implements OnModuleDestroy {
 
     const counters: SyncRunCounters = {
       clientesLeidos: 0,
+      clientesCreados: 0,
       clientesActualizados: 0,
       clientesSinMatch: 0,
       saldosActualizados: 0,
@@ -337,13 +346,44 @@ export class WibiSyncService implements OnModuleDestroy {
     const saldoColumn = this.safeIdentifier(
       this.config.get<string>('WIBI_CLIENTES_SALDO_COLUMN') ?? 'SaldoPuntos',
     );
+    const dniColumn = this.safeIdentifier(
+      this.config.get<string>('WIBI_CLIENTES_DNI_COLUMN') ?? 'DNI',
+    );
+    const nombreColumn = this.safeIdentifier(
+      this.config.get<string>('WIBI_CLIENTES_NOMBRE_COLUMN') ?? 'Nombre',
+    );
+    const apellidoColumn = this.safeIdentifier(
+      this.config.get<string>('WIBI_CLIENTES_APELLIDO_COLUMN') ?? 'Apellido',
+    );
+    const sexoColumn = this.safeIdentifier(
+      this.config.get<string>('WIBI_CLIENTES_SEXO_COLUMN') ?? 'Sexo',
+    );
+    const emailColumn = this.safeIdentifier(
+      this.config.get<string>('WIBI_CLIENTES_EMAIL_COLUMN') ?? 'email',
+    );
+    const telefonoColumn = this.safeIdentifier(
+      this.config.get<string>('WIBI_CLIENTES_TELEFONO_COLUMN') ?? 'Telefono',
+    );
+    const domicilioColumn = this.safeIdentifier(
+      this.config.get<string>('WIBI_CLIENTES_DIRECCION_COLUMN') ?? 'Domicilio',
+    );
+    const codPostalColumn = this.safeIdentifier(
+      this.config.get<string>('WIBI_CLIENTES_COD_POSTAL_COLUMN') ?? 'CodPostal',
+    );
+    const localidadColumn = this.safeIdentifier(
+      this.config.get<string>('WIBI_CLIENTES_LOCALIDAD_COLUMN') ?? 'Localidad',
+    );
+    const provinciaColumn = this.safeIdentifier(
+      this.config.get<string>('WIBI_CLIENTES_PROVINCIA_COLUMN') ?? 'Provincia',
+    );
 
     let lastId = 0;
     let batchNumber = 0;
     let stoppedByLimit = false;
+    const defaultCategoriaId = await this.getDefaultCategoriaId();
 
     this.logger.log(
-      `[WIBI_SYNC][clientes] begin table=${table} idColumn=${idColumn} cardColumn=${cardColumn} saldoColumn=${saldoColumn}`,
+      `[WIBI_SYNC][clientes] begin table=${table} idColumn=${idColumn} cardColumn=${cardColumn} saldoColumn=${saldoColumn} defaultCategoriaId=${defaultCategoriaId}`,
     );
 
     while (true) {
@@ -365,6 +405,16 @@ export class WibiSyncService implements OnModuleDestroy {
       const sql = `
         SELECT
           ${idColumn} AS "sourceId",
+          ${dniColumn} AS "dni",
+          ${nombreColumn} AS "nombre",
+          ${apellidoColumn} AS "apellido",
+          ${sexoColumn} AS "sexo",
+          ${emailColumn} AS "email",
+          ${telefonoColumn} AS "telefono",
+          ${domicilioColumn} AS "domicilio",
+          ${codPostalColumn} AS "codPostal",
+          ${localidadColumn} AS "localidad",
+          ${provinciaColumn} AS "provincia",
           ${cardColumn} AS "tarjeta",
           ${saldoColumn} AS "saldo"
         FROM ${table}
@@ -389,10 +439,27 @@ export class WibiSyncService implements OnModuleDestroy {
         where: { idFidely: In(sourceIds) },
         select: {
           id: true,
+          dni: true,
           idFidely: true,
           tarjetaFidely: true,
         },
       });
+
+      const dnis = rows
+        .map((row) => this.normalizeDni(row.dni, Number(row.sourceId)))
+        .filter((dni, index, arr) => dni.length > 0 && arr.indexOf(dni) === index);
+
+      const clientesByDni = dnis.length
+        ? await this.clienteRepo.find({
+            where: { dni: In(dnis) },
+            select: {
+              id: true,
+              dni: true,
+              idFidely: true,
+              tarjetaFidely: true,
+            },
+          })
+        : [];
 
       const byFidely = new Map<number, ClienteEntity>();
       for (const cliente of clientes) {
@@ -401,9 +468,68 @@ export class WibiSyncService implements OnModuleDestroy {
         }
       }
 
+      const byDni = new Map<string, ClienteEntity>();
+      for (const cliente of clientesByDni) {
+        byDni.set(cliente.dni, cliente);
+      }
+
       for (const row of rows) {
         const sourceId = Number(row.sourceId);
-        const cliente = byFidely.get(sourceId);
+        const normalizedDni = this.normalizeDni(row.dni, sourceId);
+        let cliente = byFidely.get(sourceId);
+
+        if (!cliente && normalizedDni.length > 0) {
+          const byDniCliente = byDni.get(normalizedDni);
+          if (byDniCliente) {
+            cliente = byDniCliente;
+            byFidely.set(sourceId, byDniCliente);
+
+            if (!dryRun) {
+              await this.clienteRepo.update(
+                { id: byDniCliente.id },
+                {
+                  idFidely: sourceId,
+                },
+              );
+            }
+          }
+        }
+
+        if (!cliente) {
+          if (!dryRun) {
+            const created = await this.createClienteFromSource(
+              row,
+              defaultCategoriaId,
+            );
+            cliente = created;
+          } else {
+            cliente = this.clienteRepo.create({
+              id: randomUUID(),
+              dni: normalizedDni,
+              nombre: this.normalizeName(row.nombre),
+              apellido: this.normalizeName(row.apellido),
+              sexo: this.normalizeSexo(row.sexo),
+              status: StatusCliente.Activo,
+              tarjetaFidely: this.normalizeCard(row.tarjeta, sourceId),
+              idFidely: sourceId,
+              email: this.normalizeNullableText(row.email, 150),
+              telefono: this.normalizeNullableText(row.telefono, 15),
+              direccion: this.normalizeNullableText(row.domicilio, 200),
+              codPostal: this.normalizeNullableText(row.codPostal, 10),
+              localidad: this.normalizeNullableText(row.localidad, 100),
+              provincia: this.normalizeNullableText(row.provincia, 100),
+            });
+          }
+
+          counters.clientesCreados += 1;
+
+          if (cliente) {
+            byFidely.set(sourceId, cliente);
+            if (normalizedDni.length > 0) {
+              byDni.set(normalizedDni, cliente);
+            }
+          }
+        }
 
         if (!cliente) {
           counters.clientesSinMatch += 1;
@@ -411,10 +537,15 @@ export class WibiSyncService implements OnModuleDestroy {
         }
 
         if (updateCards) {
-          const newCard = (row.tarjeta ?? '').trim();
+          const newCard = this.normalizeCard(row.tarjeta, sourceId);
           if (newCard.length > 0 && newCard !== cliente.tarjetaFidely) {
             if (!dryRun) {
-              await this.clienteRepo.update({ id: cliente.id }, { tarjetaFidely: newCard });
+              await this.clienteRepo.update(
+                { id: cliente.id },
+                {
+                  tarjetaFidely: newCard,
+                },
+              );
             }
             counters.clientesActualizados += 1;
           }
@@ -435,7 +566,7 @@ export class WibiSyncService implements OnModuleDestroy {
       lastId = Number(rows[rows.length - 1].sourceId);
 
       this.logger.log(
-        `[WIBI_SYNC][clientes] batch=${batchNumber} step=processed rows=${rows.length} nextLastId=${lastId} updatedCards=${counters.clientesActualizados} saldosUpdated=${counters.saldosActualizados} noMatch=${counters.clientesSinMatch} elapsedMs=${Date.now() - batchStartedAt}`,
+        `[WIBI_SYNC][clientes] batch=${batchNumber} step=processed rows=${rows.length} nextLastId=${lastId} created=${counters.clientesCreados} updatedCards=${counters.clientesActualizados} saldosUpdated=${counters.saldosActualizados} noMatch=${counters.clientesSinMatch} elapsedMs=${Date.now() - batchStartedAt}`,
       );
     }
 
@@ -593,21 +724,27 @@ export class WibiSyncService implements OnModuleDestroy {
           continue;
         }
 
-        const txTipo = puntosRaw >= 0 ? TxTipo.ACREDITACION : TxTipo.GASTO;
+        const tipoOperacion = puntosRaw >= 0 ? OpTipo.COMPRA : OpTipo.AJUSTE;
 
         try {
           if (!dryRun) {
-            await this.txRunner.runInTransaction(async (ctx) => {
-              const req = {
-                clienteId,
-                tipo: OpTipo.AJUSTE,
-                origenTipo: new OrigenOperacion(this.getOrigenTipo()),
-                puntos,
-                referencia: new ReferenciaMovimiento(referencia),
-              };
-
-              await this.createOperacionService.execute(req, ctx, txTipo);
+            const operationId = this.nextOperacionId();
+            const entity = this.operacionRepo.create({
+              id: operationId,
+              clienteId,
+              tipo: tipoOperacion,
+              fecha: new Date(row.fecha),
+              origenTipo: this.getOrigenTipo(),
+              puntos,
+              monto: this.normalizeMovementAmount(row.monto),
+              moneda: null,
+              refOperacion: referencia,
+              refAnulacion: null,
+              codSucursal: null,
+              items: null,
             });
+
+            await this.operacionRepo.insert(entity);
           }
 
           counters.movimientosInsertados += 1;
@@ -757,6 +894,20 @@ export class WibiSyncService implements OnModuleDestroy {
     return Math.max(0, Math.trunc(Math.abs(num)));
   }
 
+  private normalizeMovementAmount(value: unknown): number {
+    const num = Number(value ?? 0);
+    if (!Number.isFinite(num)) {
+      return 0;
+    }
+    return Math.max(0, Math.abs(num));
+  }
+
+  private nextOperacionId(): number {
+    const base = Date.now() * 1000;
+    this.lastGeneratedOperacionId = Math.max(base, this.lastGeneratedOperacionId + 1);
+    return this.lastGeneratedOperacionId;
+  }
+
   private async upsertSaldoLote(
     clienteId: string,
     sourceId: number,
@@ -812,6 +963,95 @@ export class WibiSyncService implements OnModuleDestroy {
 
   private getSaldoLoteOrigen(): string {
     return this.config.get<string>('WIBI_SALDO_LOTE_ORIGEN') ?? 'WIBI_SYNC_SALDO';
+  }
+
+  private async getDefaultCategoriaId(): Promise<string> {
+    const categoria = await this.categoriaRepo.findOne({
+      where: { isDefault: true },
+      select: { id: true },
+      order: { updatedAt: 'DESC' },
+    });
+
+    if (!categoria) {
+      throw new Error('No default categoria found to create missing clientes');
+    }
+
+    return categoria.id;
+  }
+
+  private async createClienteFromSource(
+    row: ClienteSourceRow,
+    categoriaId: string,
+  ): Promise<ClienteEntity> {
+    const sourceId = Number(row.sourceId);
+    const cliente = this.clienteRepo.create({
+      id: randomUUID(),
+      dni: this.normalizeDni(row.dni, sourceId),
+      nombre: this.normalizeName(row.nombre),
+      apellido: this.normalizeName(row.apellido),
+      sexo: this.normalizeSexo(row.sexo),
+      status: StatusCliente.Activo,
+      tarjetaFidely: this.normalizeCard(row.tarjeta, sourceId),
+      idFidely: sourceId,
+      email: this.normalizeNullableText(row.email, 150),
+      telefono: this.normalizeNullableText(row.telefono, 15),
+      direccion: this.normalizeNullableText(row.domicilio, 200),
+      codPostal: this.normalizeNullableText(row.codPostal, 10),
+      localidad: this.normalizeNullableText(row.localidad, 100),
+      provincia: this.normalizeNullableText(row.provincia, 100),
+      categoria: { id: categoriaId } as CategoriaEntity,
+      fechaBaja: null,
+      fecNacimiento: null,
+    });
+
+    return this.clienteRepo.save(cliente);
+  }
+
+  private normalizeDni(value: string | null | undefined, sourceId: number): string {
+    const digits = String(value ?? '')
+      .replace(/\D/g, '')
+      .trim();
+    if (digits.length > 0) {
+      return digits.slice(-10).padStart(10, '0');
+    }
+    return String(sourceId).slice(-10).padStart(10, '0');
+  }
+
+  private normalizeName(value: string | null | undefined): string {
+    const raw = this.normalizeNullableText(value, 50);
+    return raw && raw.length > 0 ? raw : 'SIN_DATO';
+  }
+
+  private normalizeSexo(value: string | null | undefined): string {
+    const raw = String(value ?? '')
+      .trim()
+      .toUpperCase();
+    if (raw.startsWith('M')) {
+      return 'M';
+    }
+    if (raw.startsWith('F')) {
+      return 'F';
+    }
+    return 'X';
+  }
+
+  private normalizeCard(value: string | null | undefined, sourceId: number): string {
+    const raw = this.normalizeNullableText(value, 20);
+    if (raw && raw.length > 0) {
+      return raw;
+    }
+    return `W${sourceId}`.slice(0, 20);
+  }
+
+  private normalizeNullableText(
+    value: string | null | undefined,
+    maxLength: number,
+  ): string | null {
+    const raw = String(value ?? '').trim();
+    if (!raw) {
+      return null;
+    }
+    return raw.slice(0, maxLength);
   }
 
   private resolveTableRef(raw: string): string {
