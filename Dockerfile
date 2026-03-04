@@ -19,7 +19,7 @@ WORKDIR /app
 
 # 1) Sólo prod-deps
 COPY package.json package-lock.json ./
-RUN npm ci --omit=dev
+RUN npm ci --omit=dev --omit=optional
 
 COPY tsconfig.json tsconfig.build.json ./
 
