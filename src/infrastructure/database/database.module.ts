@@ -20,6 +20,17 @@ import { IntegracionMovimientoService } from './services/IntegracionMovimientoSe
         database: cfg.get<string>('dbName'),
         autoLoadEntities: true,
         synchronize: cfg.get<string>('nodeEnv') !== 'production',
+        extra: {
+          max: cfg.get<number>('dbPoolMax') ?? 20,
+          min: cfg.get<number>('dbPoolMin') ?? 2,
+          idleTimeoutMillis: cfg.get<number>('dbPoolIdleMs') ?? 30000,
+          connectionTimeoutMillis: cfg.get<number>('dbPoolAcquireMs') ?? 5000,
+          statement_timeout: cfg.get<number>('dbStatementTimeoutMs') ?? 15000,
+          query_timeout: cfg.get<number>('dbQueryTimeoutMs') ?? 15000,
+          idle_in_transaction_session_timeout:
+            cfg.get<number>('dbIdleInTxTimeoutMs') ?? 10000,
+          lock_timeout: cfg.get<number>('dbLockTimeoutMs') ?? 3000,
+        },
       }),
     }),
     TypeOrmModule.forFeature([IntegracionMovimientoEntity]),

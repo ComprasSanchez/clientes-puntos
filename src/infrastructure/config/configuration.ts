@@ -7,6 +7,32 @@ export default () => ({
   dbUser: process.env.PGUSER || 'postgres',
   dbPass: process.env.PGPASSWORD || 'secret',
   dbName: process.env.PGDATABASE || 'clientes_puntos',
+  dbPoolMax: parseInt(process.env.DB_POOL_MAX || '20', 10),
+  dbPoolMin: parseInt(process.env.DB_POOL_MIN || '2', 10),
+  dbPoolIdleMs: parseInt(process.env.DB_POOL_IDLE_MS || '30000', 10),
+  dbPoolAcquireMs: parseInt(process.env.DB_POOL_ACQUIRE_MS || '5000', 10),
+  dbStatementTimeoutMs: parseInt(
+    process.env.DB_STATEMENT_TIMEOUT_MS || '15000',
+    10,
+  ),
+  dbQueryTimeoutMs: parseInt(process.env.DB_QUERY_TIMEOUT_MS || '15000', 10),
+  dbIdleInTxTimeoutMs: parseInt(
+    process.env.DB_IDLE_IN_TX_TIMEOUT_MS || '10000',
+    10,
+  ),
+  dbLockTimeoutMs: parseInt(process.env.DB_LOCK_TIMEOUT_MS || '3000', 10),
+  httpRequestTimeoutMs: parseInt(
+    process.env.HTTP_REQUEST_TIMEOUT_MS || '30000',
+    10,
+  ),
+  httpHeadersTimeoutMs: parseInt(
+    process.env.HTTP_HEADERS_TIMEOUT_MS || '35000',
+    10,
+  ),
+  httpKeepAliveTimeoutMs: parseInt(
+    process.env.HTTP_KEEPALIVE_TIMEOUT_MS || '5000',
+    10,
+  ),
   authServerUrl: process.env.KEYCLOAK_URL,
   realm: process.env.KEYCLOAK_REALM,
   clientId: process.env.KEYCLOAK_CLIENT_ID,

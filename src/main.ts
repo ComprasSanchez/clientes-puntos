@@ -70,6 +70,36 @@ async function bootstrap() {
   // Body RAW SOLO para XML en /onzecrm
   app.use('/onzecrm', express.raw({ type: 'application/xml' }));
 
+  const toTimeout = (value: string | undefined, fallback: number): number => {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+  };
+
+  const requestTimeoutMs = toTimeout(
+    process.env.HTTP_REQUEST_TIMEOUT_MS,
+    30000,
+  );
+  const headersTimeoutMs = toTimeout(
+    process.env.HTTP_HEADERS_TIMEOUT_MS,
+    35000,
+  );
+  const keepAliveTimeoutMs = toTimeout(
+    process.env.HTTP_KEEPALIVE_TIMEOUT_MS,
+    5000,
+  );
+
+  const httpServer = app.getHttpServer() as {
+    requestTimeout: number;
+    headersTimeout: number;
+    keepAliveTimeout: number;
+    setTimeout: (msecs: number) => void;
+  };
+
+  httpServer.requestTimeout = requestTimeoutMs;
+  httpServer.headersTimeout = headersTimeoutMs;
+  httpServer.keepAliveTimeout = keepAliveTimeoutMs;
+  httpServer.setTimeout(requestTimeoutMs);
+
   await app.listen(process.env.PORT ?? 3000);
 }
 

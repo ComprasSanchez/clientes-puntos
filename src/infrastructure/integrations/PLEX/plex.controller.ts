@@ -65,6 +65,9 @@ function escapeXml(s: string): string {
 
 @Controller('onzecrm')
 export class PlexController {
+  private readonly requestTimeoutMs =
+    Number(process.env.PLEX_REQUEST_TIMEOUT_MS ?? '20000') || 20000;
+
   constructor(
     @Inject(FIDELIZAR_VENTA_ADAPTER)
     private readonly ventaAdapter: FidelizarVentaPlexAdapter,
@@ -80,6 +83,71 @@ export class PlexController {
     private readonly integracionMovimientoService: IntegracionMovimientoService,
     private readonly transactionalRunner: TransactionalRunner,
   ) {}
+
+  private withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
+    return new Promise<T>((resolve, reject) => {
+      const timeoutId = setTimeout(() => {
+        reject(new Error(`Timeout interno de ${timeoutMs}ms`));
+      }, timeoutMs);
+
+      void promise.then(
+        (value) => {
+          clearTimeout(timeoutId);
+          resolve(value);
+        },
+        (error: unknown) => {
+          clearTimeout(timeoutId);
+          reject(error);
+        },
+      );
+    });
+  }
+
+  private executeUseCase(
+    accionValue: string,
+    xmlIncoming: string,
+    auth: AuthContext,
+  ): Promise<UseCaseResponse> {
+    if ((Object.values(codFidelizarVenta) as string[]).includes(accionValue)) {
+      return this.transactionalRunner.runInTransaction((ctx) =>
+        this.ventaAdapter.handle(
+          xmlIncoming,
+          auth.codigoExt!, // sucursal externa del token
+          ctx,
+        ),
+      );
+    }
+
+    if (
+      (Object.values(codFidelizarCliente) as string[]).includes(accionValue)
+    ) {
+      return this.transactionalRunner.runInTransaction((ctx) =>
+        this.clienteAdapter.handle(xmlIncoming, ctx),
+      );
+    }
+
+    if (
+      (Object.values(codConsultarCliente) as string[]).includes(accionValue)
+    ) {
+      return this.consultarClienteAdapter.handle(xmlIncoming);
+    }
+
+    if (
+      (Object.values(codConsultarEstadisticasCliente) as string[]).includes(
+        accionValue,
+      )
+    ) {
+      return this.consultarEstadisticasAdapter.handle(xmlIncoming);
+    }
+
+    if (
+      (Object.values(codFidelizarProducto) as string[]).includes(accionValue)
+    ) {
+      return this.fidelizarProductoAdapter.handle(xmlIncoming);
+    }
+
+    throw new Error('codAccion inválido o no soportado');
+  }
 
   @Post()
   @UseGuards(ApiJwtGuard)
@@ -177,64 +245,22 @@ export class PlexController {
       });
 
     try {
-      // 7. Ejecutar caso de uso en tx
-      const responseXml: UseCaseResponse =
-        await this.transactionalRunner.runInTransaction(async (ctx) => {
-          const codAccionStr =
-            codAccionRaw !== undefined ? String(codAccionRaw) : undefined;
+      const codAccionStr =
+        codAccionRaw !== undefined ? String(codAccionRaw) : undefined;
 
-          if (!codAccionStr) {
-            throw new Error('codAccion no encontrado en el XML');
-          }
+      if (!codAccionStr) {
+        throw new Error('codAccion no encontrado en el XML');
+      }
 
-          // Asegurarnos de quedarnos sólo con el número (por si viene "200 " o "200\r\n")
-          const accionMatch = codAccionStr.match(/\d+/);
-          const accionValue = accionMatch ? accionMatch[0] : codAccionStr;
+      // Asegurarnos de quedarnos sólo con el número (por si viene "200 " o "200\r\n")
+      const accionMatch = codAccionStr.match(/\d+/);
+      const accionValue = accionMatch ? accionMatch[0] : codAccionStr;
 
-          if (
-            (Object.values(codFidelizarVenta) as string[]).includes(accionValue)
-          ) {
-            return this.ventaAdapter.handle(
-              xmlIncoming,
-              auth.codigoExt!, // sucursal externa del token
-              ctx,
-            );
-          }
-
-          if (
-            (Object.values(codFidelizarCliente) as string[]).includes(
-              accionValue,
-            )
-          ) {
-            return this.clienteAdapter.handle(xmlIncoming, ctx);
-          }
-
-          if (
-            (Object.values(codConsultarCliente) as string[]).includes(
-              accionValue,
-            )
-          ) {
-            return this.consultarClienteAdapter.handle(xmlIncoming);
-          }
-
-          if (
-            (
-              Object.values(codConsultarEstadisticasCliente) as string[]
-            ).includes(accionValue)
-          ) {
-            return this.consultarEstadisticasAdapter.handle(xmlIncoming);
-          }
-
-          if (
-            (Object.values(codFidelizarProducto) as string[]).includes(
-              accionValue,
-            )
-          ) {
-            return this.fidelizarProductoAdapter.handle(xmlIncoming);
-          }
-
-          throw new Error('codAccion inválido o no soportado');
-        });
+      // 7. Ejecutar caso de uso con timeout interno
+      const responseXml: UseCaseResponse = await this.withTimeout(
+        this.executeUseCase(accionValue, xmlIncoming, auth),
+        this.requestTimeoutMs,
+      );
 
       // log respuesta OK antes de persistir
 
@@ -267,13 +293,17 @@ export class PlexController {
       }
 
       // persistimos el error
-      await this.integracionMovimientoService.actualizarMovimiento(
-        movimiento.id,
-        {
-          status: 'ERROR',
-          mensajeError: msg,
-        },
-      );
+      try {
+        await this.integracionMovimientoService.actualizarMovimiento(
+          movimiento.id,
+          {
+            status: 'ERROR',
+            mensajeError: msg,
+          },
+        );
+      } catch {
+        // Evita dejar colgada la respuesta si falla la persistencia del error
+      }
 
       // respuesta xml de error (IMPORTANTE: escapamos msg)
       const errorXml =
