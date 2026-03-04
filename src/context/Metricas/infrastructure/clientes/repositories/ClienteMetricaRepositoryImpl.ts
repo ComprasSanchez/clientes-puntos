@@ -23,6 +23,14 @@ export class ClienteMetricaRepositoryImpl implements ClienteMetricaRepository {
     });
   }
 
+  async existsByReferenciaTransaccion(
+    referenciaTransaccion: number,
+  ): Promise<boolean> {
+    return this.repo.exists({
+      where: { referenciaTransaccion },
+    });
+  }
+
   async findByClienteIdAndDateRange(
     clienteId: string,
     desde: Date,

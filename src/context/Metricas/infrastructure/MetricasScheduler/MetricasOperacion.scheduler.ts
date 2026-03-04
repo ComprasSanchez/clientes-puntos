@@ -9,10 +9,14 @@ import { startOfDay, addDays, subDays } from 'date-fns';
 import { FechaDiaRange } from '../../application/puntos/value-objects/FechaDiaRange';
 
 const TZ = 'America/Argentina/Cordoba';
+const JOB_NAME = 'MetricasOperacionBatch';
+const METRICAS_CRON_EXPRESSION =
+  process.env.METRICAS_CRON_EXPRESSION || CronExpression.EVERY_10_MINUTES;
 
 @Injectable()
 export class MetricasOperacionScheduler {
   private readonly logger = new Logger(MetricasOperacionScheduler.name);
+  private isRunning = false;
 
   constructor(
     @Inject(GuardarMetricasOperacion)
@@ -21,40 +25,71 @@ export class MetricasOperacionScheduler {
     private readonly cronLogRepo: MetricasCronLogTypeOrmRepository,
   ) {}
 
-  @Cron(CronExpression.EVERY_DAY_AT_1AM)
+  @Cron(METRICAS_CRON_EXPRESSION)
   async handleCron(): Promise<void> {
-    // 1) Ahora en TZ Córdoba
-    const nowZoned = toZonedTime(new Date(), TZ);
-    // 2) Rango de AYER en TZ Córdoba
-    const ayerStartZoned = startOfDay(subDays(nowZoned, 1));
-    const hoyStartZoned = addDays(ayerStartZoned, 1);
-    // 3) Convertir límites a UTC (DB)
-    const startUtc = fromZonedTime(ayerStartZoned, TZ);
-    const endUtc = fromZonedTime(hoyStartZoned, TZ);
+    const isProduction = process.env.NODE_ENV === 'production';
+    const isEnabledInProduction = process.env.METRICAS_CRON_ENABLED === 'true';
 
-    // Preformateo para logs (evita concatenar llamados en plantilla)
-    const ymdLocal = ayerStartZoned.toISOString().slice(0, 10);
-    const startIso = startUtc.toISOString();
-    const endIso = endUtc.toISOString();
+    if (!(isProduction && isEnabledInProduction)) {
+      return;
+    }
+
+    if (this.isRunning) {
+      this.logger.warn(
+        'Cron de métricas ya en ejecución, se omite corrida solapada',
+      );
+      return;
+    }
+
+    this.isRunning = true;
+
+    const nowZoned = toZonedTime(new Date(), TZ);
+    const todayStartZoned = startOfDay(nowZoned);
+
+    const latestSuccess =
+      await this.cronLogRepo.findLatestSuccessByJob(JOB_NAME);
+    const fromDayZoned = latestSuccess?.fechaResumen
+      ? startOfDay(toZonedTime(latestSuccess.fechaResumen, TZ))
+      : subDays(todayStartZoned, 1);
+
+    const safeFromDayZoned =
+      fromDayZoned.getTime() > todayStartZoned.getTime()
+        ? todayStartZoned
+        : fromDayZoned;
 
     const log = await this.cronLogRepo.createLog({
-      jobName: 'MetricasOperacionBatch',
-      fechaResumen: ayerStartZoned,
+      jobName: JOB_NAME,
+      fechaResumen: safeFromDayZoned,
       startTime: new Date(),
       status: 'STARTED',
     });
 
     try {
-      this.logger.log(
-        `Métricas para día local ${ymdLocal} | UTC ${startIso} → ${endIso}`,
-      );
+      let dayCursor = safeFromDayZoned;
+      let processedDays = 0;
+      let lastProcessed = safeFromDayZoned;
 
-      await this.guardarMetricas.run(new FechaDiaRange(startUtc, endUtc));
+      while (dayCursor.getTime() <= todayStartZoned.getTime()) {
+        const nextDay = addDays(dayCursor, 1);
+        const startUtc = fromZonedTime(dayCursor, TZ);
+        const endUtc = fromZonedTime(nextDay, TZ);
+
+        this.logger.log(
+          `Métricas día local ${dayCursor.toISOString().slice(0, 10)} | UTC ${startUtc.toISOString()} -> ${endUtc.toISOString()}`,
+        );
+
+        await this.guardarMetricas.run(new FechaDiaRange(startUtc, endUtc));
+
+        lastProcessed = dayCursor;
+        processedDays += 1;
+        dayCursor = nextDay;
+      }
 
       await this.cronLogRepo.updateLog(log.id, {
+        fechaResumen: lastProcessed,
         endTime: new Date(),
         status: 'OK',
-        message: 'Ejecución exitosa',
+        message: `Ejecución exitosa. Días recalculados: ${processedDays}`,
       });
     } catch (error: unknown) {
       // Narrowing seguro para ESLint/TS
@@ -68,6 +103,8 @@ export class MetricasOperacionScheduler {
         status: 'ERROR',
         error: stack ?? msg,
       });
+    } finally {
+      this.isRunning = false;
     }
   }
 }

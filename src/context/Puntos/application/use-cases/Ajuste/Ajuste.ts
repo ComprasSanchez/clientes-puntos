@@ -9,7 +9,7 @@ import {
   AJUSTE_REPO,
   CREATE_OPERACION_SERVICE,
 } from '@puntos/core/tokens/tokens';
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { TransactionContext } from '@shared/core/interfaces/TransactionContext';
 import { AjusteRepository } from '@puntos/core/repository/AjusteRepository';
 import { Ajuste } from '@puntos/core/entities/Ajuste';
@@ -21,6 +21,8 @@ import { MetricasQueueService } from 'src/context/Metricas/infrastructure/Metric
 
 @Injectable()
 export class AjusteUseCase {
+  private readonly logger = new Logger(AjusteUseCase.name);
+
   constructor(
     @Inject(CREATE_OPERACION_SERVICE)
     private readonly service: CreateOperacionService,
@@ -74,17 +76,22 @@ export class AjusteUseCase {
       })),
     };
 
-    const response = this.service.execute(req, ctx, tipo);
+    const response = await this.service.execute(req, ctx, tipo);
 
     // Dispara el proceso de métricas en background
     if (
-      (await response).handlerResult.operacion &&
-      (await response).handlerResult.transacciones
+      response.handlerResult.operacion &&
+      response.handlerResult.transacciones
     ) {
-      await this.metricasQueue.crearMetricaCliente(
-        (await response).handlerResult.operacion,
-        (await response).handlerResult.transacciones,
-      );
+      void this.metricasQueue
+        .crearMetricaCliente(
+          response.handlerResult.operacion,
+          response.handlerResult.transacciones,
+        )
+        .catch((error: unknown) => {
+          const reason = error instanceof Error ? error.message : 'unknown';
+          this.logger.warn(`No se pudo encolar métrica de ajuste: ${reason}`);
+        });
     }
 
     await this.ajusteRepo.save(ajuste, ctx);

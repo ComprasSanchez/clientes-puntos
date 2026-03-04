@@ -47,4 +47,13 @@ export class MetricasCronLogTypeOrmRepository {
       take: limit,
     });
   }
+
+  async findLatestSuccessByJob(
+    jobName: string,
+  ): Promise<MetricasCronLogEntity | null> {
+    return this.repo.findOne({
+      where: { jobName, status: 'OK' },
+      order: { startTime: 'DESC' },
+    });
+  }
 }

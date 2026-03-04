@@ -6,7 +6,7 @@ import { CreateOperacionService } from '../../services/CreateOperacionService';
 import { OrigenOperacion } from '@puntos/core/value-objects/OrigenOperacion';
 import { ReferenciaMovimiento } from '@puntos/core/value-objects/ReferenciaMovimiento';
 import { OperacionId } from '@puntos/core/value-objects/OperacionId';
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { CREATE_OPERACION_SERVICE } from '@puntos/core/tokens/tokens';
 import { TransactionContext } from '@shared/core/interfaces/TransactionContext';
 import { METRICAS_QEUE_SERVICE } from 'src/context/Metricas/infrastructure/MetricasQueue/tokens';
@@ -14,6 +14,8 @@ import { MetricasQueueService } from 'src/context/Metricas/infrastructure/Metric
 
 @Injectable()
 export class AnulacionUseCase {
+  private readonly logger = new Logger(AnulacionUseCase.name);
+
   constructor(
     @Inject(CREATE_OPERACION_SERVICE)
     private readonly service: CreateOperacionService,
@@ -65,7 +67,12 @@ export class AnulacionUseCase {
           response.handlerResult.operacion,
           response.handlerResult.transacciones,
         )
-        .catch(() => undefined);
+        .catch((error: unknown) => {
+          const reason = error instanceof Error ? error.message : 'unknown';
+          this.logger.warn(
+            `No se pudo encolar métrica de anulación: ${reason}`,
+          );
+        });
     }
 
     // 4️⃣ Respuesta

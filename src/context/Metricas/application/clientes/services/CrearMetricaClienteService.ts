@@ -25,6 +25,13 @@ export class CrearClienteMetricaService {
     transacciones: Transaccion[],
     cotizacion: ConversionRule,
   ) {
+    const alreadyExists = await this.metricaRepo.existsByReferenciaTransaccion(
+      operacion.id.value,
+    );
+    if (alreadyExists) {
+      return;
+    }
+
     const resultado = this.calculator.calcularDesdeOperacion(
       operacion,
       transacciones,

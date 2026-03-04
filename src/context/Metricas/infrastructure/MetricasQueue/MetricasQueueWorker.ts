@@ -1,5 +1,5 @@
 // MetricasQueueWorker.ts
-import { Processor, WorkerHost } from '@nestjs/bullmq';
+import { OnWorkerEvent, Processor, WorkerHost } from '@nestjs/bullmq';
 import { Job } from 'bullmq';
 import { Injectable, Logger, Inject } from '@nestjs/common';
 import { CREAR_METRICA_CLIENTE_USECASE } from 'src/context/Metricas/core/reglas/tokens/tokens';
@@ -40,8 +40,34 @@ export class MetricasQueueWorker extends WorkerHost {
       // Aquí podés reconstruir las entidades si hace falta
       await this.crearMetricaClienteUseCase.run(OpEntity, txEntities);
     } catch (error) {
-      this.logger.error('Error en MetricasQueueWorker', error);
+      this.logger.error(
+        `Error en MetricasQueueWorker: jobId=${job.id} opId=${job.data.operacion._id}`,
+        error instanceof Error ? error.stack : undefined,
+      );
       throw error;
     }
+  }
+
+  @OnWorkerEvent('completed')
+  onCompleted(job: Job<MetricasJobPayload>): void {
+    this.logger.log(
+      `Metrica completada: jobId=${job.id} opId=${job.data.operacion._id}`,
+    );
+  }
+
+  @OnWorkerEvent('failed')
+  onFailed(job: Job<MetricasJobPayload> | undefined, error: Error): void {
+    if (!job) {
+      this.logger.error(
+        `Metrica fallida sin job context: ${error.message}`,
+        error.stack,
+      );
+      return;
+    }
+
+    this.logger.error(
+      `Metrica fallida: jobId=${job.id} attemptsMade=${job.attemptsMade} opId=${job.data.operacion._id}`,
+      error.stack,
+    );
   }
 }
