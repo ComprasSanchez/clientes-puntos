@@ -8,7 +8,16 @@ import { TxTipo } from '@puntos/core/enums/TxTipo';
 import { UserId } from '@shared/infrastructure/decorators/user-id.decorator';
 import { TransactionalRunner } from '@shared/infrastructure/transaction/TransactionalRunner';
 import { ClientPerms } from '@sistemas-fsa/authz/nest';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 
+@ApiTags('Ajuste')
+@ApiBearerAuth()
 @UseGuards(ApiJwtGuard)
 @Authz({
   allowedAzp: ['puntos-fsa', 'bff'],
@@ -22,6 +31,18 @@ export class AjusteController {
   ) {}
 
   @Post('acreditar')
+  @ApiOperation({ summary: 'Registra ajuste de acreditación' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        clienteId: { type: 'string' },
+        puntos: { type: 'number' },
+        motivo: { type: 'string' },
+      },
+    },
+  })
+  @ApiResponse({ status: 201, description: 'Ajuste registrado.' })
   @ClientPerms('ajuste:write')
   async registrarAjusteAcreditacion(
     @Body() dto: AjusteDto,
@@ -34,6 +55,18 @@ export class AjusteController {
   }
 
   @Post('gastar')
+  @ApiOperation({ summary: 'Registra ajuste de gasto' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        clienteId: { type: 'string' },
+        puntos: { type: 'number' },
+        motivo: { type: 'string' },
+      },
+    },
+  })
+  @ApiResponse({ status: 201, description: 'Ajuste registrado.' })
   @ClientPerms('ajuste:write')
   async registrarAjusteGasto(
     @Body() dto: AjusteDto,

@@ -33,6 +33,15 @@ import { codFidelizarProducto } from './enums/fidelizar-producto.enum';
 import { FidelizarProductoPlexAdapter } from './use-cases/FidelizarProducto/adapters/fidelizar-producto.adapter';
 import { ApiJwtGuard } from '@infrastructure/auth/api-jwt.guard';
 import { Authz } from '@infrastructure/auth/authz-policy.decorator';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiConsumes,
+  ApiOperation,
+  ApiProduces,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 
 // ==== Tipos auxiliares para el XML ====
 
@@ -63,6 +72,8 @@ function escapeXml(s: string): string {
     .replace(/'/g, '&apos;');
 }
 
+@ApiTags('Integraciones - PLEX')
+@ApiBearerAuth()
 @Controller('onzecrm')
 export class PlexController {
   private readonly requestTimeoutMs =
@@ -150,6 +161,39 @@ export class PlexController {
   }
 
   @Post()
+  @ApiOperation({
+    summary: 'Procesa mensaje XML de PLEX por CodAccion',
+    description:
+      'Endpoint multipropósito. Recibe XML MensajeFidelyGB, enruta por CodAccion y responde XML.',
+  })
+  @ApiConsumes('application/xml')
+  @ApiProduces('application/xml')
+  @ApiBody({
+    required: true,
+    schema: {
+      type: 'string',
+      example:
+        '<?xml version="1.0" encoding="UTF-8"?><MensajeFidelyGB><CodAccion>200</CodAccion><Venta><NroTarjeta>123</NroTarjeta></Venta></MensajeFidelyGB>',
+    },
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Respuesta XML exitosa.',
+    schema: {
+      type: 'string',
+      example:
+        '<?xml version="1.0" encoding="utf-8"?><RespuestaFidelyGb><RespCode>0</RespCode><RespMsg>OK</RespMsg></RespuestaFidelyGb>',
+    },
+  })
+  @ApiResponse({ status: 400, description: 'XML inválido o body vacío.' })
+  @ApiResponse({
+    status: 415,
+    description: 'Content-Type inválido. Debe ser application/xml.',
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Error de negocio/integración. Retorna XML de error.',
+  })
   @UseGuards(ApiJwtGuard)
   //Authz V1 local integrado con kaycloak
   @Authz({

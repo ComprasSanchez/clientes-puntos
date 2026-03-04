@@ -9,7 +9,17 @@ import { FindLotesByClienteUseCase } from '@puntos/application/use-cases/LoteFin
 import { ApiJwtGuard } from '@infrastructure/auth/api-jwt.guard';
 import { Authz } from '@infrastructure/auth/authz-policy.decorator';
 import { ClientPerms } from '@sistemas-fsa/authz/nest';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiParam,
+  ApiQuery,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 
+@ApiTags('Lote')
+@ApiBearerAuth()
 @UseGuards(ApiJwtGuard)
 @Authz({
   allowedAzp: ['puntos-fsa', 'bff'],
@@ -25,6 +35,8 @@ export class LoteController {
 
   @ClientPerms('lote:read')
   @Get()
+  @ApiOperation({ summary: 'Lista todos los lotes' })
+  @ApiResponse({ status: 200, type: [LoteResponseDto] })
   async getAll(): Promise<LoteResponseDto[]> {
     const lotes = await this.findAllLotes.run();
     return lotes.map(LoteResponseDto.fromDomain);
@@ -32,6 +44,9 @@ export class LoteController {
 
   @ClientPerms('lote:read')
   @Get(':id')
+  @ApiOperation({ summary: 'Busca lote por ID' })
+  @ApiParam({ name: 'id', type: String })
+  @ApiResponse({ status: 200, type: LoteResponseDto })
   async getById(@Param('id') id: string): Promise<LoteResponseDto | null> {
     const lote = await this.findLoteById.run(new LoteId(id));
     return lote ? LoteResponseDto.fromDomain(lote) : null;
@@ -39,6 +54,10 @@ export class LoteController {
 
   @ClientPerms('lote:read')
   @Get('/cliente/:clienteId')
+  @ApiOperation({ summary: 'Lista lotes por cliente' })
+  @ApiParam({ name: 'clienteId', type: String })
+  @ApiQuery({ name: 'estado', required: false, enum: BatchEstado })
+  @ApiResponse({ status: 200, type: [LoteResponseDto] })
   async getByCliente(
     @Param('clienteId') clienteId: string,
     @Query('estado') estado?: BatchEstado,

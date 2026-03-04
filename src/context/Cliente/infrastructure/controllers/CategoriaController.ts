@@ -19,7 +19,17 @@ import { CategoriaResponseDto } from '../../application/dtos/CategoriaResponseDt
 import { ApiJwtGuard } from '@infrastructure/auth/api-jwt.guard';
 import { Authz } from '@infrastructure/auth/authz-policy.decorator';
 import { ClientPerms } from '@sistemas-fsa/authz/nest';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiOperation,
+  ApiParam,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 
+@ApiTags('Categoria')
+@ApiBearerAuth()
 @UseGuards(ApiJwtGuard)
 @Authz({
   allowedAzp: ['puntos-fsa', 'bff'],
@@ -44,6 +54,9 @@ export class CategoriaController {
   })
   @ClientPerms('categoria:write')
   @Post()
+  @ApiOperation({ summary: 'Crear categoría' })
+  @ApiBody({ type: CreateCategoriaDto })
+  @ApiResponse({ status: 201, description: 'Categoría creada.' })
   async create(@Body() dto: CreateCategoriaDto): Promise<void> {
     await this.createUseCase.run(dto);
   }
@@ -51,6 +64,8 @@ export class CategoriaController {
   // Usa la policy del controller (consultant | administrator)
   @ClientPerms('categoria:read')
   @Get()
+  @ApiOperation({ summary: 'Listar categorías' })
+  @ApiResponse({ status: 200, type: [CategoriaResponseDto] })
   async findAll(): Promise<CategoriaResponseDto[]> {
     const list = await this.findAllUseCase.run();
     return list.map((c) => ({
@@ -65,6 +80,9 @@ export class CategoriaController {
   // Usa la policy del controller (consultant | administrator)
   @ClientPerms('categoria:read')
   @Get(':id')
+  @ApiOperation({ summary: 'Buscar categoría por ID' })
+  @ApiParam({ name: 'id', type: String })
+  @ApiResponse({ status: 200, type: CategoriaResponseDto })
   async findOne(@Param('id') id: string) {
     const c = await this.findByIdUseCase.run(id);
     return {
@@ -82,6 +100,10 @@ export class CategoriaController {
   })
   @ClientPerms('categoria:write')
   @Put(':id')
+  @ApiOperation({ summary: 'Actualizar categoría' })
+  @ApiParam({ name: 'id', type: String })
+  @ApiBody({ type: UpdateCategoriaDto })
+  @ApiResponse({ status: 204, description: 'Categoría actualizada.' })
   async update(
     @Param('id') id: string,
     @Body() dto: UpdateCategoriaDto,
@@ -96,6 +118,9 @@ export class CategoriaController {
   })
   @ClientPerms('categoria:write')
   @Delete(':id')
+  @ApiOperation({ summary: 'Eliminar categoría' })
+  @ApiParam({ name: 'id', type: String })
+  @ApiResponse({ status: 204, description: 'Categoría eliminada.' })
   async remove(@Param('id') id: string): Promise<void> {
     await this.deleteUseCase.run(id);
   }

@@ -19,6 +19,15 @@ import { UpsertProductoPlano } from '../../core/dtos/UpsertProductoPlano';
 import { ApiJwtGuard } from '@infrastructure/auth/api-jwt.guard';
 import { Authz } from '@infrastructure/auth/authz-policy.decorator';
 import { ClientPerms } from '@sistemas-fsa/authz/nest';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiOperation,
+  ApiParam,
+  ApiQuery,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 
 type ProductoHttpDto = {
   idProducto: string;
@@ -35,6 +44,8 @@ type ProductoHttpDto = {
   updatedAt: Date;
 };
 
+@ApiTags('Producto')
+@ApiBearerAuth()
 @UseGuards(ApiJwtGuard)
 @Authz({
   allowedAzp: ['puntos-fsa', 'bff'],
@@ -55,6 +66,23 @@ export class ProductoController {
    */
   @ClientPerms('producto:write')
   @Post('upsert')
+  @ApiOperation({ summary: 'Upsert de productos (uno o varios)' })
+  @ApiBody({
+    schema: {
+      oneOf: [
+        {
+          type: 'object',
+          additionalProperties: true,
+        },
+        {
+          type: 'array',
+          items: { type: 'object', additionalProperties: true },
+        },
+      ],
+    },
+  })
+  @ApiResponse({ status: 201, description: 'Productos upsertados.' })
+  @ApiResponse({ status: 400, description: 'Body vacío o inválido.' })
   async upsertJson(
     @Body() body: UpsertProductoPlano[] | UpsertProductoPlano,
   ): Promise<{ upserted: number }> {
@@ -72,6 +100,10 @@ export class ProductoController {
    */
   @ClientPerms('producto:read')
   @Get(':id')
+  @ApiOperation({ summary: 'Obtiene producto por ID' })
+  @ApiParam({ name: 'id', type: String })
+  @ApiResponse({ status: 200, description: 'Producto encontrado.' })
+  @ApiResponse({ status: 404, description: 'Producto no encontrado.' })
   async get(@Param('id') id: string): Promise<ProductoHttpDto> {
     const p = await this.getById.run(id);
     if (!p) throw new NotFoundException('Producto no encontrado');
@@ -83,6 +115,13 @@ export class ProductoController {
    * (Lectura: consultant | administrator)
    */
   @Get()
+  @ApiOperation({ summary: 'Lista productos con filtros y paginación' })
+  @ApiQuery({ name: 'q', required: false, type: String })
+  @ApiQuery({ name: 'tipo', required: false, type: Number })
+  @ApiQuery({ name: 'idClasificador', required: false, type: String })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiQuery({ name: 'offset', required: false, type: Number })
+  @ApiResponse({ status: 200, description: 'Listado de productos.' })
   async list(
     @Query('q') q?: string,
     @Query('tipo') tipo?: string,

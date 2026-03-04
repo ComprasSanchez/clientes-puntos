@@ -12,7 +12,16 @@ import { FindTransaccionesByReferenciaUseCase } from '@puntos/application/use-ca
 import { ApiJwtGuard } from '@infrastructure/auth/api-jwt.guard';
 import { Authz } from '@infrastructure/auth/authz-policy.decorator';
 import { ClientPerms } from '@sistemas-fsa/authz/nest';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiParam,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 
+@ApiTags('Transaccion')
+@ApiBearerAuth()
 @UseGuards(ApiJwtGuard)
 @Authz({
   allowedAzp: ['puntos-fsa', 'bff'],
@@ -31,6 +40,12 @@ export class TransaccionController {
 
   @ClientPerms('transaccion:read')
   @Get()
+  @ApiOperation({ summary: 'Lista todas las transacciones' })
+  @ApiResponse({
+    status: 200,
+    description: 'Listado de transacciones.',
+    type: [TransaccionResponseDto],
+  })
   async getAll(): Promise<TransaccionResponseDto[]> {
     const transacciones = await this.findAllTransacciones.run();
     return transacciones.map(TransaccionResponseDto.fromDomain);
@@ -38,6 +53,13 @@ export class TransaccionController {
 
   @ClientPerms('transaccion:read')
   @Get(':id')
+  @ApiOperation({ summary: 'Busca transacción por ID' })
+  @ApiParam({ name: 'id', type: String })
+  @ApiResponse({
+    status: 200,
+    description: 'Transacción encontrada o null.',
+    type: TransaccionResponseDto,
+  })
   async getById(
     @Param('id') id: string,
   ): Promise<TransaccionResponseDto | null> {
@@ -49,6 +71,9 @@ export class TransaccionController {
 
   @ClientPerms('transaccion:read')
   @Get('/lote/:loteId')
+  @ApiOperation({ summary: 'Lista transacciones por lote' })
+  @ApiParam({ name: 'loteId', type: String })
+  @ApiResponse({ status: 200, type: [TransaccionResponseDto] })
   async getByLote(
     @Param('loteId') loteId: string,
   ): Promise<TransaccionResponseDto[]> {
@@ -58,6 +83,9 @@ export class TransaccionController {
 
   @ClientPerms('transaccion:read')
   @Get('/cliente/:clienteId')
+  @ApiOperation({ summary: 'Lista transacciones por cliente' })
+  @ApiParam({ name: 'clienteId', type: String })
+  @ApiResponse({ status: 200, type: [TransaccionResponseDto] })
   async getByCliente(
     @Param('clienteId') clienteId: string,
   ): Promise<TransaccionResponseDto[]> {
@@ -67,6 +95,9 @@ export class TransaccionController {
 
   @ClientPerms('transaccion:read')
   @Get('/operacion/:opId')
+  @ApiOperation({ summary: 'Lista transacciones por operación' })
+  @ApiParam({ name: 'opId', type: Number })
+  @ApiResponse({ status: 200, type: [TransaccionResponseDto] })
   async getByOperacionId(
     @Param('opId') opId: number,
   ): Promise<TransaccionResponseDto[]> {
@@ -76,6 +107,9 @@ export class TransaccionController {
 
   @ClientPerms('transaccion:read')
   @Get('/referencia/:ref')
+  @ApiOperation({ summary: 'Lista transacciones por referencia' })
+  @ApiParam({ name: 'ref', type: String })
+  @ApiResponse({ status: 200, type: [TransaccionResponseDto] })
   async getByReferencia(
     @Param('ref') ref: string,
   ): Promise<TransaccionResponseDto[]> {

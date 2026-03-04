@@ -30,12 +30,23 @@ import { OperacionDetalleResponseDto } from '../dtos/OperacionDetalleResponseDto
 import { FindOperacionDetalleByIdUseCase } from '@puntos/application/use-cases/OperacionDetalleView/OperacionDetalleView';
 import { OPERACION_VALOR_SERVICE } from '@puntos/core/tokens/tokens';
 import { ClientPerms } from '@sistemas-fsa/authz/nest';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiOperation,
+  ApiParam,
+  ApiQuery,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 
 // @UseGuards(ApiJwtGuard)
 // @Authz({
 //   allowedAzp: ['puntos-fsa', 'bff'],
 //   requireSucursalData: false, // GETs no requieren sucursal
 // })
+@ApiTags('Operacion')
+@ApiBearerAuth()
 @Controller('operacion')
 export class OperacionController {
   constructor(
@@ -53,6 +64,14 @@ export class OperacionController {
   ) {}
 
   @Get()
+  @ApiOperation({ summary: 'Lista operaciones paginadas' })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiResponse({
+    status: 200,
+    description: 'Listado paginado de operaciones.',
+    type: PaginatedOperacionResponseDto,
+  })
   @ClientPerms('operacion:read')
   async getAll(
     @Query() query: PaginationQueryDto,
@@ -90,6 +109,14 @@ export class OperacionController {
 
   @ClientPerms('operacion:read')
   @Get(':id/detalle')
+  @ApiOperation({ summary: 'Obtiene detalle completo de operación por ID' })
+  @ApiParam({ name: 'id', type: Number })
+  @ApiResponse({
+    status: 200,
+    description: 'Detalle de operación encontrado.',
+    type: OperacionDetalleResponseDto,
+  })
+  @ApiResponse({ status: 404, description: 'Operación no encontrada.' })
   async getDetalle(
     @Param('id', ParseIntPipe) id: number,
   ): Promise<OperacionDetalleResponseDto> {
@@ -105,6 +132,13 @@ export class OperacionController {
 
   @ClientPerms('operacion:read')
   @Get(':id')
+  @ApiOperation({ summary: 'Obtiene operación por ID' })
+  @ApiParam({ name: 'id', type: Number })
+  @ApiResponse({
+    status: 200,
+    description: 'Operación encontrada o null.',
+    type: OperacionResponseDto,
+  })
   async getById(@Param('id') id: number): Promise<OperacionResponseDto | null> {
     const operacion = await this.findOperacionById.run(
       OperacionId.instance(id),
@@ -114,6 +148,15 @@ export class OperacionController {
 
   @ClientPerms('operacion:read')
   @Get('/cliente/:clienteId')
+  @ApiOperation({ summary: 'Lista operaciones de un cliente paginadas' })
+  @ApiParam({ name: 'clienteId', type: String })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiResponse({
+    status: 200,
+    description: 'Operaciones del cliente paginadas.',
+    type: PaginatedOperacionResponseDto,
+  })
   async getByCliente(
     @Param('clienteId') clienteId: string,
     @Query() query: PaginationQueryDto,
@@ -158,6 +201,13 @@ export class OperacionController {
 
   @ClientPerms('operacion:read')
   @Get('/referencia/:referenciaId')
+  @ApiOperation({ summary: 'Lista operaciones por referencia externa' })
+  @ApiParam({ name: 'referenciaId', type: String })
+  @ApiResponse({
+    status: 200,
+    description: 'Operaciones filtradas por referencia.',
+    type: [OperacionResponseDto],
+  })
   async getByReferencia(
     @Param('referenciaId') referenciaId: string,
   ): Promise<OperacionResponseDto[]> {
@@ -172,6 +222,19 @@ export class OperacionController {
   })
   @ClientPerms('operacion:write')
   @Post('compra')
+  @ApiOperation({ summary: 'Registra operación de compra' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        clienteId: { type: 'string' },
+        origenTipo: { type: 'string' },
+        puntos: { type: 'number' },
+      },
+    },
+  })
+  @ApiResponse({ status: 201, description: 'Compra registrada.' })
+  @ApiResponse({ status: 400, description: 'Payload inválido.' })
   async compra(@Body() dto: OperacionDto): Promise<CreateOperacionResponse> {
     return this.transactionalRunner.runInTransaction((ctx) =>
       this.compraUseCase.run(dto, ctx),
@@ -184,6 +247,19 @@ export class OperacionController {
   })
   @ClientPerms('operacion:write')
   @Post('devolucion')
+  @ApiOperation({ summary: 'Registra operación de devolución' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        clienteId: { type: 'string' },
+        origenTipo: { type: 'string' },
+        puntos: { type: 'number' },
+      },
+    },
+  })
+  @ApiResponse({ status: 201, description: 'Devolución registrada.' })
+  @ApiResponse({ status: 400, description: 'Payload inválido.' })
   async devolucion(
     @Body() dto: OperacionDto,
   ): Promise<CreateOperacionResponse> {
@@ -198,6 +274,19 @@ export class OperacionController {
   })
   @ClientPerms('operacion:write')
   @Post('anulacion')
+  @ApiOperation({ summary: 'Registra operación de anulación' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        clienteId: { type: 'string' },
+        origenTipo: { type: 'string' },
+        puntos: { type: 'number' },
+      },
+    },
+  })
+  @ApiResponse({ status: 201, description: 'Anulación registrada.' })
+  @ApiResponse({ status: 400, description: 'Payload inválido.' })
   async anulacion(@Body() dto: OperacionDto): Promise<CreateOperacionResponse> {
     return this.transactionalRunner.runInTransaction((ctx) =>
       this.anulacionUseCase.run(dto, ctx),

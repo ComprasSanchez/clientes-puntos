@@ -15,7 +15,17 @@ import { ClientPerms } from '@sistemas-fsa/authz/nest';
 import { GetClienteMetricasDashboard } from '../../application/clientes/services/GetClientesMetricasDashboard';
 import { GET_CLIENTE_METRICAS_DASHBOARD_CLIENTE } from '../../core/reglas/tokens/tokens';
 import { ClienteMetricasDashboardDto } from '../../application/clientes/dto/ClienteMetricasDTO';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiParam,
+  ApiQuery,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 
+@ApiTags('Metricas')
+@ApiBearerAuth()
 @Controller('metricas')
 export class MetricasController {
   constructor(
@@ -31,6 +41,12 @@ export class MetricasController {
    */
   @ClientPerms('metricas:read')
   @Get('saldo')
+  @ApiOperation({ summary: 'Obtiene métricas globales de saldo' })
+  @ApiResponse({ status: 200, description: 'Métricas de saldo.' })
+  @ApiResponse({
+    status: 500,
+    description: 'No se pudieron obtener las métricas de saldo.',
+  })
   async getSaldo(): Promise<MetricasSaldo> {
     try {
       return await this.getMetricasSaldo.run();
@@ -49,6 +65,23 @@ export class MetricasController {
    */
   @ClientPerms('metricas:read')
   @Get('clientes/:clienteId/dashboard')
+  @ApiOperation({ summary: 'Obtiene dashboard de métricas por cliente' })
+  @ApiParam({ name: 'clienteId', type: String })
+  @ApiQuery({ name: 'desde', required: false, type: String })
+  @ApiQuery({ name: 'hasta', required: false, type: String })
+  @ApiResponse({
+    status: 200,
+    description: 'Dashboard de métricas del cliente.',
+    schema: {
+      type: 'object',
+      additionalProperties: true,
+    },
+  })
+  @ApiResponse({ status: 400, description: 'Parámetros de fecha inválidos.' })
+  @ApiResponse({
+    status: 500,
+    description: 'No se pudo obtener el dashboard de métricas.',
+  })
   async getClienteDashboard(
     @Param('clienteId') clienteId: string,
     @Query('desde') desdeStr?: string,

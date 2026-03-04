@@ -14,6 +14,7 @@ import {
   ApiResponse,
   ApiParam,
   ApiBody,
+  ApiBearerAuth,
 } from '@nestjs/swagger';
 import { CategoriaFindById } from '@cliente/application/use-cases/CategoriaFindById/CategoriaFindById';
 import {
@@ -35,6 +36,7 @@ import { Authz } from '@infrastructure/auth/authz-policy.decorator';
 import { ClientPerms } from '@sistemas-fsa/authz/nest';
 
 @ApiTags('Cliente')
+@ApiBearerAuth()
 @UseGuards(ApiJwtGuard)
 // Por defecto, este controller acepta tokens emitidos por el SPA y exige client roles de `puntos-fsa`.
 // Si querés cambiar endpoint por endpoint, podés mover el @Authz a cada handler.
@@ -58,6 +60,9 @@ export class ClienteController {
   @ApiOperation({ summary: 'Crear un cliente' })
   @ApiBody({ type: CreateClienteDto })
   @ApiResponse({ status: 201, description: 'Cliente creado.' })
+  @ApiResponse({ status: 400, description: 'Payload inválido.' })
+  @ApiResponse({ status: 401, description: 'No autenticado.' })
+  @ApiResponse({ status: 403, description: 'Sin permisos.' })
   // Si querés que crear sólo lo haga administrator:
   @ClientPerms('cliente:write')
   @Post()
@@ -96,6 +101,8 @@ export class ClienteController {
     description: 'Lista de clientes.',
     type: [ClienteResponseDto],
   })
+  @ApiResponse({ status: 401, description: 'No autenticado.' })
+  @ApiResponse({ status: 403, description: 'Sin permisos.' })
   // Lectura: permití también a consultant
   @ClientPerms('cliente:read')
   @Get()
@@ -110,6 +117,8 @@ export class ClienteController {
     description: 'Cliente encontrado.',
     type: ClienteProfileDto,
   })
+  @ApiResponse({ status: 401, description: 'No autenticado.' })
+  @ApiResponse({ status: 403, description: 'Sin permisos.' })
   @ClientPerms('cliente:read')
   @Get('dni/:dni')
   async findByDni(
@@ -125,6 +134,8 @@ export class ClienteController {
     description: 'Cliente encontrado.',
     type: ClienteProfileDto,
   })
+  @ApiResponse({ status: 401, description: 'No autenticado.' })
+  @ApiResponse({ status: 403, description: 'Sin permisos.' })
   @ClientPerms('cliente:read')
   @Get(':id')
   async findOne(@Param('id') id: string): Promise<ClienteResponseDto | null> {
@@ -138,6 +149,8 @@ export class ClienteController {
     description: 'Perfil del cliente.',
     type: ClienteProfileDto,
   })
+  @ApiResponse({ status: 401, description: 'No autenticado.' })
+  @ApiResponse({ status: 403, description: 'Sin permisos.' })
   @ClientPerms('cliente:read')
   @Get(':id/profile')
   async profile(@Param('id') id: string) {
@@ -148,6 +161,9 @@ export class ClienteController {
   @ApiParam({ name: 'id', type: String })
   @ApiBody({ type: UpdateClienteDto })
   @ApiResponse({ status: 204, description: 'Cliente actualizado.' })
+  @ApiResponse({ status: 400, description: 'Payload inválido.' })
+  @ApiResponse({ status: 401, description: 'No autenticado.' })
+  @ApiResponse({ status: 403, description: 'Sin permisos.' })
   @Authz({
     allowedAzp: ['puntos-fsa'],
   })
@@ -170,6 +186,8 @@ export class ClienteController {
   @ApiOperation({ summary: 'Eliminar cliente' })
   @ApiParam({ name: 'id', type: String })
   @ApiResponse({ status: 204, description: 'Cliente eliminado.' })
+  @ApiResponse({ status: 401, description: 'No autenticado.' })
+  @ApiResponse({ status: 403, description: 'Sin permisos.' })
   @Authz({
     allowedAzp: ['puntos-fsa'],
   })

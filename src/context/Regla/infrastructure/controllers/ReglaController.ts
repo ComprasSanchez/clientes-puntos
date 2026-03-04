@@ -25,7 +25,17 @@ import { ReglaFindCotizacion } from '@regla/application/use-cases/ReglaFindCotiz
 import { ApiJwtGuard } from '@infrastructure/auth/api-jwt.guard';
 import { Authz } from '@infrastructure/auth/authz-policy.decorator';
 import { ClientPerms } from '@sistemas-fsa/authz/nest';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiOperation,
+  ApiParam,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 
+@ApiTags('Regla')
+@ApiBearerAuth()
 @UseGuards(ApiJwtGuard)
 @Authz({
   allowedAzp: ['puntos-fsa', 'bff'],
@@ -44,6 +54,8 @@ export class ReglaController {
 
   @ClientPerms('regla:read')
   @Get()
+  @ApiOperation({ summary: 'Listar reglas' })
+  @ApiResponse({ status: 200, type: [ReglaResponseDto] })
   async findAll(): Promise<ReglaResponseDto[]> {
     const reglas = await this.findAllUseCase.run();
     return reglas.map((r) => this.toResponseDto(r));
@@ -51,12 +63,18 @@ export class ReglaController {
 
   @ClientPerms('regla:read')
   @Get('/cotizacion')
+  @ApiOperation({ summary: 'Obtener regla de cotización activa' })
+  @ApiResponse({ status: 200, description: 'Regla de conversión vigente.' })
   async findCotizacion(): Promise<ConversionRule> {
     return this.findCotizacionUseCase.run();
   }
 
   @ClientPerms('regla:read')
   @Get(':id')
+  @ApiOperation({ summary: 'Buscar regla por ID' })
+  @ApiParam({ name: 'id', type: String })
+  @ApiResponse({ status: 200, type: ReglaResponseDto })
+  @ApiResponse({ status: 404, description: 'Regla no encontrada.' })
   async findOne(@Param('id') id: string): Promise<ReglaResponseDto> {
     const regla = await this.findByIdUseCase.run(id);
     if (!regla) throw new ReglaNotFound();
@@ -70,6 +88,9 @@ export class ReglaController {
   })
   @ClientPerms('regla:write')
   @Post()
+  @ApiOperation({ summary: 'Crear regla' })
+  @ApiBody({ type: CreateReglaDto })
+  @ApiResponse({ status: 201, description: 'Regla creada.' })
   async create(@Body() dto: CreateReglaDto): Promise<void> {
     await this.createUseCase.run(dto);
   }
@@ -81,6 +102,10 @@ export class ReglaController {
   })
   @ClientPerms('regla:write')
   @Put(':id')
+  @ApiOperation({ summary: 'Actualizar regla' })
+  @ApiParam({ name: 'id', type: String })
+  @ApiBody({ type: UpdateReglaDto })
+  @ApiResponse({ status: 204, description: 'Regla actualizada.' })
   async update(
     @Param('id') id: string,
     @Body() dto: UpdateReglaDto,
@@ -95,6 +120,9 @@ export class ReglaController {
   })
   @ClientPerms('regla:write')
   @Delete(':id')
+  @ApiOperation({ summary: 'Eliminar regla' })
+  @ApiParam({ name: 'id', type: String })
+  @ApiResponse({ status: 204, description: 'Regla eliminada.' })
   async remove(@Param('id') id: string): Promise<void> {
     await this.deleteUseCase.run(id);
   }
