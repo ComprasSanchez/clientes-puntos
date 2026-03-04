@@ -1,5 +1,5 @@
 // src/regla/application/services/rules-query.service.ts
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { RulesCacheLoader } from '@infrastructure/cache/rules-cache/rules-cache.loader';
 import { Regla as ReglaDomain } from '@regla/core/entities/Regla';
 import { ReglaCriteria } from '@regla/core/entities/Criteria';
@@ -7,8 +7,6 @@ import { TipoRegla } from '@regla/core/enums/TipoRegla';
 
 @Injectable()
 export class RulesQueryService {
-  private readonly logger = new Logger(RulesQueryService.name);
-
   constructor(
     @Inject(RulesCacheLoader)
     private readonly rulesCacheLoader: RulesCacheLoader,
@@ -19,7 +17,6 @@ export class RulesQueryService {
    * No ejecuta efectos ni orquestación; sólo preselecciona candidatas.
    */
   async findByCriteria(criteria: ReglaCriteria): Promise<ReglaDomain[]> {
-    const t0 = Date.now();
     const reglas = await this.rulesCacheLoader.getRules(); // readonly-ish
 
     // Armamos un pipeline de filtros composable para mantener la legibilidad.
@@ -70,11 +67,6 @@ export class RulesQueryService {
       const idb = b.id?.value ?? '';
       return ida.localeCompare(idb);
     });
-
-    const dt = Date.now() - t0;
-    this.logger.debug(
-      `findByCriteria -> total=${reglas.length} candidatas=${candidatas.length} devueltas=${ordenadas.length} (${dt}ms)`,
-    );
 
     return ordenadas;
   }

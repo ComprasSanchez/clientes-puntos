@@ -317,11 +317,6 @@ export class SaldoHandler {
     // ✅ tomar clienteId de la operación o, si no viene, del saldo
     const clienteId = operacion.clienteId;
     if (!clienteId) {
-      // log explícito para rastrear
-      console.error('[SaldoHandler] clienteId ausente', {
-        operacionId: operacion?.id?.value ?? operacion?.id,
-        tipo: operacion.tipo,
-      });
       throw new Error('clienteId requerido para persistir saldo/historial');
     }
 

@@ -22,7 +22,7 @@ import { IntegracionMovimientoService } from './services/IntegracionMovimientoSe
         autoLoadEntities: true,
         synchronize: cfg.get<string>('nodeEnv') !== 'production',
         migrations: [join(__dirname, '../../migrations/*{.ts,.js}')],
-        migrationsRun: cfg.get<string>('nodeEnv') === 'production',
+        migrationsRun: false,
         migrationsTableName: 'typeorm_migrations',
         extra: {
           max: cfg.get<number>('dbPoolMax') ?? 20,

@@ -101,7 +101,4 @@ async function bootstrap() {
   await app.listen(process.env.PORT ?? 3000);
 }
 
-bootstrap().catch((err) => {
-  console.error('Error al levantar la app', err);
-  process.exit(1);
-});
+void bootstrap();
