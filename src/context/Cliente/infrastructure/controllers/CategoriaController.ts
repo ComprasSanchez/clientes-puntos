@@ -49,7 +49,7 @@ export class CategoriaController {
 
   // Sólo administrator
   @Authz({
-    allowedAzp: ['puntos-fsa'],
+    allowedAzp: ['puntos-fsa', 'bff'],
     requireSucursalData: false,
   })
   @ClientPerms('categoria:write')
@@ -95,7 +95,7 @@ export class CategoriaController {
 
   // Sólo administrator
   @Authz({
-    allowedAzp: ['puntos-fsa'],
+    allowedAzp: ['puntos-fsa', 'bff'],
     requireSucursalData: false,
   })
   @ClientPerms('categoria:write')
@@ -113,7 +113,7 @@ export class CategoriaController {
 
   // Sólo administrator
   @Authz({
-    allowedAzp: ['puntos-fsa'],
+    allowedAzp: ['puntos-fsa', 'bff'],
     requireSucursalData: false,
   })
   @ClientPerms('categoria:write')

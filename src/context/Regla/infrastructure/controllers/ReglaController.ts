@@ -83,7 +83,7 @@ export class ReglaController {
 
   // Solo administrator
   @Authz({
-    allowedAzp: ['puntos-fsa'],
+    allowedAzp: ['puntos-fsa', 'bff'],
     requireSucursalData: false,
   })
   @ClientPerms('regla:write')
@@ -97,7 +97,7 @@ export class ReglaController {
 
   // Solo administrator
   @Authz({
-    allowedAzp: ['puntos-fsa'],
+    allowedAzp: ['puntos-fsa', 'bff'],
     requireSucursalData: false,
   })
   @ClientPerms('regla:write')
@@ -115,7 +115,7 @@ export class ReglaController {
 
   // Solo administrator
   @Authz({
-    allowedAzp: ['puntos-fsa'],
+    allowedAzp: ['puntos-fsa', 'bff'],
     requireSucursalData: false,
   })
   @ClientPerms('regla:write')

@@ -217,7 +217,7 @@ export class OperacionController {
 
   // --- POSTs: sólo administrator y requieren sucursal ---
   @Authz({
-    allowedAzp: ['puntos-fsa'],
+    allowedAzp: ['puntos-fsa', 'bff'],
     requireSucursalData: true,
   })
   @ClientPerms('operacion:write')
@@ -242,7 +242,7 @@ export class OperacionController {
   }
 
   @Authz({
-    allowedAzp: ['puntos-fsa'],
+    allowedAzp: ['puntos-fsa', 'bff'],
     requireSucursalData: true,
   })
   @ClientPerms('operacion:write')
@@ -269,7 +269,7 @@ export class OperacionController {
   }
 
   @Authz({
-    allowedAzp: ['puntos-fsa'],
+    allowedAzp: ['puntos-fsa', 'bff'],
     requireSucursalData: true,
   })
   @ClientPerms('operacion:write')

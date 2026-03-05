@@ -165,7 +165,7 @@ export class ClienteController {
   @ApiResponse({ status: 401, description: 'No autenticado.' })
   @ApiResponse({ status: 403, description: 'Sin permisos.' })
   @Authz({
-    allowedAzp: ['puntos-fsa'],
+    allowedAzp: ['puntos-fsa', 'bff'],
   })
   @ClientPerms('cliente:write')
   @Put(':id')
@@ -189,7 +189,7 @@ export class ClienteController {
   @ApiResponse({ status: 401, description: 'No autenticado.' })
   @ApiResponse({ status: 403, description: 'Sin permisos.' })
   @Authz({
-    allowedAzp: ['puntos-fsa'],
+    allowedAzp: ['puntos-fsa', 'bff'],
   })
   @ClientPerms('cliente:write')
   @Delete(':id')
