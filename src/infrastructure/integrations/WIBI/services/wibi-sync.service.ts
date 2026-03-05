@@ -1,13 +1,10 @@
-import { Inject, Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
+import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ClienteEntity } from '@cliente/infrastructure/entities/ClienteEntity';
 import { CategoriaEntity } from '@cliente/infrastructure/entities/CategoriaEntity';
-import { SALDO_REPO } from '@puntos/core/tokens/tokens';
 import { OpTipo } from '@shared/core/enums/OpTipo';
-import { SaldoRepository } from '@puntos/core/repository/SaldoRepository';
 import { OperacionEntity } from '@puntos/infrastructure/entities/operacion.entity';
-import { LoteEntity } from '@puntos/infrastructure/entities/lote.entity';
 import { DataSource, In, Repository } from 'typeorm';
 import { Pool } from 'pg';
 import { randomUUID } from 'crypto';
@@ -81,16 +78,12 @@ export class WibiSyncService implements OnModuleDestroy {
   constructor(
     private readonly config: ConfigService,
     private readonly dataSource: DataSource,
-    @Inject(SALDO_REPO)
-    private readonly saldoRepo: SaldoRepository,
     @InjectRepository(ClienteEntity)
     private readonly clienteRepo: Repository<ClienteEntity>,
     @InjectRepository(CategoriaEntity)
     private readonly categoriaRepo: Repository<CategoriaEntity>,
     @InjectRepository(OperacionEntity)
     private readonly operacionRepo: Repository<OperacionEntity>,
-    @InjectRepository(LoteEntity)
-    private readonly loteRepo: Repository<LoteEntity>,
   ) {}
 
   async onModuleDestroy(): Promise<void> {
@@ -551,8 +544,7 @@ export class WibiSyncService implements OnModuleDestroy {
         }
 
         if (!dryRun) {
-          await this.saldoRepo.updateSaldo(cliente.id, this.normalizePoints(row.saldo));
-          await this.upsertSaldoLote(
+          await this.reconcileSaldoAndLoteByDelta(
             cliente.id,
             sourceId,
             this.normalizePoints(row.saldo),
@@ -947,7 +939,7 @@ export class WibiSyncService implements OnModuleDestroy {
     return this.lastGeneratedOperacionId;
   }
 
-  private async upsertSaldoLote(
+  private async reconcileSaldoAndLoteByDelta(
     clienteId: string,
     sourceId: number,
     saldo: number,
@@ -956,54 +948,61 @@ export class WibiSyncService implements OnModuleDestroy {
     const referencia = this.getSaldoLoteRef(sourceId);
     const origen = this.getSaldoLoteOrigen();
 
-    const existing = await this.loteRepo.findOne({
-      where: {
-        clienteId,
-        referenciaId: referencia,
-      },
-      select: {
-        id: true,
-        cantidadOriginal: true,
-        remaining: true,
-        estado: true,
-      },
-    });
+    const rows = (await this.dataSource.query(
+      `WITH saldo_upsert AS (
+         INSERT INTO saldo_cliente (cliente_id, saldo_total)
+         VALUES ($1, $2)
+         ON CONFLICT (cliente_id)
+         DO UPDATE SET saldo_total = EXCLUDED.saldo_total
+       ),
+       existing AS (
+         SELECT id, "cantidadOriginal", "remaining"
+         FROM lotes
+         WHERE "clienteId" = $1
+           AND "referenciaId" = $3
+         LIMIT 1
+       ),
+       updated AS (
+         UPDATE lotes AS l
+         SET "cantidadOriginal" = GREATEST(0, e."cantidadOriginal" + ($2 - e."remaining")),
+             "remaining" = GREATEST(0, e."remaining" + ($2 - e."remaining")),
+             "estado" = $4,
+             "origenTipo" = $5,
+             "updatedAt" = NOW()
+         FROM existing AS e
+         WHERE l.id = e.id
+           AND ($2 - e."remaining") <> 0
+         RETURNING l.id
+       ),
+       inserted AS (
+         INSERT INTO lotes (
+           "clienteId",
+           "cantidadOriginal",
+           "remaining",
+           "estado",
+           "origenTipo",
+           "referenciaId",
+           "expiraEn",
+           "createdAt",
+           "updatedAt"
+         )
+         SELECT $1, $2, $2, $4, $5, $3, NULL, NOW(), NOW()
+         WHERE NOT EXISTS (SELECT 1 FROM existing)
+         RETURNING id
+       )
+       SELECT
+         (SELECT COUNT(*)::int FROM inserted) AS inserted_count,
+         (SELECT COUNT(*)::int FROM updated) AS updated_count`,
+      [clienteId, saldo, referencia, BatchEstado.DISPONIBLE, origen],
+    )) as Array<{ inserted_count: number; updated_count: number }>;
 
-    if (!existing) {
-      const nuevo = this.loteRepo.create({
-        id: randomUUID(),
-        clienteId,
-        cantidadOriginal: saldo,
-        remaining: saldo,
-        estado: BatchEstado.DISPONIBLE,
-        origenTipo: origen,
-        referenciaId: referencia,
-      });
-      await this.loteRepo.insert(nuevo);
-      counters.lotesSaldoCreados += 1;
+    const result = rows[0];
+    if (!result) {
       return;
     }
 
-    const currentRemaining = Number(existing.remaining ?? 0);
-    const delta = saldo - currentRemaining;
-    if (delta === 0) {
-      return;
-    }
-
-    const currentOriginal = Number(existing.cantidadOriginal ?? 0);
-    const nextRemaining = Math.max(0, currentRemaining + delta);
-    const nextOriginal = Math.max(0, currentOriginal + delta);
-
-    await this.loteRepo.update(
-      { id: existing.id },
-      {
-        cantidadOriginal: nextOriginal,
-        remaining: nextRemaining,
-        estado: BatchEstado.DISPONIBLE,
-        origenTipo: origen,
-      },
-    );
-    counters.lotesSaldoActualizados += 1;
+    counters.lotesSaldoCreados += Number(result.inserted_count ?? 0);
+    counters.lotesSaldoActualizados += Number(result.updated_count ?? 0);
   }
 
   private getSaldoLoteRef(sourceId: number): string {
