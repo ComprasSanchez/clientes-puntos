@@ -605,12 +605,14 @@ export class WibiSyncService implements OnModuleDestroy {
       : `0::numeric AS "puntosDebito"`;
 
     const checkpoint = await this.loadCheckpoint(dryRun);
-    let currentCheckpoint = checkpoint;
+    const baseCheckpoint = checkpoint;
+    let currentCursor: SyncCheckpoint | null = null;
+    let newestProcessed: SyncCheckpoint | null = null;
     let batchNumber = 0;
     let stoppedByLimit = false;
 
     this.logger.log(
-      `[WIBI_SYNC][movimientos] begin table=${table} checkpointFecha=${currentCheckpoint.lastFecha.toISOString()} checkpointId=${currentCheckpoint.lastMovimientoId}`,
+      `[WIBI_SYNC][movimientos] begin table=${table} baseCheckpointFecha=${baseCheckpoint.lastFecha.toISOString()} baseCheckpointId=${baseCheckpoint.lastMovimientoId} order=DESC`,
     );
 
     while (true) {
@@ -626,10 +628,10 @@ export class WibiSyncService implements OnModuleDestroy {
       const batchStartedAt = Date.now();
 
       this.logger.log(
-        `[WIBI_SYNC][movimientos] batch=${batchNumber} step=fetch checkpointFecha=${currentCheckpoint.lastFecha.toISOString()} checkpointId=${currentCheckpoint.lastMovimientoId}`,
+        `[WIBI_SYNC][movimientos] batch=${batchNumber} step=fetch baseCheckpointFecha=${baseCheckpoint.lastFecha.toISOString()} baseCheckpointId=${baseCheckpoint.lastMovimientoId} cursorFecha=${currentCursor?.lastFecha.toISOString() ?? 'none'} cursorId=${currentCursor?.lastMovimientoId ?? 'none'}`,
       );
 
-      const sql = `
+      const sqlFirst = `
         SELECT
           ${idColumn} AS "movimientoId",
           ${clienteIdColumn} AS "sourceClienteId",
@@ -640,17 +642,44 @@ export class WibiSyncService implements OnModuleDestroy {
           ${puntosDebitoSelect},
           ${descripcionColumn} AS "descripcion"
         FROM ${table}
-        WHERE ${fechaColumn} > $1
-           OR (${fechaColumn} = $1 AND ${idColumn} > $2)
-        ORDER BY ${fechaColumn} ASC, ${idColumn} ASC
+        WHERE (${fechaColumn} > $1
+           OR (${fechaColumn} = $1 AND ${idColumn} > $2))
+        ORDER BY ${fechaColumn} DESC, ${idColumn} DESC
         LIMIT $3
       `;
 
-      const rows = await this.queryExternal<MovimientoSourceRow>(sql, [
-        currentCheckpoint.lastFecha,
-        currentCheckpoint.lastMovimientoId,
-        batchSize,
-      ]);
+      const sqlNext = `
+        SELECT
+          ${idColumn} AS "movimientoId",
+          ${clienteIdColumn} AS "sourceClienteId",
+          ${fechaColumn} AS "fecha",
+          ${tipoColumn} AS "tipoMovimiento",
+          ${montoColumn} AS "monto",
+          ${puntosColumn} AS "puntos",
+          ${puntosDebitoSelect},
+          ${descripcionColumn} AS "descripcion"
+        FROM ${table}
+        WHERE (${fechaColumn} > $1
+           OR (${fechaColumn} = $1 AND ${idColumn} > $2))
+          AND (${fechaColumn} < $3
+           OR (${fechaColumn} = $3 AND ${idColumn} < $4))
+        ORDER BY ${fechaColumn} DESC, ${idColumn} DESC
+        LIMIT $5
+      `;
+
+      const rows = currentCursor
+        ? await this.queryExternal<MovimientoSourceRow>(sqlNext, [
+            baseCheckpoint.lastFecha,
+            baseCheckpoint.lastMovimientoId,
+            currentCursor.lastFecha,
+            currentCursor.lastMovimientoId,
+            batchSize,
+          ])
+        : await this.queryExternal<MovimientoSourceRow>(sqlFirst, [
+            baseCheckpoint.lastFecha,
+            baseCheckpoint.lastMovimientoId,
+            batchSize,
+          ]);
 
       if (rows.length === 0) {
         this.logger.log(
@@ -741,21 +770,28 @@ export class WibiSyncService implements OnModuleDestroy {
 
       await this.persistMovimientosBatch(insertCandidates, counters, dryRun);
 
+      const firstRow = rows[0];
       const lastRow = rows[rows.length - 1];
-      currentCheckpoint = {
+      if (!newestProcessed && firstRow) {
+        newestProcessed = {
+          lastFecha: new Date(firstRow.fecha),
+          lastMovimientoId: Number(firstRow.movimientoId),
+        };
+      }
+      currentCursor = {
         lastFecha: new Date(lastRow.fecha),
         lastMovimientoId: Number(lastRow.movimientoId),
       };
 
-      if (!dryRun) {
-        await this.saveCheckpoint(currentCheckpoint);
-        this.logger.log(
-          `[WIBI_SYNC][movimientos] batch=${batchNumber} step=checkpoint_saved fecha=${currentCheckpoint.lastFecha.toISOString()} id=${currentCheckpoint.lastMovimientoId}`,
-        );
-      }
-
       this.logger.log(
-        `[WIBI_SYNC][movimientos] batch=${batchNumber} step=processed rows=${rows.length} inserted=${counters.movimientosInsertados} duplicated=${counters.movimientosDuplicados} noMatch=${counters.movimientosSinMatch} errors=${counters.movimientosError} elapsedMs=${Date.now() - batchStartedAt}`,
+        `[WIBI_SYNC][movimientos] batch=${batchNumber} step=processed rows=${rows.length} inserted=${counters.movimientosInsertados} duplicated=${counters.movimientosDuplicados} noMatch=${counters.movimientosSinMatch} errors=${counters.movimientosError} nextCursorFecha=${currentCursor.lastFecha.toISOString()} nextCursorId=${currentCursor.lastMovimientoId} elapsedMs=${Date.now() - batchStartedAt}`,
+      );
+    }
+
+    if (!dryRun && newestProcessed) {
+      await this.saveCheckpoint(newestProcessed);
+      this.logger.log(
+        `[WIBI_SYNC][movimientos] step=checkpoint_saved fecha=${newestProcessed.lastFecha.toISOString()} id=${newestProcessed.lastMovimientoId}`,
       );
     }
 
