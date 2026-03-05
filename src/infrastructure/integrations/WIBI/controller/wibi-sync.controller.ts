@@ -24,7 +24,7 @@ export class WibiSyncController {
     schema: {
       type: 'object',
       properties: {
-        batchSize: { type: 'number', example: 1000 },
+        batchSize: { type: 'number', example: 10000 },
         dryRun: { type: 'boolean', example: true },
         maxBatches: { type: 'number', example: 2 },
         background: { type: 'boolean', example: true },

@@ -156,8 +156,7 @@ export class WibiSyncService implements OnModuleDestroy {
         maxBatches,
       );
 
-      this.logger.log('[WIBI_SYNC] phase=resetSaldoAndReloadFromSource begin');
-      await this.resetSaldoAndReloadFromSource(batchSize, counters, dryRun);
+      this.logger.log('[WIBI_SYNC] phase=syncClientesAndSaldoByDelta end');
 
       if (runId) {
         await this.updateRun(runId, 'SUCCESS', null, counters, new Date());
@@ -207,9 +206,9 @@ export class WibiSyncService implements OnModuleDestroy {
   }
 
   private resolveBatchSize(raw?: number): number {
-    const fromEnv = Number(this.config.get<string>('WIBI_SYNC_BATCH_SIZE') ?? '1000');
+    const fromEnv = Number(this.config.get<string>('WIBI_SYNC_BATCH_SIZE') ?? '10000');
     const base = Number.isFinite(raw) ? Number(raw) : fromEnv;
-    return Math.max(1, Math.min(5000, Math.trunc(base || 1000)));
+    return Math.max(1, Math.min(10000, Math.trunc(base || 10000)));
   }
 
   private resolveDryRun(raw?: boolean): boolean {
@@ -689,12 +688,15 @@ export class WibiSyncService implements OnModuleDestroy {
         }
       }
 
+      const insertCandidates: Array<{
+        entity: OperacionEntity;
+        row: MovimientoSourceRow;
+      }> = [];
       const refs = rows.map((row) => this.toExternalRef(Number(row.movimientoId)));
       const existing = await this.operacionRepo.find({
         where: { refOperacion: In(refs) },
         select: { refOperacion: true },
       });
-
       const existingRefs = new Set(
         existing.map((item) => item.refOperacion).filter((item): item is string => !!item),
       );
@@ -726,37 +728,26 @@ export class WibiSyncService implements OnModuleDestroy {
 
         const tipoOperacion = puntosRaw >= 0 ? OpTipo.COMPRA : OpTipo.AJUSTE;
 
-        try {
-          if (!dryRun) {
-            const operationId = this.nextOperacionId();
-            const entity = this.operacionRepo.create({
-              id: operationId,
-              clienteId,
-              tipo: tipoOperacion,
-              fecha: new Date(row.fecha),
-              origenTipo: this.getOrigenTipo(),
-              puntos,
-              monto: this.normalizeMovementAmount(row.monto),
-              moneda: null,
-              refOperacion: referencia,
-              refAnulacion: null,
-              codSucursal: null,
-              items: null,
-            });
+        const operationId = this.nextOperacionId();
+        const entity = this.operacionRepo.create({
+          id: operationId,
+          clienteId,
+          tipo: tipoOperacion,
+          fecha: new Date(row.fecha),
+          origenTipo: this.getOrigenTipo(),
+          puntos,
+          monto: this.normalizeMovementAmount(row.monto),
+          moneda: null,
+          refOperacion: referencia,
+          refAnulacion: null,
+          codSucursal: null,
+          items: null,
+        });
 
-            await this.operacionRepo.insert(entity);
-          }
-
-          counters.movimientosInsertados += 1;
-          existingRefs.add(referencia);
-        } catch (error) {
-          counters.movimientosError += 1;
-          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-          if (!dryRun) {
-            await this.insertDeadLetter(row, errorMessage);
-          }
-        }
+        insertCandidates.push({ entity, row });
       }
+
+      await this.persistMovimientosBatch(insertCandidates, counters, dryRun);
 
       const lastRow = rows[rows.length - 1];
       currentCheckpoint = {
@@ -780,24 +771,6 @@ export class WibiSyncService implements OnModuleDestroy {
       processedBatches: batchNumber,
       stoppedByLimit,
     };
-  }
-
-  private async resetSaldoAndReloadFromSource(
-    batchSize: number,
-    counters: SyncRunCounters,
-    dryRun: boolean,
-  ): Promise<void> {
-    if (dryRun) {
-      this.logger.log('[WIBI_SYNC][saldo] dryRun=true skip resetSaldoAndReloadFromSource');
-      return;
-    }
-
-    this.logger.log('[WIBI_SYNC][saldo] deleting saldo_cliente');
-    await this.dataSource.query('DELETE FROM saldo_cliente');
-    counters.saldosActualizados = 0;
-
-    this.logger.log('[WIBI_SYNC][saldo] rebuilding saldo from source clients');
-    await this.syncClientes(batchSize, counters, false, false, null);
   }
 
   private async loadCheckpoint(dryRun: boolean): Promise<SyncCheckpoint> {
@@ -862,6 +835,72 @@ export class WibiSyncService implements OnModuleDestroy {
         errorMessage,
       ],
     );
+  }
+
+  private async persistMovimientosBatch(
+    insertCandidates: Array<{ entity: OperacionEntity; row: MovimientoSourceRow }>,
+    counters: SyncRunCounters,
+    dryRun: boolean,
+  ): Promise<void> {
+    if (insertCandidates.length === 0) {
+      return;
+    }
+
+    if (dryRun) {
+      counters.movimientosInsertados += insertCandidates.length;
+      return;
+    }
+
+    try {
+      const result = await this.operacionRepo
+        .createQueryBuilder()
+        .insert()
+        .into(OperacionEntity)
+        .values(insertCandidates.map((candidate) => candidate.entity))
+        .orIgnore()
+        .returning('id')
+        .execute();
+
+      const insertedCount = Array.isArray(result.raw) ? result.raw.length : 0;
+      const duplicatedCount = Math.max(0, insertCandidates.length - insertedCount);
+      counters.movimientosInsertados += insertedCount;
+      counters.movimientosDuplicados += duplicatedCount;
+      return;
+    } catch (bulkError) {
+      const bulkMessage =
+        bulkError instanceof Error ? bulkError.message : 'unknown bulk insert error';
+      this.logger.warn(
+        `[WIBI_SYNC][movimientos] bulk_insert_failed fallback=row_by_row reason=${bulkMessage}`,
+      );
+    }
+
+    for (const candidate of insertCandidates) {
+      try {
+        await this.operacionRepo.insert(candidate.entity);
+        counters.movimientosInsertados += 1;
+      } catch (error) {
+        if (this.isUniqueViolation(error)) {
+          counters.movimientosDuplicados += 1;
+          continue;
+        }
+
+        counters.movimientosError += 1;
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        await this.insertDeadLetter(candidate.row, errorMessage);
+      }
+    }
+  }
+
+  private isUniqueViolation(error: unknown): boolean {
+    const code =
+      typeof error === 'object' && error !== null
+        ? (
+            (error as { code?: unknown }).code ??
+            (error as { driverError?: { code?: unknown } }).driverError?.code
+          )
+        : undefined;
+
+    return code === '23505';
   }
 
   private async queryExternal<T>(sql: string, params: unknown[]): Promise<T[]> {
@@ -945,11 +984,21 @@ export class WibiSyncService implements OnModuleDestroy {
       return;
     }
 
+    const currentRemaining = Number(existing.remaining ?? 0);
+    const delta = saldo - currentRemaining;
+    if (delta === 0) {
+      return;
+    }
+
+    const currentOriginal = Number(existing.cantidadOriginal ?? 0);
+    const nextRemaining = Math.max(0, currentRemaining + delta);
+    const nextOriginal = Math.max(0, currentOriginal + delta);
+
     await this.loteRepo.update(
       { id: existing.id },
       {
-        cantidadOriginal: saldo,
-        remaining: saldo,
+        cantidadOriginal: nextOriginal,
+        remaining: nextRemaining,
         estado: BatchEstado.DISPONIBLE,
         origenTipo: origen,
       },
