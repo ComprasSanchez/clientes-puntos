@@ -123,7 +123,27 @@ export class TypeOrmClienteRepository implements ClienteRepository {
       .addOrderBy('c.id', 'ASC')
       .getMany();
 
-    return rows.map((row) => this.toDomain(row));
+    const sanitizedRows = rows.map((row) => {
+      const sanitized = row as ClienteEntity;
+
+      if (
+        sanitized.codPostal != null &&
+        !/^\d{4,6}$/.test(String(sanitized.codPostal))
+      ) {
+        sanitized.codPostal = null;
+      }
+
+      if (
+        sanitized.telefono != null &&
+        !/^\+?[0-9]{7,15}$/.test(String(sanitized.telefono))
+      ) {
+        sanitized.telefono = null;
+      }
+
+      return sanitized;
+    });
+
+    return sanitizedRows.map((row) => this.toDomain(row));
   }
 
   // ---------- helpers ----------
