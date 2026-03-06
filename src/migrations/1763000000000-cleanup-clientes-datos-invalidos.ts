@@ -28,10 +28,68 @@ export class CleanupClientesDatosInvalidos1763000000000
       AS $$
         SELECT CASE
           WHEN input IS NULL THEN NULL
-          WHEN encode(convert_to(input, 'UTF8'), 'hex') LIKE '%c383%'
-            OR encode(convert_to(input, 'UTF8'), 'hex') LIKE '%c382%'
-          THEN convert_from(convert_to(input, 'WIN1252'), 'UTF8')
-          ELSE input
+          ELSE
+            replace(
+              replace(
+                replace(
+                  replace(
+                    replace(
+                      replace(
+                        replace(
+                          replace(
+                            replace(
+                              replace(
+                                replace(
+                                  replace(
+                                    replace(
+                                      replace(
+                                        replace(
+                                          regexp_replace(input, '[[:cntrl:]]', '', 'g'),
+                                          'Â',
+                                          ''
+                                        ),
+                                        'Ã¡',
+                                        'á'
+                                      ),
+                                      'Ã©',
+                                      'é'
+                                    ),
+                                    'Ã­',
+                                    'í'
+                                  ),
+                                  'Ã³',
+                                  'ó'
+                                ),
+                                'Ãº',
+                                'ú'
+                              ),
+                              'Ã',
+                              'Á'
+                            ),
+                            'Ã‰',
+                            'É'
+                          ),
+                          'Ã',
+                          'Í'
+                        ),
+                        'Ã“',
+                        'Ó'
+                      ),
+                      'Ãš',
+                      'Ú'
+                    ),
+                    'Ã±',
+                    'ñ'
+                  ),
+                  'Ã‘',
+                  'Ñ'
+                ),
+                'Ã¼',
+                'ü'
+              ),
+              'Ãœ',
+              'Ü'
+            )
         END
       $$
     `);
