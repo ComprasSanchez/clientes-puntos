@@ -4,9 +4,28 @@ export class ClienteLocalidad {
   value: string | null;
 
   constructor(value?: string | null) {
-    const v = value != null && value.trim() !== '' ? value.trim() : null;
+    const v =
+      value != null && value.trim() !== ''
+        ? ClienteLocalidad.normalize(value)
+        : null;
     this.value = v;
     this.validate();
+  }
+
+  private static normalize(input: string): string {
+    const normalized = input.trim().replace(/\s+/g, ' ');
+    const isAllUppercase = /^[A-ZÁÉÍÓÚÑÜ ]+$/.test(normalized);
+
+    if (!isAllUppercase) {
+      return normalized;
+    }
+
+    return normalized
+      .split(' ')
+      .map((part) =>
+        part ? part[0].toUpperCase() + part.slice(1).toLowerCase() : '',
+      )
+      .join(' ');
   }
 
   private validate() {
