@@ -14,6 +14,7 @@ import { TransactionalRunner } from '@shared/infrastructure/transaction/Transact
 import {
   CONSULTAR_CLIENTE_ADAPTER,
   CONSULTAR_ESTADISTICAS_CLIENTE_ADAPTER,
+  CONSULTAR_NOVEDADES_CLIENTE_ADAPTER,
   FIDELIZAR_CLIENTE_ADAPTER,
   FIDELIZAR_PRODUCTO_ADAPTER,
   FIDELIZAR_VENTA_ADAPTER,
@@ -31,6 +32,8 @@ import { codConsultarEstadisticasCliente } from './enums/consultar-estadisticas-
 import { Auth, AuthContext } from '@infrastructure/auth/auth.decorator';
 import { codFidelizarProducto } from './enums/fidelizar-producto.enum';
 import { FidelizarProductoPlexAdapter } from './use-cases/FidelizarProducto/adapters/fidelizar-producto.adapter';
+import { ConsultarNovedadesClientePlexAdapter } from './use-cases/ConsultarNovedadesCliente/adapters/consultar-novedades-cliente.adapter';
+import { codConsultarNovedadesCliente } from './enums/consultar-novedades-cliente.enum';
 import { ApiJwtGuard } from '@infrastructure/auth/api-jwt.guard';
 import { Authz } from '@infrastructure/auth/authz-policy.decorator';
 import {
@@ -90,6 +93,8 @@ export class PlexController {
     private readonly consultarEstadisticasAdapter: ConsultarEstadisticasClientePlexAdapter,
     @Inject(FIDELIZAR_PRODUCTO_ADAPTER)
     private readonly fidelizarProductoAdapter: FidelizarProductoPlexAdapter,
+    @Inject(CONSULTAR_NOVEDADES_CLIENTE_ADAPTER)
+    private readonly consultarNovedadesAdapter: ConsultarNovedadesClientePlexAdapter,
     @Inject(IntegracionMovimientoService)
     private readonly integracionMovimientoService: IntegracionMovimientoService,
     private readonly transactionalRunner: TransactionalRunner,
@@ -155,6 +160,17 @@ export class PlexController {
       (Object.values(codFidelizarProducto) as string[]).includes(accionValue)
     ) {
       return this.fidelizarProductoAdapter.handle(xmlIncoming);
+    }
+
+    if (
+      (Object.values(codConsultarNovedadesCliente) as string[]).includes(
+        accionValue,
+      )
+    ) {
+      return this.consultarNovedadesAdapter.handle(
+        xmlIncoming,
+        auth.codigoExt ?? '',
+      );
     }
 
     throw new Error('codAccion inválido o no soportado');

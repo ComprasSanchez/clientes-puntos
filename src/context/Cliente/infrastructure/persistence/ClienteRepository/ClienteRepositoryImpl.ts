@@ -110,6 +110,22 @@ export class TypeOrmClienteRepository implements ClienteRepository {
     return rows.map((row) => this.toDomain(row));
   }
 
+  async findUpdatedBetween(params: {
+    from: Date;
+    to: Date;
+  }): Promise<Cliente[]> {
+    const rows = await this.ormRepo
+      .createQueryBuilder('c')
+      .leftJoinAndSelect('c.categoria', 'categoria')
+      .where('c.updatedAt >= :from', { from: params.from })
+      .andWhere('c.updatedAt <= :to', { to: params.to })
+      .orderBy('c.updatedAt', 'ASC')
+      .addOrderBy('c.id', 'ASC')
+      .getMany();
+
+    return rows.map((row) => this.toDomain(row));
+  }
+
   // ---------- helpers ----------
 
   /**
