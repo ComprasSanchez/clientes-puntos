@@ -6,12 +6,14 @@ import { ClienteRepository } from '@cliente/core/repository/ClienteRepository';
 import { CLIENTE_REPO } from '@cliente/core/tokens/tokens';
 import { ClienteTarjetaFidely } from '@cliente/core/value-objects/ClienteTarjetaFidely';
 import { Inject, Injectable } from '@nestjs/common';
+import { ClienteCanonicalHydrator } from '@cliente/application/services/ClienteCanonicalHydrator';
 
 @Injectable()
 export class ClienteFindByTarjeta {
   constructor(
     @Inject(CLIENTE_REPO)
     private readonly repository: ClienteRepository,
+    private readonly canonicalHydrator: ClienteCanonicalHydrator,
   ) {}
 
   /**
@@ -29,26 +31,23 @@ export class ClienteFindByTarjeta {
     const mapped: ClienteResponseDto = {
       id: cliente.id.value,
       dni: cliente.dni.value,
-      nombre: cliente.nombre.value,
-      apellido: cliente.apellido.value,
-      sexo: cliente.sexo.value,
-      fechaNacimiento:
-        cliente.fechaNacimiento && cliente.fechaNacimiento.value
-          ? cliente.fechaNacimiento.value.toISOString().split('T')[0]
-          : null,
+      nombre: null,
+      apellido: null,
+      sexo: null,
+      fechaNacimiento: null,
       status: cliente.status.value,
       categoria: cliente.categoria.codExt!,
       idFidely: cliente.fidelyStatus.idFidely.value,
       tarjetaFidely: cliente.fidelyStatus.tarjetaFidely.value,
-      email: cliente.email.value,
-      telefono: cliente.telefono.value,
-      direccion: cliente.fullAdress.direccion.value,
-      codPostal: cliente.fullAdress.codPostal.value,
-      localidad: cliente.fullAdress.localidad.value,
-      provincia: cliente.fullAdress.provincia.value,
+      email: null,
+      telefono: null,
+      direccion: null,
+      codPostal: null,
+      localidad: null,
+      provincia: null,
       fechaBaja: cliente.fidelyStatus.fechaBaja.value?.toISOString() ?? null,
     };
 
-    return mapped;
+    return this.canonicalHydrator.enrichOne(mapped);
   }
 }

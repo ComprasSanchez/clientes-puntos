@@ -3,6 +3,7 @@ import { ClienteInfrastructureModule } from '@cliente/infrastructure/cliente.mod
 import { Module, forwardRef } from '@nestjs/common';
 import { ClientesExportController } from './controller/clientes-export.controller';
 import { ClientesExportService } from './services/ClientesExportService';
+import { ClientesFsaClient } from './services/clientes-fsa.client';
 import { ClientesSyncFromPuntosService } from './services/clientes-sync-from-puntos.service';
 import { PlexModule } from '../PLEX/plex.module';
 
@@ -12,7 +13,15 @@ import { PlexModule } from '../PLEX/plex.module';
     forwardRef(() => PlexModule),
   ],
   controllers: [ClientesExportController],
-  providers: [ClientesExportService, ClientesSyncFromPuntosService],
-  exports: [ClientesExportService, ClientesSyncFromPuntosService],
+  providers: [
+    ClientesExportService,
+    ClientesFsaClient,
+    ClientesSyncFromPuntosService,
+  ],
+  exports: [
+    ClientesExportService,
+    ClientesFsaClient,
+    ClientesSyncFromPuntosService,
+  ],
 })
 export class ClientesIntegrationModule {}

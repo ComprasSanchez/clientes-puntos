@@ -8,13 +8,13 @@ export class ClienteResponseDto {
   dni: string;
 
   @ApiProperty({ example: 'John' })
-  nombre: string;
+  nombre: string | null;
 
   @ApiProperty({ example: 'Doe' })
-  apellido: string;
+  apellido: string | null;
 
   @ApiProperty({ example: 'M' })
-  sexo: string;
+  sexo: string | null;
 
   @ApiProperty({ type: String, nullable: true, example: '1980-01-01' })
   fechaNacimiento: string | null;

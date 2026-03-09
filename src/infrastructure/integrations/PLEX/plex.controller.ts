@@ -3,6 +3,7 @@ import {
   Controller,
   Headers,
   Inject,
+  Logger,
   Post,
   Req,
   Res,
@@ -79,6 +80,7 @@ function escapeXml(s: string): string {
 @ApiBearerAuth()
 @Controller('onzecrm')
 export class PlexController {
+  private readonly logger = new Logger(PlexController.name);
   private readonly requestTimeoutMs =
     Number(process.env.PLEX_REQUEST_TIMEOUT_MS ?? '20000') || 20000;
 
@@ -296,13 +298,24 @@ export class PlexController {
     const codAccionRaw = mensajeNode.CodAccion ?? mensajeNode.codAccion ?? '';
 
     // 6. Registrar movimiento en la base
-    const movimiento =
-      await this.integracionMovimientoService.registrarMovimiento({
-        tipoIntegracion: 'ONZECRM',
-        txTipo: String(codAccionRaw ?? ''),
-        requestPayload: parsedObj as Record<string, unknown>,
-        status: 'IN_PROGRESS',
-      });
+    let movimientoId: string | null = null;
+
+    try {
+      const movimiento =
+        await this.integracionMovimientoService.registrarMovimiento({
+          tipoIntegracion: 'ONZECRM',
+          txTipo: String(codAccionRaw ?? ''),
+          requestPayload: parsedObj as Record<string, unknown>,
+          status: 'IN_PROGRESS',
+        });
+      movimientoId = movimiento.id;
+    } catch (error) {
+      this.logger.error(
+        `No se pudo registrar integracion_movimiento (se continua): ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      );
+    }
 
     try {
       const codAccionStr =
@@ -325,13 +338,15 @@ export class PlexController {
       // log respuesta OK antes de persistir
 
       // 8. Guardar OK en la tabla de movimientos
-      await this.integracionMovimientoService.actualizarMovimiento(
-        movimiento.id,
-        {
-          status: 'OK',
-          responsePayload: responseXml,
-        },
-      );
+      if (movimientoId) {
+        await this.integracionMovimientoService.actualizarMovimiento(
+          movimientoId,
+          {
+            status: 'OK',
+            responsePayload: responseXml,
+          },
+        );
+      }
 
       // 9. Responder al caller final
       res.set('Content-Type', 'application/xml; charset=utf-8');
@@ -354,13 +369,15 @@ export class PlexController {
 
       // persistimos el error
       try {
-        await this.integracionMovimientoService.actualizarMovimiento(
-          movimiento.id,
-          {
-            status: 'ERROR',
-            mensajeError: msg,
-          },
-        );
+        if (movimientoId) {
+          await this.integracionMovimientoService.actualizarMovimiento(
+            movimientoId,
+            {
+              status: 'ERROR',
+              mensajeError: msg,
+            },
+          );
+        }
       } catch {
         // Evita dejar colgada la respuesta si falla la persistencia del error
       }

@@ -47,8 +47,6 @@ export class ClientesExportService {
     const rows: PuntosClienteRawDto[] = list.map((c) => ({
       id: c.id.value,
       dni: c.dni.value,
-      nombre: c.nombre.value,
-      apellido: c.apellido.value,
       fidelyId: c.fidelyStatus.idFidely.value!.toString(),
       tarjetaFidely: c.fidelyStatus.tarjetaFidely.value,
       updatedAt: c.timestamp.updatedAt.toString(),

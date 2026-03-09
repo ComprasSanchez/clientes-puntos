@@ -1,14 +1,18 @@
 import { ClienteFindUpdatedBetween } from '@cliente/application/use-cases/ClienteFindUpdatedBetween/ClienteFindUpdatedBetween';
 import { ConsultarNovedadesClientePlexAdapter } from './consultar-novedades-cliente.adapter';
+import { ClientesFsaClient } from '@infrastructure/integrations/CLIENTES/services/clientes-fsa.client';
 
 describe('ConsultarNovedadesClientePlexAdapter', () => {
   let clienteFindUpdatedBetween: { run: jest.Mock };
+  let clientesFsaClient: { findByDni: jest.Mock };
   let adapter: ConsultarNovedadesClientePlexAdapter;
 
   beforeEach(() => {
     clienteFindUpdatedBetween = { run: jest.fn() };
+    clientesFsaClient = { findByDni: jest.fn().mockResolvedValue(null) };
     adapter = new ConsultarNovedadesClientePlexAdapter(
       clienteFindUpdatedBetween as unknown as ClienteFindUpdatedBetween,
+      clientesFsaClient as unknown as ClientesFsaClient,
     );
   });
 
@@ -49,9 +53,10 @@ describe('ConsultarNovedadesClientePlexAdapter', () => {
     expect(clienteFindUpdatedBetween.run).toHaveBeenCalledTimes(1);
     expect(result.response).toContain('<RespCode>0</RespCode>');
     expect(result.response).toContain('<Novedades>');
+    expect(result.response).toContain('<Clientes>');
     expect(result.response).toContain('<IdClienteFidely>77</IdClienteFidely>');
     expect(result.response).toContain('<Sucursal>SUC-01</Sucursal>');
-    expect(result.response).toContain('<FEcNac>1990-01-01</FEcNac>');
+    expect(result.response).toContain('<FecNac>1990-01-01</FecNac>');
   });
 
   it('lanza error si FechaDesde no tiene el formato esperado', async () => {

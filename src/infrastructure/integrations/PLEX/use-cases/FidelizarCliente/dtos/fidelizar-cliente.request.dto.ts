@@ -1,6 +1,13 @@
 // dtos/plex-fidelizar-cliente.request.dto.ts
 
 import { PlexFidelizarClienteFXPParsed } from '../interfaces/fidelizar-cliente-parsed.interface';
+import {
+  normalizeNameLike,
+  normalizeOptionalText,
+  normalizePhone,
+  normalizePostalCode,
+  normalizeSexo,
+} from '@infrastructure/integrations/PLEX/utils/cliente-input-sanitizer';
 
 export interface PlexFidelizarClienteRequestDto {
   codAccion: string;
@@ -35,7 +42,9 @@ export class PlexFidelizarClienteRequestMapper {
       idClienteFidely: cliente.IDClienteFidely
         ? String(cliente.IDClienteFidely).trim()
         : undefined,
-      campania: cliente.Campania ? String(cliente.Campania).trim() : undefined,
+      campania: normalizeOptionalText(
+        cliente.Campania ? String(cliente.Campania) : undefined,
+      ),
       categoria: cliente.Categoria
         ? String(cliente.Categoria).trim()
         : undefined,
@@ -44,23 +53,33 @@ export class PlexFidelizarClienteRequestMapper {
         : undefined,
       nroTarjeta: cliente.NroTarjeta ? String(cliente.NroTarjeta).trim() : '',
       dni: cliente.DNI ? String(cliente.DNI).trim() : '',
-      nombre: cliente.Nombre ? String(cliente.Nombre).trim() : '',
-      apellido: cliente.Apellido ? String(cliente.Apellido).trim() : '',
-      sexo: cliente.Sexo ? String(cliente.Sexo).trim() : undefined,
+      nombre:
+        normalizeNameLike(
+          cliente.Nombre ? String(cliente.Nombre) : undefined,
+        ) ?? '',
+      apellido:
+        normalizeNameLike(
+          cliente.Apellido ? String(cliente.Apellido) : undefined,
+        ) ?? '',
+      sexo: normalizeSexo(cliente.Sexo ? String(cliente.Sexo) : undefined),
       fecNac: cliente.FecNac ? String(cliente.FecNac).trim() : undefined,
-      email: cliente.Email ? String(cliente.Email).trim() : undefined,
-      telefono: cliente.Telefono ? String(cliente.Telefono).trim() : undefined,
+      email: normalizeOptionalText(
+        cliente.Email ? String(cliente.Email) : undefined,
+      ),
+      telefono: normalizePhone(
+        cliente.Telefono ? String(cliente.Telefono) : undefined,
+      ),
       direccion: cliente.Direccion
-        ? String(cliente.Direccion).trim()
+        ? normalizeOptionalText(String(cliente.Direccion))
         : undefined,
-      codPostal: cliente.CodPostal
-        ? String(cliente.CodPostal).trim()
-        : undefined,
+      codPostal: normalizePostalCode(
+        cliente.CodPostal ? String(cliente.CodPostal) : undefined,
+      ),
       localidad: cliente.Localidad
-        ? String(cliente.Localidad).trim()
+        ? normalizeNameLike(String(cliente.Localidad))
         : undefined,
       provincia: cliente.Provincia
-        ? String(cliente.Provincia).trim()
+        ? normalizeNameLike(String(cliente.Provincia))
         : undefined,
     };
   }

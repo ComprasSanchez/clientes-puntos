@@ -2,8 +2,6 @@
 export type PuntosClienteRawDto = {
   id: string; // UUID o lo que uses
   dni: string; // documento del cliente
-  nombre: string;
-  apellido: string;
   fidelyId: string;
   tarjetaFidely: string;
   updatedAt: string; // ISO-8601

@@ -9,6 +9,8 @@ import { ClienteUpdate } from '@cliente/application/use-cases/ClienteUpdate/Clie
 import { PlexFidelizarClienteResponseMapper } from '../dtos/fidelizar-cliente.response.dto';
 import { UseCaseResponse } from '@infrastructure/integrations/PLEX/dto/usecase-response.dto';
 import { ClientesSyncFromPuntosService } from '@infrastructure/integrations/CLIENTES/services/clientes-sync-from-puntos.service';
+import { ClientesFsaClient } from '@infrastructure/integrations/CLIENTES/services/clientes-fsa.client';
+import { ClientesFsaUpsertVerificacionRequest } from '@infrastructure/integrations/CLIENTES/dto/clientes-fsa.dto';
 
 @Injectable()
 export class FidelizarClientePlexAdapter {
@@ -17,6 +19,8 @@ export class FidelizarClientePlexAdapter {
     private readonly clienteCreate: ClienteCreate,
     @Inject(ClienteUpdate)
     private readonly clienteUpdate: ClienteUpdate,
+    @Inject(ClientesFsaClient)
+    private readonly clientesFsaClient: ClientesFsaClient,
     @Inject(ClientesSyncFromPuntosService)
     private readonly clientesSyncFromPuntos: ClientesSyncFromPuntosService,
   ) {}
@@ -32,6 +36,10 @@ export class FidelizarClientePlexAdapter {
     const parsedObj = parser.parse(xml) as unknown;
 
     const plexDto = PlexFidelizarClienteRequestMapper.fromXml(parsedObj);
+
+    await this.clientesFsaClient.upsertVerificacion(
+      this.toClientesFsaUpsertPayload(plexDto),
+    );
 
     let domainResponse: Cliente;
 
@@ -133,5 +141,63 @@ export class FidelizarClientePlexAdapter {
       response: `<?xml version="1.0" encoding="utf-8"?>\n${xmlString}`,
       dto: response,
     };
+  }
+
+  private toClientesFsaUpsertPayload(dto: {
+    dni: string;
+    nombre: string;
+    apellido: string;
+    sexo?: string;
+    fecNac?: string;
+    email?: string;
+    telefono?: string;
+    direccion?: string;
+    codPostal?: string;
+    localidad?: string;
+    provincia?: string;
+  }): ClientesFsaUpsertVerificacionRequest {
+    const domicilio = dto.direccion
+      ? {
+          calle: dto.direccion,
+          ciudad: dto.localidad ?? 'N/D',
+          provincia: dto.provincia ?? 'N/D',
+          codPostal: dto.codPostal,
+        }
+      : null;
+
+    return {
+      tipoDocumento: 'DNI',
+      nroDocumento: dto.dni,
+      nombre: dto.nombre,
+      apellido: dto.apellido,
+      sexo: this.normalizeSexo(dto.sexo),
+      fechaNacimiento: this.normalizeFechaNacimiento(dto.fecNac),
+      email: dto.email,
+      telefono: dto.telefono,
+      domicilio,
+    };
+  }
+
+  private normalizeSexo(sexo?: string): 'M' | 'F' | 'X' | null {
+    const normalized = (sexo ?? '').trim().toUpperCase();
+    if (normalized === 'M' || normalized === 'F' || normalized === 'X') {
+      return normalized;
+    }
+    return null;
+  }
+
+  private normalizeFechaNacimiento(raw?: string): string | null {
+    const value = (raw ?? '').trim();
+    if (!value) return null;
+
+    if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+      return value;
+    }
+
+    const match = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(value);
+    if (!match) return null;
+
+    const [, dd, mm, yyyy] = match;
+    return `${yyyy}-${mm}-${dd}`;
   }
 }

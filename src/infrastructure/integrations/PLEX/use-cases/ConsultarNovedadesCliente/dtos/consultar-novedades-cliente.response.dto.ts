@@ -53,28 +53,33 @@ export class PlexConsultarNovedadesClienteResponseMapper {
   }
 
   static toXml(dto: PlexConsultarNovedadesClienteResponseDto): unknown {
+    const clientesXml = dto.novedades.map((novedad) => ({
+      IdClienteFidely: novedad.idClienteFidely,
+      Categoria: novedad.categoria,
+      NroTarjeta: novedad.nroTarjeta,
+      Nombre: novedad.nombre,
+      Apellido: novedad.apellido,
+      FecNac: novedad.fecNac,
+      Dni: novedad.dni,
+      Telefono: novedad.telefono,
+      Direccion: novedad.direccion,
+      Email: novedad.email,
+      Sexo: novedad.sexo,
+      CodPostal: novedad.codPostal,
+      Localidad: novedad.localidad,
+      Provincia: novedad.provincia,
+      Sucursal: novedad.sucursal,
+    }));
+
     return {
       RespuestaFidelyGb: {
         RespCode: dto.respCode,
         RespMsg: dto.respMsg,
         Novedades: {
-          Cliente: dto.novedades.map((novedad) => ({
-            IdClienteFidely: novedad.idClienteFidely,
-            Categoria: novedad.categoria,
-            NroTarjeta: novedad.nroTarjeta,
-            Nombre: novedad.nombre,
-            Apellido: novedad.apellido,
-            FEcNac: novedad.fecNac,
-            Dni: novedad.dni,
-            Telefono: novedad.telefono,
-            Direccion: novedad.direccion,
-            Email: novedad.email,
-            Sexo: novedad.sexo,
-            CodPostal: novedad.codPostal,
-            Localidad: novedad.localidad,
-            Provincia: novedad.provincia,
-            Sucursal: novedad.sucursal,
-          })),
+          Cliente: clientesXml,
+        },
+        Clientes: {
+          Cliente: clientesXml,
         },
       },
     };
