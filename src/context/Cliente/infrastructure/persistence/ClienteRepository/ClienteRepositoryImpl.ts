@@ -124,7 +124,11 @@ export class TypeOrmClienteRepository implements ClienteRepository {
           status_cliente = EXCLUDED.status_cliente,
           categoria_id = EXCLUDED.categoria_id,
           tarjeta_fidely = EXCLUDED.tarjeta_fidely,
-          id_fidely = COALESCE(EXCLUDED.id_fidely, cliente.id_fidely),
+          id_fidely = COALESCE(
+            EXCLUDED.id_fidely,
+            cliente.id_fidely,
+            nextval('cliente_id_fidely_seq_nuevo_sistema')
+          ),
           fecha_alta = EXCLUDED.fecha_alta,
           fecha_baja = EXCLUDED.fecha_baja,
           updated_at = NOW()
