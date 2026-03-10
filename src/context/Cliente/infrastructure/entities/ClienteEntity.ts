@@ -26,7 +26,12 @@ export class ClienteEntity {
   })
   status: StatusCliente;
 
-  @Column({ name: 'id_fidely', type: 'int', nullable: true })
+  @Column({
+    name: 'id_fidely',
+    type: 'int',
+    nullable: true,
+    default: () => "nextval('cliente_id_fidely_seq_nuevo_sistema')",
+  })
   idFidely?: number | null;
 
   @Column({

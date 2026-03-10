@@ -124,8 +124,15 @@ export class FidelizarClientePlexAdapter {
       dni,
     });
 
+    const idFidely = domainResponse.fidelyStatus.idFidely.value;
+    if (idFidely === undefined || idFidely === null) {
+      throw new Error(
+        'No se pudo responder a PLEX: el cliente no tiene idFidely asignado',
+      );
+    }
+
     const response = PlexFidelizarClienteResponseMapper.fromDomain({
-      idClienteFidely: domainResponse.fidelyStatus.idFidely.value!.toString(),
+      idClienteFidely: idFidely.toString(),
       nroTarjeta: domainResponse.fidelyStatus.tarjetaFidely.value,
     });
 
