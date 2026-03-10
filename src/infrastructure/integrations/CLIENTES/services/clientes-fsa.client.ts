@@ -41,34 +41,12 @@ export class ClientesFsaClient {
 
   async findByDni(dni: string): Promise<ClientesFsaClienteDto | null> {
     const normalizedDni = this.normalizeDni(dni);
-    const path = `/clientes/doc/DNI/${encodeURIComponent(dni)}`;
-    const normalizedPath = `/clientes/doc/DNI/${encodeURIComponent(
-      normalizedDni,
-    )}`;
+    const path = `/clientes/doc/DNI/${encodeURIComponent(normalizedDni)}`;
 
     try {
       const response = await this.http.get<ClientesFsaClienteDto>(path);
       return response.data;
     } catch (error) {
-      if (this.isNotFound(error) && normalizedDni !== dni) {
-        try {
-          const response =
-            await this.http.get<ClientesFsaClienteDto>(normalizedPath);
-          return response.data;
-        } catch (retryError) {
-          if (this.isNotFound(retryError)) {
-            return null;
-          }
-
-          this.logDownstreamError('findByDni', retryError, {
-            path: normalizedPath,
-            dniLast4: normalizedDni.slice(-4),
-            retriedFromOriginal: true,
-          });
-          throw retryError;
-        }
-      }
-
       if (this.isNotFound(error)) {
         return null;
       }
