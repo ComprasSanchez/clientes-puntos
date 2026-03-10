@@ -39,6 +39,28 @@ export class ClientesFsaClient {
     }
   }
 
+  async findByExternalId(
+    sistema: string,
+    extId: string,
+  ): Promise<ClientesFsaClienteDto | null> {
+    const path = `/clientes/external/${encodeURIComponent(sistema)}/${encodeURIComponent(extId)}`;
+
+    try {
+      const response = await this.http.get<ClientesFsaClienteDto>(path);
+      return response.data;
+    } catch (error) {
+      if (this.isNotFound(error)) {
+        return null;
+      }
+
+      this.logDownstreamError('findByExternalId', error, {
+        path,
+        sistema,
+      });
+      throw error;
+    }
+  }
+
   async findByDni(dni: string): Promise<ClientesFsaClienteDto | null> {
     const normalizedDni = this.normalizeDni(dni);
     const path = `/clientes/doc/DNI/${encodeURIComponent(normalizedDni)}`;

@@ -14,7 +14,7 @@ export class ClienteCanonicalHydrator {
   async enrichOne(cliente: ClienteResponseDto): Promise<ClienteResponseDto> {
     try {
       const canonical =
-        (await this.clientesPort.findById(cliente.id)) ??
+        (await this.clientesPort.findByExternalId('PUNTOS', cliente.id)) ??
         (await this.clientesPort.findByDni(cliente.dni));
 
       if (!canonical) return cliente;

@@ -50,8 +50,10 @@ export class ConsultarClientePlexAdapter {
     const saldo = await this.saldoService.run(domainResponse.id);
 
     const clienteFsaBase =
-      (await this.clientesFsaClient.findById(domainResponse.id)) ??
-      (await this.clientesFsaClient.findByDni(domainResponse.dni));
+      (await this.clientesFsaClient.findByExternalId(
+        'PUNTOS',
+        domainResponse.id,
+      )) ?? (await this.clientesFsaClient.findByDni(domainResponse.dni));
     const clienteFsa = clienteFsaBase?.id
       ? ((await this.clientesFsaClient.findProfileById(clienteFsaBase.id)) ??
         clienteFsaBase)
