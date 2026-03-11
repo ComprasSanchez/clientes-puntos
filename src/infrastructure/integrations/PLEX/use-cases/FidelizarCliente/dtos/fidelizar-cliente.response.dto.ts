@@ -27,8 +27,8 @@ export class PlexFidelizarClienteResponseMapper {
         RespCode: dto.respCode,
         RespMsg: dto.respMsg,
         Cliente: {
-          IDClienteFidely: dto.idClienteFidely.toString(),
-          NroTarjeta: dto.nroTarjeta.toString(),
+          IDClienteFidely: dto.idClienteFidely ? dto.idClienteFidely.toString() : '',
+          NroTarjeta: dto.nroTarjeta ? dto.nroTarjeta.toString() : '',
         },
       },
     };

@@ -27,7 +27,7 @@ export class FidelizarVentaPlexAdapter {
     private readonly anulacionUseCase: AnulacionUseCase,
     @Inject(ClienteFindByTarjeta)
     private readonly cliente: ClienteFindByTarjeta,
-  ) {}
+  ) { }
 
   async handle(
     xml: string,
