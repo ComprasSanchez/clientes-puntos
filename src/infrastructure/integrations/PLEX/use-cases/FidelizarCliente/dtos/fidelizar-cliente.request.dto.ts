@@ -34,14 +34,22 @@ export class PlexFidelizarClienteRequestMapper {
     // Cambiá el tipado para el parser nuevo
     const { MensajeFidelyGB } = obj as PlexFidelizarClienteFXPParsed;
     const cliente = MensajeFidelyGB.Cliente ?? {};
+    const codAccion = MensajeFidelyGB.CodAccion
+      ? String(MensajeFidelyGB.CodAccion).trim()
+      : '';
+    const idClienteFidelyRaw =
+      cliente.IDClienteFidely !== undefined &&
+      cliente.IDClienteFidely !== null &&
+      String(cliente.IDClienteFidely).trim() !== ''
+        ? String(cliente.IDClienteFidely).trim()
+        : undefined;
 
     return {
-      codAccion: MensajeFidelyGB.CodAccion
-        ? String(MensajeFidelyGB.CodAccion).trim()
-        : '',
-      idClienteFidely: cliente.IDClienteFidely
-        ? String(cliente.IDClienteFidely).trim()
-        : undefined,
+      codAccion,
+      idClienteFidely:
+        codAccion === '100' || codAccion === '103'
+          ? undefined
+          : idClienteFidelyRaw,
       campania: normalizeOptionalText(
         cliente.Campania ? String(cliente.Campania) : undefined,
       ),

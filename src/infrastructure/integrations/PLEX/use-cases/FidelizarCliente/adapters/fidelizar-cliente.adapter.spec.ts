@@ -1,22 +1,28 @@
 import { ClienteCreate } from '@cliente/application/use-cases/ClienteCreate/ClienteCreate';
 import { ClienteUpdate } from '@cliente/application/use-cases/ClienteUpdate/ClienteUpdate';
 import { ClientesSyncFromPuntosService } from '@infrastructure/integrations/CLIENTES/services/clientes-sync-from-puntos.service';
+import { ClientesFsaClient } from '@infrastructure/integrations/CLIENTES/services/clientes-fsa.client';
 import { FidelizarClientePlexAdapter } from './fidelizar-cliente.adapter';
 
 describe('FidelizarClientePlexAdapter', () => {
   let clienteCreate: { run: jest.Mock };
   let clienteUpdate: { run: jest.Mock };
   let clientesSync: { notifyClienteFidelizado: jest.Mock };
+  let clientesFsaClient: { upsertVerificacion: jest.Mock };
   let adapter: FidelizarClientePlexAdapter;
 
   beforeEach(() => {
     clienteCreate = { run: jest.fn() };
     clienteUpdate = { run: jest.fn() };
     clientesSync = { notifyClienteFidelizado: jest.fn() };
+    clientesFsaClient = {
+      upsertVerificacion: jest.fn().mockResolvedValue(undefined),
+    };
 
     adapter = new FidelizarClientePlexAdapter(
       clienteCreate as unknown as ClienteCreate,
       clienteUpdate as unknown as ClienteUpdate,
+      clientesFsaClient as unknown as ClientesFsaClient,
       clientesSync as unknown as ClientesSyncFromPuntosService,
     );
   });
@@ -58,6 +64,57 @@ describe('FidelizarClientePlexAdapter', () => {
     expect(result.response).toContain(
       '<IDClienteFidely>7788</IDClienteFidely>',
     );
+  });
+
+  it('ignora IDClienteFidely en codAccion 100 y 103', async () => {
+    clienteCreate.run.mockResolvedValue({
+      id: { value: 'puntos-id-2' },
+      dni: { value: '30111222' },
+      fidelyStatus: {
+        idFidely: { value: 9900 },
+        tarjetaFidely: { value: '30111222' },
+      },
+    });
+
+    const xml100 =
+      '<?xml version="1.0" encoding="utf-8"?>' +
+      '<MensajeFidelyGB>' +
+      '<CodAccion>100</CodAccion>' +
+      '<Cliente>' +
+      '<IDClienteFidely>   </IDClienteFidely>' +
+      '<NroTarjeta>000123</NroTarjeta>' +
+      '<DNI>30111222</DNI>' +
+      '<Nombre>Juan</Nombre>' +
+      '<Apellido>Perez</Apellido>' +
+      '<Sexo>M</Sexo>' +
+      '<FecNac>1990-01-01</FecNac>' +
+      '</Cliente>' +
+      '</MensajeFidelyGB>';
+
+    await adapter.handle(xml100);
+
+    const firstCallInput = clienteCreate.run.mock.calls[0][0];
+    expect(firstCallInput.fidely_customerid).toBeUndefined();
+
+    const xml103 =
+      '<?xml version="1.0" encoding="utf-8"?>' +
+      '<MensajeFidelyGB>' +
+      '<CodAccion>103</CodAccion>' +
+      '<Cliente>' +
+      '<IDClienteFidely>123456</IDClienteFidely>' +
+      '<NroTarjeta>000123</NroTarjeta>' +
+      '<DNI>30111222</DNI>' +
+      '<Nombre>Juan</Nombre>' +
+      '<Apellido>Perez</Apellido>' +
+      '<Sexo>M</Sexo>' +
+      '<FecNac>1990-01-01</FecNac>' +
+      '</Cliente>' +
+      '</MensajeFidelyGB>';
+
+    await adapter.handle(xml103);
+
+    const secondCallInput = clienteCreate.run.mock.calls[1][0];
+    expect(secondCallInput.fidely_customerid).toBeUndefined();
   });
 
   it('lanza error en modificar/reemplazar si falta IDClienteFidely', async () => {
