@@ -11,6 +11,9 @@ import { UseCaseResponse } from '@infrastructure/integrations/PLEX/dto/usecase-r
 import { ClientesSyncFromPuntosService } from '@infrastructure/integrations/CLIENTES/services/clientes-sync-from-puntos.service';
 import { ClientesFsaClient } from '@infrastructure/integrations/CLIENTES/services/clientes-fsa.client';
 import { ClientesFsaUpsertVerificacionRequest } from '@infrastructure/integrations/CLIENTES/dto/clientes-fsa.dto';
+import { ClienteRepository } from '@cliente/core/repository/ClienteRepository';
+import { CLIENTE_REPO } from '@cliente/core/tokens/tokens';
+import { ClienteDni } from '@cliente/core/value-objects/ClienteDni';
 
 @Injectable()
 export class FidelizarClientePlexAdapter {
@@ -23,6 +26,8 @@ export class FidelizarClientePlexAdapter {
     private readonly clientesFsaClient: ClientesFsaClient,
     @Inject(ClientesSyncFromPuntosService)
     private readonly clientesSyncFromPuntos: ClientesSyncFromPuntosService,
+    @Inject(CLIENTE_REPO)
+    private readonly clienteRepository: ClienteRepository,
   ) {}
 
   async handle(
@@ -46,6 +51,15 @@ export class FidelizarClientePlexAdapter {
     switch (plexDto.codAccion as codFidelizarCliente) {
       case codFidelizarCliente.NUEVO:
       case codFidelizarCliente.TARJETA_VIRTUAL: {
+        const existingByDni = await this.clienteRepository.findByDni(
+          new ClienteDni(plexDto.dni),
+        );
+        if (existingByDni) {
+          throw new Error(
+            `DNI ${plexDto.dni} ya existe; para actualizar use codAccion 101 o 102`,
+          );
+        }
+
         // No enviar tarjetaFidely ni idFidely: el caso de uso decide la tarjeta,
         // y la DB autogenera id_fidely si corresponde.
         const clienteRequest = {
