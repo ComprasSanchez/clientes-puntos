@@ -20,7 +20,7 @@ export class ConsultarNovedadesClientePlexAdapter {
     private readonly clienteFindUpdatedBetween: ClienteFindUpdatedBetween,
     @Inject(ClientesFsaClient)
     private readonly clientesFsaClient: ClientesFsaClient,
-  ) {}
+  ) { }
 
   async handle(xml: string, sucursal: string): Promise<UseCaseResponse> {
     const parser = new XMLParser({
@@ -199,26 +199,26 @@ export class ConsultarNovedadesClientePlexAdapter {
 
       const value = String(
         contacto?.valor ??
-          contacto?.Valor ??
-          contacto?.value ??
-          contacto?.descripcion ??
-          contacto?.Descripcion ??
-          '',
+        contacto?.Valor ??
+        contacto?.value ??
+        contacto?.descripcion ??
+        contacto?.Descripcion ??
+        '',
       ).trim();
 
       if (!value) continue;
 
       const isPrincipal = this.toBoolean(
         contacto?.esPrincipal ??
-          contacto?.principal ??
-          contacto?.Principal ??
-          contacto?.isPrimary,
+        contacto?.principal ??
+        contacto?.Principal ??
+        contacto?.isPrimary,
       );
       const isVerificado = this.toBoolean(
         contacto?.estaVerificado ??
-          contacto?.verificado ??
-          contacto?.Verificado ??
-          contacto?.isVerified,
+        contacto?.verificado ??
+        contacto?.Verificado ??
+        contacto?.isVerified,
       );
 
       const score = (isPrincipal ? 2 : 0) + (isVerificado ? 1 : 0);

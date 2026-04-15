@@ -13,7 +13,7 @@ import { CategoriaNotFoundError } from '@cliente/core/exceptions/CategoriaNotFou
 export interface ClienteCreateInput {
   dni: string;
   categoria?: string;
-  fidely_customerid?: number;
+  idFidely?: number;
   tarjetaFidely?: string;
 }
 
@@ -62,7 +62,7 @@ export class ClienteCreate {
       status: StatusCliente.Activo,
       categoria: categoria,
       tarjetaFidely: newCard, // pasás el string o null
-      idFidely: input.fidely_customerid,
+      idFidely: input.idFidely,
     });
     await this.repository.create(cliente, ctx);
     const result = await this.repository.findByDni(cliente.dni);

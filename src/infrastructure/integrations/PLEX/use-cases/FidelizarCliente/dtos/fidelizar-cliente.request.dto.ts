@@ -15,7 +15,7 @@ export interface PlexFidelizarClienteRequestDto {
   campania?: string;
   categoria?: string;
   nroTarjetaAnterior?: string;
-  nroTarjeta: string;
+  nroTarjeta?: string;
   dni: string;
   nombre: string;
   apellido: string;
@@ -59,7 +59,9 @@ export class PlexFidelizarClienteRequestMapper {
       nroTarjetaAnterior: cliente.NroTarjetaAnterior
         ? String(cliente.NroTarjetaAnterior).trim()
         : undefined,
-      nroTarjeta: cliente.NroTarjeta ? String(cliente.NroTarjeta).trim() : '',
+      nroTarjeta: cliente.NroTarjeta
+        ? String(cliente.NroTarjeta).trim()
+        : undefined,
       dni: cliente.DNI ? String(cliente.DNI).trim() : '',
       nombre:
         normalizeNameLike(

@@ -76,7 +76,7 @@ export class ClienteController {
     const clienteData: ClienteCreateInput = {
       dni: dto.dni,
       categoria: categoria?.id.value, // si querés respetar la categoría enviada
-      fidely_customerid: dto.idFidely ?? undefined,
+      idFidely: dto.idFidely ?? undefined,
       ...(hasCard ? { tarjetaFidely: trimmedCard } : {}), // pasa la card solo si vino
     };
 

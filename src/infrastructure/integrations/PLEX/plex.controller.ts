@@ -100,7 +100,7 @@ export class PlexController {
     @Inject(IntegracionMovimientoService)
     private readonly integracionMovimientoService: IntegracionMovimientoService,
     private readonly transactionalRunner: TransactionalRunner,
-  ) {}
+  ) { }
 
   private withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
     return new Promise<T>((resolve, reject) => {
@@ -311,8 +311,7 @@ export class PlexController {
       movimientoId = movimiento.id;
     } catch (error) {
       this.logger.error(
-        `No se pudo registrar integracion_movimiento (se continua): ${
-          error instanceof Error ? error.message : String(error)
+        `No se pudo registrar integracion_movimiento (se continua): ${error instanceof Error ? error.message : String(error)
         }`,
       );
     }
@@ -355,8 +354,10 @@ export class PlexController {
       // 10. Manejo de error
 
       let msg: string;
+      let stack: string = '';
       if (error instanceof Error) {
         msg = error.message;
+        stack = error.stack ?? '';
       } else if (typeof error === 'string') {
         msg = error;
       } else {
@@ -367,6 +368,9 @@ export class PlexController {
         }
       }
 
+      // Si hay stack, lo concatenamos para verlo en el XML (solo para debug extremo)
+      const fullMsg = stack ? `${msg} \n[STACK]: ${stack}` : msg;
+
       // persistimos el error
       try {
         if (movimientoId) {
@@ -374,7 +378,7 @@ export class PlexController {
             movimientoId,
             {
               status: 'ERROR',
-              mensajeError: msg,
+              mensajeError: fullMsg,
             },
           );
         }
@@ -387,7 +391,7 @@ export class PlexController {
         '<?xml version="1.0" encoding="UTF-8"?>' +
         `<RespuestaFidelyGb>` +
         `<RespCode>1</RespCode>` +
-        `<RespMsg>${escapeXml(msg)}</RespMsg>` +
+        `<RespMsg>${escapeXml(fullMsg)}</RespMsg>` +
         `</RespuestaFidelyGb>`;
 
       res.set('Content-Type', 'application/xml; charset=utf-8');

@@ -113,28 +113,44 @@ export class TypeOrmClienteRepository implements ClienteRepository {
   private async insertOnConflictUpdateByDni(
     entity: ClienteEntity,
   ): Promise<void> {
-    await this.ormRepo
-      .createQueryBuilder()
-      .insert()
-      .into(ClienteEntity)
-      .values(entity)
-      .onConflict(
-        `
-        ("dni") DO UPDATE SET
-          status_cliente = EXCLUDED.status_cliente,
-          categoria_id = EXCLUDED.categoria_id,
-          tarjeta_fidely = EXCLUDED.tarjeta_fidely,
-          id_fidely = COALESCE(
-            EXCLUDED.id_fidely,
-            cliente.id_fidely,
-            nextval('cliente_id_fidely_seq_nuevo_sistema')
-          ),
-          fecha_alta = EXCLUDED.fecha_alta,
-          fecha_baja = EXCLUDED.fecha_baja,
-          updated_at = NOW()
-      `,
+    const idFidelyVal =
+      entity.idFidely !== undefined && entity.idFidely !== null
+        ? entity.idFidely
+        : "nextval('cliente_id_fidely_seq_nuevo_sistema')";
+
+    const idFidelyPlaceholder = typeof idFidelyVal === 'string' ? idFidelyVal : '$6';
+    const nextPlaceholderIndex = typeof idFidelyVal === 'number' ? 7 : 6;
+
+    const sql = `
+      INSERT INTO "cliente" (
+        "id", "dni", "status_cliente", "categoria_id", "tarjeta_fidely", "id_fidely", "fecha_alta", "fecha_baja", "created_at", "updated_at"
+      ) VALUES (
+        $1, $2, $3, $4, $5, ${idFidelyPlaceholder}, $${nextPlaceholderIndex}, $${nextPlaceholderIndex + 1}, NOW(), NOW()
       )
-      .execute();
+      ON CONFLICT ("dni") DO UPDATE SET
+        "status_cliente" = EXCLUDED."status_cliente",
+        "categoria_id" = EXCLUDED."categoria_id",
+        "tarjeta_fidely" = EXCLUDED."tarjeta_fidely",
+        "id_fidely" = COALESCE(
+          "cliente"."id_fidely",
+          EXCLUDED."id_fidely"
+        ),
+        "fecha_baja" = EXCLUDED."fecha_baja",
+        "updated_at" = NOW();
+    `;
+
+    const params = [
+      entity.id,
+      entity.dni,
+      entity.status,
+      entity.categoria.id,
+      entity.tarjetaFidely,
+      ...(typeof idFidelyVal === 'number' ? [idFidelyVal] : []),
+      entity.fechaAlta ?? new Date(),
+      entity.fechaBaja ?? null,
+    ];
+
+    await this.dataSource.query(sql, params);
   }
 
   private toDomain(e: ClienteEntity): Cliente {
@@ -166,7 +182,12 @@ export class TypeOrmClienteRepository implements ClienteRepository {
     e.status = c.status.value;
     e.categoria = { id: c.categoria.id.value } as CategoriaEntity;
     e.tarjetaFidely = c.fidelyStatus.tarjetaFidely.value;
-    e.idFidely = c.fidelyStatus.idFidely.value ?? undefined;
+
+    const idFidely = c.fidelyStatus.idFidely.value;
+    if (idFidely !== undefined && idFidely !== null) {
+      e.idFidely = idFidely;
+    }
+
     e.fechaAlta = c.fidelyStatus.fechaAlta.value;
     e.fechaBaja = c.fidelyStatus.fechaBaja.value ?? null;
     return e;
