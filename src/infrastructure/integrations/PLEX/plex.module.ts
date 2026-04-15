@@ -23,6 +23,7 @@ import { FidelizarProductoPlexAdapter } from './use-cases/FidelizarProducto/adap
 import { ProductoModule } from 'src/context/Producto/infrastructure/producto.module';
 import { ClientesIntegrationModule } from '../CLIENTES/clientes.integration.module';
 import { ConsultarNovedadesClientePlexAdapter } from './use-cases/ConsultarNovedadesCliente/adapters/consultar-novedades-cliente.adapter';
+import { SociosaController } from './sociosa.controller';
 
 @Module({
   imports: [
@@ -34,7 +35,7 @@ import { ConsultarNovedadesClientePlexAdapter } from './use-cases/ConsultarNoved
     forwardRef(() => ProductoModule),
     DatabaseModule,
   ],
-  controllers: [PlexController],
+  controllers: [PlexController, SociosaController],
   providers: [
     JwtGuard,
     {
