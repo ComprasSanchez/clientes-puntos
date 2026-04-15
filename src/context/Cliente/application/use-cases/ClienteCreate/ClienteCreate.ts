@@ -12,18 +12,8 @@ import { CategoriaNotFoundError } from '@cliente/core/exceptions/CategoriaNotFou
 
 export interface ClienteCreateInput {
   dni: string;
-  nombre: string;
-  apellido: string;
-  sexo: string;
-  fechaNacimiento: Date | null;
   categoria?: string;
-  email?: string;
-  telefono?: string;
-  direccion?: string;
-  codPostal?: string;
-  localidad?: string;
-  provincia?: string;
-  fidely_customerid?: number;
+  idFidely?: number;
   tarjetaFidely?: string;
 }
 
@@ -69,20 +59,10 @@ export class ClienteCreate {
     const cliente = ClienteFactory.crear({
       id: this.idGen.generate(),
       dni: input.dni,
-      nombre: input.nombre,
-      apellido: input.apellido,
-      sexo: input.sexo,
-      fechaNacimiento: input.fechaNacimiento,
       status: StatusCliente.Activo,
       categoria: categoria,
       tarjetaFidely: newCard, // pasás el string o null
-      idFidely: input.fidely_customerid,
-      email: input.email,
-      telefono: input.telefono,
-      direccion: input.direccion,
-      codPostal: input.codPostal,
-      localidad: input.localidad,
-      provincia: input.provincia,
+      idFidely: input.idFidely,
     });
     await this.repository.create(cliente, ctx);
     const result = await this.repository.findByDni(cliente.dni);

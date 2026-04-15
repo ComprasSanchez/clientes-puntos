@@ -8,6 +8,7 @@ import { PlexConsultarEstadisticaClienteRequestMapper } from '../dtos/consultar-
 import { PlexConsultarEstadisticaClienteResponseMapper } from '../dtos/consultar-estadisticas.response.dto';
 import { UseCaseResponse } from '@infrastructure/integrations/PLEX/dto/usecase-response.dto';
 import { GET_METRICAS_CLIENTE_USECASE } from 'src/context/Metricas/core/reglas/tokens/tokens';
+import { ClientesFsaClient } from '@infrastructure/integrations/CLIENTES/services/clientes-fsa.client';
 
 @Injectable()
 export class ConsultarEstadisticasClientePlexAdapter {
@@ -18,6 +19,8 @@ export class ConsultarEstadisticasClientePlexAdapter {
     private readonly saldoService: ObtenerSaldo,
     @Inject(GET_METRICAS_CLIENTE_USECASE)
     private readonly metricaUC: GetMetricasCliente,
+    @Inject(ClientesFsaClient)
+    private readonly clientesFsaClient: ClientesFsaClient,
   ) {}
 
   async handle(xml: string): Promise<UseCaseResponse> {
@@ -37,7 +40,13 @@ export class ConsultarEstadisticasClientePlexAdapter {
       throw new Error('DNI no especificado en el XML.');
     }
 
-    // 2. Buscar cliente por DNI
+    const clienteCanonico = await this.clientesFsaClient.findByDni(String(dni));
+
+    if (!clienteCanonico) {
+      throw new Error(`Cliente canónico con DNI ${dni} no encontrado.`);
+    }
+
+    // 2. Buscar cliente operativo de puntos por DNI
     const cliente = await this.clienteFindByDni.run(String(dni));
     if (!cliente) {
       throw new Error(`Cliente con DNI ${dni} no encontrado.`);

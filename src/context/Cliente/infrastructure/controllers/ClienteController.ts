@@ -75,20 +75,8 @@ export class ClienteController {
 
     const clienteData: ClienteCreateInput = {
       dni: dto.dni,
-      nombre: dto.nombre,
-      apellido: dto.apellido,
-      sexo: dto.sexo,
-      fechaNacimiento: dto.fechaNacimiento
-        ? new Date(dto.fechaNacimiento)
-        : null,
       categoria: categoria?.id.value, // si querés respetar la categoría enviada
-      fidely_customerid: dto.idFidely ?? undefined,
-      email: dto.email ?? undefined,
-      telefono: dto.telefono ?? undefined,
-      direccion: dto.direccion ?? undefined,
-      codPostal: dto.codPostal ?? undefined,
-      localidad: dto.localidad ?? undefined,
-      provincia: dto.provincia ?? undefined,
+      idFidely: dto.idFidely ?? undefined,
       ...(hasCard ? { tarjetaFidely: trimmedCard } : {}), // pasa la card solo si vino
     };
 
@@ -176,9 +164,6 @@ export class ClienteController {
     const data = {
       ...dto,
       id,
-      fechaNacimiento: dto.fechaNacimiento
-        ? new Date(dto.fechaNacimiento)
-        : undefined,
     };
     await this.updateUseCase.run(data);
   }

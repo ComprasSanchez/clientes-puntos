@@ -1,10 +1,5 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-// src/infrastructure/integrations/clientes/clientes-sync-from-puntos.service.ts
-import axios, { AxiosInstance } from 'axios';
 import { Injectable, Logger } from '@nestjs/common';
-import { InjectDownstreamHttp } from '@sistemas-fsa/authz/nest';
-import { CLIENTES_HTTP } from '../tokens/tokens';
+import { ClientesFsaClient } from './clientes-fsa.client';
 
 export type SyncFromPuntosPayload = {
   plexId?: string | null;
@@ -15,17 +10,7 @@ export type SyncFromPuntosPayload = {
 @Injectable()
 export class ClientesSyncFromPuntosService {
   private readonly logger = new Logger(ClientesSyncFromPuntosService.name);
-  @InjectDownstreamHttp(CLIENTES_HTTP)
-  private readonly http: AxiosInstance;
-
-  constructor() {
-    const baseURL = process.env.CLIENTES_MS_BASE_URL;
-
-    this.http = axios.create({
-      baseURL,
-      timeout: 5000,
-    });
-  }
+  constructor(private readonly clientesClient: ClientesFsaClient) {}
 
   async notifyClienteFidelizado(payload: SyncFromPuntosPayload): Promise<void> {
     try {
@@ -34,7 +19,10 @@ export class ClientesSyncFromPuntosService {
         'Sending sync-from-puntos notification to Clientes MS',
       );
 
-      await this.http.post('/clientes-sync/from-puntos', payload);
+      await this.clientesClient.syncFromPuntos({
+        puntosId: payload.puntosId,
+        dni: payload.dni ?? '',
+      });
 
       this.logger.log(
         {
@@ -43,17 +31,9 @@ export class ClientesSyncFromPuntosService {
         },
         'Sync-from-puntos notification sent successfully',
       );
-    } catch (error: any) {
-      // ❗ Importante: NO romper la fidelización
-      this.logger.error(
-        {
-          message: error?.message,
-          code: error?.code,
-          response: error?.response?.data,
-          payload,
-        },
-        'Failed to notify Clientes MS from Puntos',
-      );
+    } catch (error) {
+      // Importante: no romper la fidelizacion
+      this.clientesClient.logAndIgnoreSyncError(error, payload);
     }
   }
 }

@@ -3,6 +3,7 @@ import {
   Controller,
   Headers,
   Inject,
+  Logger,
   Post,
   Req,
   Res,
@@ -14,6 +15,7 @@ import { TransactionalRunner } from '@shared/infrastructure/transaction/Transact
 import {
   CONSULTAR_CLIENTE_ADAPTER,
   CONSULTAR_ESTADISTICAS_CLIENTE_ADAPTER,
+  CONSULTAR_NOVEDADES_CLIENTE_ADAPTER,
   FIDELIZAR_CLIENTE_ADAPTER,
   FIDELIZAR_PRODUCTO_ADAPTER,
   FIDELIZAR_VENTA_ADAPTER,
@@ -31,6 +33,8 @@ import { codConsultarEstadisticasCliente } from './enums/consultar-estadisticas-
 import { Auth, AuthContext } from '@infrastructure/auth/auth.decorator';
 import { codFidelizarProducto } from './enums/fidelizar-producto.enum';
 import { FidelizarProductoPlexAdapter } from './use-cases/FidelizarProducto/adapters/fidelizar-producto.adapter';
+import { ConsultarNovedadesClientePlexAdapter } from './use-cases/ConsultarNovedadesCliente/adapters/consultar-novedades-cliente.adapter';
+import { codConsultarNovedadesCliente } from './enums/consultar-novedades-cliente.enum';
 import { ApiJwtGuard } from '@infrastructure/auth/api-jwt.guard';
 import { Authz } from '@infrastructure/auth/authz-policy.decorator';
 import {
@@ -76,6 +80,7 @@ function escapeXml(s: string): string {
 @ApiBearerAuth()
 @Controller('onzecrm')
 export class PlexController {
+  private readonly logger = new Logger(PlexController.name);
   private readonly requestTimeoutMs =
     Number(process.env.PLEX_REQUEST_TIMEOUT_MS ?? '20000') || 20000;
 
@@ -90,10 +95,12 @@ export class PlexController {
     private readonly consultarEstadisticasAdapter: ConsultarEstadisticasClientePlexAdapter,
     @Inject(FIDELIZAR_PRODUCTO_ADAPTER)
     private readonly fidelizarProductoAdapter: FidelizarProductoPlexAdapter,
+    @Inject(CONSULTAR_NOVEDADES_CLIENTE_ADAPTER)
+    private readonly consultarNovedadesAdapter: ConsultarNovedadesClientePlexAdapter,
     @Inject(IntegracionMovimientoService)
     private readonly integracionMovimientoService: IntegracionMovimientoService,
     private readonly transactionalRunner: TransactionalRunner,
-  ) {}
+  ) { }
 
   private withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
     return new Promise<T>((resolve, reject) => {
@@ -155,6 +162,17 @@ export class PlexController {
       (Object.values(codFidelizarProducto) as string[]).includes(accionValue)
     ) {
       return this.fidelizarProductoAdapter.handle(xmlIncoming);
+    }
+
+    if (
+      (Object.values(codConsultarNovedadesCliente) as string[]).includes(
+        accionValue,
+      )
+    ) {
+      return this.consultarNovedadesAdapter.handle(
+        xmlIncoming,
+        auth.codigoExt ?? '',
+      );
     }
 
     throw new Error('codAccion inválido o no soportado');
@@ -280,13 +298,23 @@ export class PlexController {
     const codAccionRaw = mensajeNode.CodAccion ?? mensajeNode.codAccion ?? '';
 
     // 6. Registrar movimiento en la base
-    const movimiento =
-      await this.integracionMovimientoService.registrarMovimiento({
-        tipoIntegracion: 'ONZECRM',
-        txTipo: String(codAccionRaw ?? ''),
-        requestPayload: parsedObj as Record<string, unknown>,
-        status: 'IN_PROGRESS',
-      });
+    let movimientoId: string | null = null;
+
+    try {
+      const movimiento =
+        await this.integracionMovimientoService.registrarMovimiento({
+          tipoIntegracion: 'ONZECRM',
+          txTipo: String(codAccionRaw ?? ''),
+          requestPayload: parsedObj as Record<string, unknown>,
+          status: 'IN_PROGRESS',
+        });
+      movimientoId = movimiento.id;
+    } catch (error) {
+      this.logger.error(
+        `No se pudo registrar integracion_movimiento (se continua): ${error instanceof Error ? error.message : String(error)
+        }`,
+      );
+    }
 
     try {
       const codAccionStr =
@@ -309,13 +337,15 @@ export class PlexController {
       // log respuesta OK antes de persistir
 
       // 8. Guardar OK en la tabla de movimientos
-      await this.integracionMovimientoService.actualizarMovimiento(
-        movimiento.id,
-        {
-          status: 'OK',
-          responsePayload: responseXml,
-        },
-      );
+      if (movimientoId) {
+        await this.integracionMovimientoService.actualizarMovimiento(
+          movimientoId,
+          {
+            status: 'OK',
+            responsePayload: responseXml,
+          },
+        );
+      }
 
       // 9. Responder al caller final
       res.set('Content-Type', 'application/xml; charset=utf-8');
@@ -324,8 +354,10 @@ export class PlexController {
       // 10. Manejo de error
 
       let msg: string;
+      let stack: string = '';
       if (error instanceof Error) {
         msg = error.message;
+        stack = error.stack ?? '';
       } else if (typeof error === 'string') {
         msg = error;
       } else {
@@ -336,15 +368,20 @@ export class PlexController {
         }
       }
 
+      // Si hay stack, lo concatenamos para verlo en el XML (solo para debug extremo)
+      const fullMsg = stack ? `${msg} \n[STACK]: ${stack}` : msg;
+
       // persistimos el error
       try {
-        await this.integracionMovimientoService.actualizarMovimiento(
-          movimiento.id,
-          {
-            status: 'ERROR',
-            mensajeError: msg,
-          },
-        );
+        if (movimientoId) {
+          await this.integracionMovimientoService.actualizarMovimiento(
+            movimientoId,
+            {
+              status: 'ERROR',
+              mensajeError: fullMsg,
+            },
+          );
+        }
       } catch {
         // Evita dejar colgada la respuesta si falla la persistencia del error
       }
@@ -354,7 +391,7 @@ export class PlexController {
         '<?xml version="1.0" encoding="UTF-8"?>' +
         `<RespuestaFidelyGb>` +
         `<RespCode>1</RespCode>` +
-        `<RespMsg>${escapeXml(msg)}</RespMsg>` +
+        `<RespMsg>${escapeXml(fullMsg)}</RespMsg>` +
         `</RespuestaFidelyGb>`;
 
       res.set('Content-Type', 'application/xml; charset=utf-8');

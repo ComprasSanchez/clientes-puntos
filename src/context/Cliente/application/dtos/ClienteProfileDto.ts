@@ -8,13 +8,13 @@ export class ClienteProfileDto {
   dni: string;
 
   @ApiProperty()
-  nombre: string;
+  nombre: string | null;
 
   @ApiProperty()
-  apellido: string;
+  apellido: string | null;
 
   @ApiProperty()
-  sexo: string;
+  sexo: string | null;
 
   @ApiProperty({ type: String, example: '1997-11-11' })
   fechaNacimiento: string | null;
@@ -50,7 +50,7 @@ export class ClienteProfileDto {
   tarjetaFidely: string;
 
   @ApiProperty({ type: String, example: '2024-07-08' })
-  fechaAlta: string;
+  fechaAlta: string | null;
 
   @ApiProperty({ type: String, example: '2025-01-01', nullable: true })
   fechaBaja: string | null;

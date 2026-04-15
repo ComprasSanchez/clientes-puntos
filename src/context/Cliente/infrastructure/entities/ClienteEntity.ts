@@ -1,19 +1,15 @@
-// @cliente/infrastructure/persistence/entities/ClienteEntity.ts
 import {
-  Entity,
   Column,
-  PrimaryColumn,
   CreateDateColumn,
-  UpdateDateColumn,
-  ManyToOne,
+  Entity,
   JoinColumn,
+  ManyToOne,
+  PrimaryColumn,
+  UpdateDateColumn,
 } from 'typeorm';
-import { CategoriaEntity } from './CategoriaEntity';
 import { StatusCliente } from '@cliente/core/enums/StatusCliente';
+import { CategoriaEntity } from './CategoriaEntity';
 
-/**
- * Mapeo ORM de la tabla cliente para TypeORM
- */
 @Entity({ name: 'cliente' })
 export class ClienteEntity {
   @PrimaryColumn({ type: 'uuid' })
@@ -21,18 +17,6 @@ export class ClienteEntity {
 
   @Column({ type: 'varchar', length: 10, unique: true })
   dni: string;
-
-  @Column({ type: 'varchar', length: 50 })
-  nombre: string;
-
-  @Column({ type: 'varchar', length: 50 })
-  apellido: string;
-
-  @Column({ type: 'char', length: 1 })
-  sexo: string;
-
-  @Column({ name: 'fec_nacimiento', type: 'date', nullable: true })
-  fecNacimiento: Date | null;
 
   @Column({
     name: 'status_cliente',
@@ -42,25 +26,12 @@ export class ClienteEntity {
   })
   status: StatusCliente;
 
-  @Column({ type: 'varchar', length: 150, nullable: true })
-  email: string | null;
-
-  @Column({ type: 'varchar', length: 15, nullable: true })
-  telefono: string | null;
-
-  @Column({ type: 'varchar', length: 200, nullable: true })
-  direccion: string | null;
-
-  @Column({ name: 'cod_postal', type: 'varchar', length: 10, nullable: true })
-  codPostal: string | null;
-
-  @Column({ type: 'varchar', length: 100, nullable: true })
-  localidad: string | null;
-
-  @Column({ type: 'varchar', length: 100, nullable: true })
-  provincia: string | null;
-
-  @Column({ name: 'id_fidely', type: 'int', nullable: true })
+  @Column({
+    name: 'id_fidely',
+    type: 'int',
+    nullable: true,
+    default: () => "nextval('cliente_id_fidely_seq_nuevo_sistema')",
+  })
   idFidely?: number | null;
 
   @Column({
@@ -69,6 +40,13 @@ export class ClienteEntity {
     length: 20,
   })
   tarjetaFidely: string;
+
+  @Column({
+    name: 'fecha_alta',
+    type: 'timestamp with time zone',
+    default: () => 'now()',
+  })
+  fechaAlta: Date;
 
   @Column({
     name: 'fecha_baja',

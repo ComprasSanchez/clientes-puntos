@@ -20,4 +20,5 @@ export interface ClienteRepository {
     lastId?: ClienteId | null;
     limit: number;
   }): Promise<Cliente[]>;
+  findUpdatedBetween(params: { from: Date; to: Date }): Promise<Cliente[]>;
 }

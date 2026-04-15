@@ -21,8 +21,8 @@ export class ClienteQueryAdapter implements ClienteQueryPort {
 
     const result: ClienteBasicData = {
       id: cliente.id,
-      nombre: cliente.nombre,
-      apellido: cliente.apellido,
+      nombre: cliente.nombre ?? 'SIN_DATO',
+      apellido: cliente.apellido ?? undefined,
       documento: cliente.dni,
     };
 

@@ -4,3 +4,5 @@ export const CONSULTAR_CLIENTE_ADAPTER = 'ConsultarClientePlexAdapter';
 export const CONSULTAR_ESTADISTICAS_CLIENTE_ADAPTER =
   'ConsultarEstadisticasClientePlexAdapter';
 export const FIDELIZAR_PRODUCTO_ADAPTER = 'FidelizarProductoPlexAdapter';
+export const CONSULTAR_NOVEDADES_CLIENTE_ADAPTER =
+  'ConsultarNovedadesClientePlexAdapter';

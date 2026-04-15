@@ -25,15 +25,6 @@ interface SyncPhaseResult {
 interface ClienteSourceRow {
   sourceId: number;
   dni: string | null;
-  nombre: string | null;
-  apellido: string | null;
-  sexo: string | null;
-  email: string | null;
-  telefono: string | null;
-  domicilio: string | null;
-  codPostal: string | null;
-  localidad: string | null;
-  provincia: string | null;
   tarjeta: string | null;
   saldo: number;
 }
@@ -188,7 +179,8 @@ export class WibiSyncService implements OnModuleDestroy {
           );
         })
         .catch((error) => {
-          const message = error instanceof Error ? error.message : 'Unknown error';
+          const message =
+            error instanceof Error ? error.message : 'Unknown error';
           const stack = error instanceof Error ? error.stack : undefined;
           this.logger.error(
             `[WIBI_SYNC] background execution failed: ${message}`,
@@ -199,7 +191,9 @@ export class WibiSyncService implements OnModuleDestroy {
   }
 
   private resolveBatchSize(raw?: number): number {
-    const fromEnv = Number(this.config.get<string>('WIBI_SYNC_BATCH_SIZE') ?? '10000');
+    const fromEnv = Number(
+      this.config.get<string>('WIBI_SYNC_BATCH_SIZE') ?? '10000',
+    );
     const base = Number.isFinite(raw) ? Number(raw) : fromEnv;
     return Math.max(1, Math.min(10000, Math.trunc(base || 10000)));
   }
@@ -209,7 +203,9 @@ export class WibiSyncService implements OnModuleDestroy {
       return raw;
     }
 
-    const fromEnv = (this.config.get<string>('WIBI_SYNC_DRY_RUN_DEFAULT') ?? 'true')
+    const fromEnv = (
+      this.config.get<string>('WIBI_SYNC_DRY_RUN_DEFAULT') ?? 'true'
+    )
       .trim()
       .toLowerCase();
 
@@ -295,7 +291,14 @@ export class WibiSyncService implements OnModuleDestroy {
       `INSERT INTO wibi_sync_runs (id, status, error_message, counters, started_at, finished_at)
        VALUES ($1, $2, $3, $4::jsonb, $5, $6)
        RETURNING id`,
-      [runId, status, errorMessage, JSON.stringify(counters), startedAt, finishedAt],
+      [
+        runId,
+        status,
+        errorMessage,
+        JSON.stringify(counters),
+        startedAt,
+        finishedAt,
+      ],
     )) as Array<{ id: string }>;
 
     return rows[0].id;
@@ -341,34 +344,6 @@ export class WibiSyncService implements OnModuleDestroy {
     const dniColumn = this.safeIdentifier(
       this.config.get<string>('WIBI_CLIENTES_DNI_COLUMN') ?? 'DNI',
     );
-    const nombreColumn = this.safeIdentifier(
-      this.config.get<string>('WIBI_CLIENTES_NOMBRE_COLUMN') ?? 'Nombre',
-    );
-    const apellidoColumn = this.safeIdentifier(
-      this.config.get<string>('WIBI_CLIENTES_APELLIDO_COLUMN') ?? 'Apellido',
-    );
-    const sexoColumn = this.safeIdentifier(
-      this.config.get<string>('WIBI_CLIENTES_SEXO_COLUMN') ?? 'Sexo',
-    );
-    const emailColumn = this.safeIdentifier(
-      this.config.get<string>('WIBI_CLIENTES_EMAIL_COLUMN') ?? 'email',
-    );
-    const telefonoColumn = this.safeIdentifier(
-      this.config.get<string>('WIBI_CLIENTES_TELEFONO_COLUMN') ?? 'Telefono',
-    );
-    const domicilioColumn = this.safeIdentifier(
-      this.config.get<string>('WIBI_CLIENTES_DIRECCION_COLUMN') ?? 'Domicilio',
-    );
-    const codPostalColumn = this.safeIdentifier(
-      this.config.get<string>('WIBI_CLIENTES_COD_POSTAL_COLUMN') ?? 'CodPostal',
-    );
-    const localidadColumn = this.safeIdentifier(
-      this.config.get<string>('WIBI_CLIENTES_LOCALIDAD_COLUMN') ?? 'Localidad',
-    );
-    const provinciaColumn = this.safeIdentifier(
-      this.config.get<string>('WIBI_CLIENTES_PROVINCIA_COLUMN') ?? 'Provincia',
-    );
-
     let lastId = 0;
     let batchNumber = 0;
     let stoppedByLimit = false;
@@ -398,15 +373,6 @@ export class WibiSyncService implements OnModuleDestroy {
         SELECT
           ${idColumn} AS "sourceId",
           ${dniColumn} AS "dni",
-          ${nombreColumn} AS "nombre",
-          ${apellidoColumn} AS "apellido",
-          ${sexoColumn} AS "sexo",
-          ${emailColumn} AS "email",
-          ${telefonoColumn} AS "telefono",
-          ${domicilioColumn} AS "domicilio",
-          ${codPostalColumn} AS "codPostal",
-          ${localidadColumn} AS "localidad",
-          ${provinciaColumn} AS "provincia",
           ${cardColumn} AS "tarjeta",
           ${saldoColumn} AS "saldo"
         FROM ${table}
@@ -416,7 +382,10 @@ export class WibiSyncService implements OnModuleDestroy {
         LIMIT $2
       `;
 
-      const rows = await this.queryExternal<ClienteSourceRow>(sql, [lastId, batchSize]);
+      const rows = await this.queryExternal<ClienteSourceRow>(sql, [
+        lastId,
+        batchSize,
+      ]);
       if (rows.length === 0) {
         this.logger.log(
           `[WIBI_SYNC][clientes] batch=${batchNumber} step=done reason=no_rows totalRead=${counters.clientesLeidos}`,
@@ -439,7 +408,9 @@ export class WibiSyncService implements OnModuleDestroy {
 
       const dnis = rows
         .map((row) => this.normalizeDni(row.dni, Number(row.sourceId)))
-        .filter((dni, index, arr) => dni.length > 0 && arr.indexOf(dni) === index);
+        .filter(
+          (dni, index, arr) => dni.length > 0 && arr.indexOf(dni) === index,
+        );
 
       const clientesByDni = dnis.length
         ? await this.clienteRepo.find({
@@ -498,18 +469,9 @@ export class WibiSyncService implements OnModuleDestroy {
             cliente = this.clienteRepo.create({
               id: randomUUID(),
               dni: normalizedDni,
-              nombre: this.normalizeName(row.nombre),
-              apellido: this.normalizeName(row.apellido),
-              sexo: this.normalizeSexo(row.sexo),
               status: StatusCliente.Activo,
               tarjetaFidely: this.normalizeCard(row.tarjeta, sourceId),
               idFidely: sourceId,
-              email: this.normalizeNullableText(row.email, 150),
-              telefono: this.normalizeNullableText(row.telefono, 15),
-              direccion: this.normalizeNullableText(row.domicilio, 200),
-              codPostal: this.normalizeNullableText(row.codPostal, 10),
-              localidad: this.normalizeNullableText(row.localidad, 100),
-              provincia: this.normalizeNullableText(row.provincia, 100),
             });
           }
 
@@ -574,28 +536,33 @@ export class WibiSyncService implements OnModuleDestroy {
     maxBatches: number | null,
   ): Promise<SyncPhaseResult> {
     const table = this.resolveTableRef(
-      this.config.get<string>('WIBI_MOVIMIENTOS_TABLE') ?? 'destino_movimientos',
+      this.config.get<string>('WIBI_MOVIMIENTOS_TABLE') ??
+        'destino_movimientos',
     );
     const idColumn = this.safeIdentifier(
       this.config.get<string>('WIBI_MOVIMIENTOS_ID_COLUMN') ?? 'IdMovimiento',
     );
     const clienteIdColumn = this.safeIdentifier(
-      this.config.get<string>('WIBI_MOVIMIENTOS_CLIENTE_ID_COLUMN') ?? 'IdCliente',
+      this.config.get<string>('WIBI_MOVIMIENTOS_CLIENTE_ID_COLUMN') ??
+        'IdCliente',
     );
     const fechaColumn = this.safeIdentifier(
       this.config.get<string>('WIBI_MOVIMIENTOS_TS_COLUMN') ?? 'FechaHora',
     );
     const puntosColumn = this.safeIdentifier(
-      this.config.get<string>('WIBI_MOVIMIENTOS_PUNTOS_COLUMN') ?? 'PuntosAcreditados',
+      this.config.get<string>('WIBI_MOVIMIENTOS_PUNTOS_COLUMN') ??
+        'PuntosAcreditados',
     );
     const montoColumn = this.safeIdentifier(
       this.config.get<string>('WIBI_MOVIMIENTOS_MONTO_COLUMN') ?? 'Importe',
     );
     const tipoColumn = this.safeIdentifier(
-      this.config.get<string>('WIBI_MOVIMIENTOS_TIPO_COLUMN') ?? 'IdTipoMovimiento',
+      this.config.get<string>('WIBI_MOVIMIENTOS_TIPO_COLUMN') ??
+        'IdTipoMovimiento',
     );
     const descripcionColumn = this.safeIdentifier(
-      this.config.get<string>('WIBI_MOVIMIENTOS_DESCRIPCION_COLUMN') ?? 'Motivo',
+      this.config.get<string>('WIBI_MOVIMIENTOS_DESCRIPCION_COLUMN') ??
+        'Motivo',
     );
     const puntosDebitoColumnRaw = this.config.get<string>(
       'WIBI_MOVIMIENTOS_PUNTOS_DEBITO_COLUMN',
@@ -713,13 +680,17 @@ export class WibiSyncService implements OnModuleDestroy {
         entity: OperacionEntity;
         row: MovimientoSourceRow;
       }> = [];
-      const refs = rows.map((row) => this.toExternalRef(Number(row.movimientoId)));
+      const refs = rows.map((row) =>
+        this.toExternalRef(Number(row.movimientoId)),
+      );
       const existing = await this.operacionRepo.find({
         where: { refOperacion: In(refs) },
         select: { refOperacion: true },
       });
       const existingRefs = new Set(
-        existing.map((item) => item.refOperacion).filter((item): item is string => !!item),
+        existing
+          .map((item) => item.refOperacion)
+          .filter((item): item is string => !!item),
       );
 
       for (const row of rows) {
@@ -851,7 +822,10 @@ export class WibiSyncService implements OnModuleDestroy {
     );
   }
 
-  private async insertDeadLetter(row: MovimientoSourceRow, errorMessage: string): Promise<void> {
+  private async insertDeadLetter(
+    row: MovimientoSourceRow,
+    errorMessage: string,
+  ): Promise<void> {
     await this.dataSource.query(
       `INSERT INTO wibi_sync_dead_letter (id, movement_id, source_cliente_id, payload, error_message)
        VALUES ($1, $2, $3, $4::jsonb, $5)`,
@@ -866,7 +840,10 @@ export class WibiSyncService implements OnModuleDestroy {
   }
 
   private async persistMovimientosBatch(
-    insertCandidates: Array<{ entity: OperacionEntity; row: MovimientoSourceRow }>,
+    insertCandidates: Array<{
+      entity: OperacionEntity;
+      row: MovimientoSourceRow;
+    }>,
     counters: SyncRunCounters,
     dryRun: boolean,
   ): Promise<void> {
@@ -890,13 +867,18 @@ export class WibiSyncService implements OnModuleDestroy {
         .execute();
 
       const insertedCount = Array.isArray(result.raw) ? result.raw.length : 0;
-      const duplicatedCount = Math.max(0, insertCandidates.length - insertedCount);
+      const duplicatedCount = Math.max(
+        0,
+        insertCandidates.length - insertedCount,
+      );
       counters.movimientosInsertados += insertedCount;
       counters.movimientosDuplicados += duplicatedCount;
       return;
     } catch (bulkError) {
       const bulkMessage =
-        bulkError instanceof Error ? bulkError.message : 'unknown bulk insert error';
+        bulkError instanceof Error
+          ? bulkError.message
+          : 'unknown bulk insert error';
       this.logger.warn(
         `[WIBI_SYNC][movimientos] bulk_insert_failed fallback=row_by_row reason=${bulkMessage}`,
       );
@@ -913,7 +895,8 @@ export class WibiSyncService implements OnModuleDestroy {
         }
 
         counters.movimientosError += 1;
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        const errorMessage =
+          error instanceof Error ? error.message : 'Unknown error';
         await this.insertDeadLetter(candidate.row, errorMessage);
       }
     }
@@ -922,10 +905,8 @@ export class WibiSyncService implements OnModuleDestroy {
   private isUniqueViolation(error: unknown): boolean {
     const code =
       typeof error === 'object' && error !== null
-        ? (
-            (error as { code?: unknown }).code ??
-            (error as { driverError?: { code?: unknown } }).driverError?.code
-          )
+        ? ((error as { code?: unknown }).code ??
+          (error as { driverError?: { code?: unknown } }).driverError?.code)
         : undefined;
 
     return code === '23505';
@@ -971,7 +952,10 @@ export class WibiSyncService implements OnModuleDestroy {
 
   private nextOperacionId(): number {
     const base = Date.now() * 1000;
-    this.lastGeneratedOperacionId = Math.max(base, this.lastGeneratedOperacionId + 1);
+    this.lastGeneratedOperacionId = Math.max(
+      base,
+      this.lastGeneratedOperacionId + 1,
+    );
     return this.lastGeneratedOperacionId;
   }
 
@@ -1046,7 +1030,9 @@ export class WibiSyncService implements OnModuleDestroy {
   }
 
   private getSaldoLoteOrigen(): string {
-    return this.config.get<string>('WIBI_SALDO_LOTE_ORIGEN') ?? 'WIBI_SYNC_SALDO';
+    return (
+      this.config.get<string>('WIBI_SALDO_LOTE_ORIGEN') ?? 'WIBI_SYNC_SALDO'
+    );
   }
 
   private async getDefaultCategoriaId(): Promise<string> {
@@ -1071,27 +1057,20 @@ export class WibiSyncService implements OnModuleDestroy {
     const cliente = this.clienteRepo.create({
       id: randomUUID(),
       dni: this.normalizeDni(row.dni, sourceId),
-      nombre: this.normalizeName(row.nombre),
-      apellido: this.normalizeName(row.apellido),
-      sexo: this.normalizeSexo(row.sexo),
       status: StatusCliente.Activo,
       tarjetaFidely: this.normalizeCard(row.tarjeta, sourceId),
       idFidely: sourceId,
-      email: this.normalizeNullableText(row.email, 150),
-      telefono: this.normalizeNullableText(row.telefono, 15),
-      direccion: this.normalizeNullableText(row.domicilio, 200),
-      codPostal: this.normalizeNullableText(row.codPostal, 10),
-      localidad: this.normalizeNullableText(row.localidad, 100),
-      provincia: this.normalizeNullableText(row.provincia, 100),
       categoria: { id: categoriaId } as CategoriaEntity,
       fechaBaja: null,
-      fecNacimiento: null,
     });
 
     return this.clienteRepo.save(cliente);
   }
 
-  private normalizeDni(value: string | null | undefined, sourceId: number): string {
+  private normalizeDni(
+    value: string | null | undefined,
+    sourceId: number,
+  ): string {
     const digits = String(value ?? '')
       .replace(/\D/g, '')
       .trim();
@@ -1101,30 +1080,15 @@ export class WibiSyncService implements OnModuleDestroy {
     return String(sourceId).slice(-10).padStart(10, '0');
   }
 
-  private normalizeName(value: string | null | undefined): string {
-    const raw = this.normalizeNullableText(value, 50);
-    return raw && raw.length > 0 ? raw : 'SIN_DATO';
-  }
-
-  private normalizeSexo(value: string | null | undefined): string {
-    const raw = String(value ?? '')
-      .trim()
-      .toUpperCase();
-    if (raw.startsWith('M')) {
-      return 'M';
-    }
-    if (raw.startsWith('F')) {
-      return 'F';
-    }
-    return 'X';
-  }
-
-  private normalizeCard(value: string | null | undefined, sourceId: number): string {
+  private normalizeCard(
+    value: string | null | undefined,
+    sourceId: number,
+  ): string {
     const raw = this.normalizeNullableText(value, 20);
     if (raw && raw.length > 0) {
       return raw;
     }
-    return `W${sourceId}`.slice(0, 20);
+    return String(sourceId).slice(0, 20);
   }
 
   private normalizeNullableText(

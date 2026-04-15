@@ -27,7 +27,7 @@ export class FidelizarProductoPlexAdapter {
     private readonly reactivarProducto: ReactivarProducto,
     @Inject(ActualizarPrecioProducto)
     private readonly actualizarPrecio: ActualizarPrecioProducto,
-  ) {}
+  ) { }
 
   async handle(xml: string): Promise<UseCaseResponse> {
     try {

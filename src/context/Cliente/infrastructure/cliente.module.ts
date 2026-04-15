@@ -27,6 +27,9 @@ import { PuntosInfrastructureModule } from '@puntos/infrastructure/puntos.module
 import { ClienteFindByTarjeta } from '@cliente/application/use-cases/ClienteFindByTarjeta/ClienteFindByTarjeta';
 import { uniqueCardGenerator } from '@cliente/application/services/CardGenerator';
 import { ClienteQueryAdapter } from './persistence/ClienteRepository/ClienteQueryAdapter';
+import { ClienteFindUpdatedBetween } from '@cliente/application/use-cases/ClienteFindUpdatedBetween/ClienteFindUpdatedBetween';
+import { ClientesIntegrationModule } from '@infrastructure/integrations/CLIENTES/clientes.integration.module';
+import { ClienteCanonicalHydrator } from '@cliente/application/services/ClienteCanonicalHydrator';
 
 const providers: Provider[] = [
   // 1) Repo puro
@@ -38,6 +41,8 @@ const providers: Provider[] = [
   ClienteFindById,
   ClienteGetProfile,
   ClienteFindByTarjeta,
+  ClienteFindUpdatedBetween,
+  ClienteCanonicalHydrator,
   { provide: CLIENTE_REPO, useClass: TypeOrmClienteRepository },
 
   CategoriaCreate,
@@ -59,6 +64,7 @@ const providers: Provider[] = [
     DatabaseModule, // ← Debe ir aquí
     ClientePersistenceModule, // ← y aquí si lo vas a exportar
     forwardRef(() => PuntosInfrastructureModule),
+    forwardRef(() => ClientesIntegrationModule),
   ],
   controllers: [CategoriaController, ClienteController],
   providers,
@@ -69,6 +75,7 @@ const providers: Provider[] = [
     ClienteGetProfile,
     ClienteFindByDni,
     ClienteFindByTarjeta,
+    ClienteFindUpdatedBetween,
     DatabaseModule,
     ClientePersistenceModule,
   ],

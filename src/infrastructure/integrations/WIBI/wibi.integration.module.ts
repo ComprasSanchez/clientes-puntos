@@ -8,6 +8,7 @@ import { OperacionEntity } from '@puntos/infrastructure/entities/operacion.entit
 import { LoteEntity } from '@puntos/infrastructure/entities/lote.entity';
 import { WibiSyncController } from './controller/wibi-sync.controller';
 import { WibiSyncService } from './services/wibi-sync.service';
+import { WibiSyncCron } from './cron/wibi-sync.cron';
 
 @Module({
   imports: [
@@ -21,7 +22,7 @@ import { WibiSyncService } from './services/wibi-sync.service';
     ]),
   ],
   controllers: [WibiSyncController],
-  providers: [WibiSyncService],
-  exports: [WibiSyncService],
+  providers: [WibiSyncService, WibiSyncCron],
+  exports: [WibiSyncService, WibiSyncCron],
 })
 export class WibiIntegrationModule {}

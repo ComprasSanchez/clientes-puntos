@@ -1,27 +1,18 @@
 import { Injectable } from '@nestjs/common';
+import { DataSource, Repository } from 'typeorm';
 import { ClienteRepository } from '@cliente/core/repository/ClienteRepository';
 import { ClienteEntity } from '../../entities/ClienteEntity';
-import { DataSource, Repository } from 'typeorm';
 import { Cliente } from '@cliente/core/entities/Cliente';
 import { ClienteId } from '@cliente/core/value-objects/ClienteId';
 import { ClienteDni } from '@cliente/core/value-objects/ClienteDni';
+import { ClienteIdFidely } from '@cliente/core/value-objects/ClienteIdFidely';
+import { ClienteTarjetaFidely } from '@cliente/core/value-objects/ClienteTarjetaFidely';
 import { Categoria } from '@cliente/core/entities/Categoria';
 import { CategoriaId } from '@cliente/core/value-objects/CategoriaId';
 import { CategoriaNombre } from '@cliente/core/value-objects/CategoriaNombre';
 import { CategoriaDescripcion } from '@cliente/core/value-objects/CategoriaDescripcion';
-import { ClienteNombre } from '@cliente/core/value-objects/ClienteNombre';
-import { ClienteApellido } from '@cliente/core/value-objects/ClienteApellido';
-import { ClienteSexo } from '@cliente/core/value-objects/ClienteSexo';
-import { ClienteFechaNacimiento } from '@cliente/core/value-objects/ClienteFechaNacimiento';
 import { ClienteStatus } from '@cliente/core/value-objects/ClienteStatus';
-import { ClienteEmail } from '@cliente/core/value-objects/ClienteEmail';
-import { ClienteTelefono } from '@cliente/core/value-objects/ClienteTelefono';
-import { ClienteDireccion } from '@cliente/core/value-objects/ClienteDireccion';
-import { ClienteCodigoPostal } from '@cliente/core/value-objects/ClienteCodPostal';
-import { ClienteLocalidad } from '@cliente/core/value-objects/ClienteLocalidad';
-import { ClienteProvincia } from '@cliente/core/value-objects/ClienteProvincia';
-import { ClienteIdFidely } from '@cliente/core/value-objects/ClienteIdFidely';
-import { ClienteTarjetaFidely } from '@cliente/core/value-objects/ClienteTarjetaFidely';
+import { ClienteFechaAlta } from '@cliente/core/value-objects/ClienteFechaAlta';
 import { ClienteFechaBaja } from '@cliente/core/value-objects/ClienteFechaBaja';
 import { CategoriaEntity } from '../../entities/CategoriaEntity';
 
@@ -75,17 +66,11 @@ export class TypeOrmClienteRepository implements ClienteRepository {
     return count > 0;
   }
 
-  /**
-   * UPSERT por DNI: si no existe -> inserta; si existe -> actualiza campos (sin tocar id/created_at)
-   */
   async create(cliente: Cliente): Promise<void> {
     const entity = this.toEntity(cliente);
     await this.insertOnConflictUpdateByDni(entity);
   }
 
-  /**
-   * También usamos UPSERT por DNI para que sea idempotente.
-   */
   async update(cliente: Cliente): Promise<void> {
     const entity = this.toEntity(cliente);
     await this.insertOnConflictUpdateByDni(entity);
@@ -97,7 +82,7 @@ export class TypeOrmClienteRepository implements ClienteRepository {
   }): Promise<Cliente[]> {
     const qb = this.ormRepo
       .createQueryBuilder('c')
-      .leftJoinAndSelect('c.categoria', 'categoria') // 👈 importante
+      .leftJoinAndSelect('c.categoria', 'categoria')
       .orderBy('c.id', 'ASC')
       .take(params.limit);
 
@@ -106,46 +91,66 @@ export class TypeOrmClienteRepository implements ClienteRepository {
     }
 
     const rows = await qb.getMany();
+    return rows.map((row) => this.toDomain(row));
+  }
+
+  async findUpdatedBetween(params: {
+    from: Date;
+    to: Date;
+  }): Promise<Cliente[]> {
+    const rows = await this.ormRepo
+      .createQueryBuilder('c')
+      .leftJoinAndSelect('c.categoria', 'categoria')
+      .where('c.updatedAt >= :from', { from: params.from })
+      .andWhere('c.updatedAt <= :to', { to: params.to })
+      .orderBy('c.updatedAt', 'ASC')
+      .addOrderBy('c.id', 'ASC')
+      .getMany();
 
     return rows.map((row) => this.toDomain(row));
   }
 
-  // ---------- helpers ----------
-
-  /**
-   * Implementación de INSERT ... ON CONFLICT ("dni") DO UPDATE SET ...
-   * Actualiza columnas de datos y fuerza updated_at = NOW().
-   * No modifica id ni created_at.
-   */
   private async insertOnConflictUpdateByDni(
     entity: ClienteEntity,
   ): Promise<void> {
-    await this.ormRepo
-      .createQueryBuilder()
-      .insert()
-      .into(ClienteEntity)
-      .values(entity)
-      .onConflict(
-        `
-        ("dni") DO UPDATE SET
-          nombre = EXCLUDED.nombre,
-          apellido = EXCLUDED.apellido,
-          sexo = EXCLUDED.sexo,
-          fec_nacimiento = EXCLUDED.fec_nacimiento,
-          status_cliente = EXCLUDED.status_cliente,
-          categoria_id = EXCLUDED.categoria_id,
-          tarjeta_fidely = EXCLUDED.tarjeta_fidely,
-          email = EXCLUDED.email,
-          telefono = EXCLUDED.telefono,
-          direccion = EXCLUDED.direccion,
-          cod_postal = EXCLUDED.cod_postal,
-          localidad = EXCLUDED.localidad,
-          provincia = EXCLUDED.provincia,
-          fecha_baja = EXCLUDED.fecha_baja,
-          updated_at = NOW()
-      `,
+    const idFidelyVal =
+      entity.idFidely !== undefined && entity.idFidely !== null
+        ? entity.idFidely
+        : "nextval('cliente_id_fidely_seq_nuevo_sistema')";
+
+    const idFidelyPlaceholder = typeof idFidelyVal === 'string' ? idFidelyVal : '$6';
+    const nextPlaceholderIndex = typeof idFidelyVal === 'number' ? 7 : 6;
+
+    const sql = `
+      INSERT INTO "cliente" (
+        "id", "dni", "status_cliente", "categoria_id", "tarjeta_fidely", "id_fidely", "fecha_alta", "fecha_baja", "created_at", "updated_at"
+      ) VALUES (
+        $1, $2, $3, $4, $5, ${idFidelyPlaceholder}, $${nextPlaceholderIndex}, $${nextPlaceholderIndex + 1}, NOW(), NOW()
       )
-      .execute();
+      ON CONFLICT ("dni") DO UPDATE SET
+        "status_cliente" = EXCLUDED."status_cliente",
+        "categoria_id" = EXCLUDED."categoria_id",
+        "tarjeta_fidely" = EXCLUDED."tarjeta_fidely",
+        "id_fidely" = COALESCE(
+          "cliente"."id_fidely",
+          EXCLUDED."id_fidely"
+        ),
+        "fecha_baja" = EXCLUDED."fecha_baja",
+        "updated_at" = NOW();
+    `;
+
+    const params = [
+      entity.id,
+      entity.dni,
+      entity.status,
+      entity.categoria.id,
+      entity.tarjetaFidely,
+      ...(typeof idFidelyVal === 'number' ? [idFidelyVal] : []),
+      entity.fechaAlta ?? new Date(),
+      entity.fechaBaja ?? null,
+    ];
+
+    await this.dataSource.query(sql, params);
   }
 
   private toDomain(e: ClienteEntity): Cliente {
@@ -155,45 +160,35 @@ export class TypeOrmClienteRepository implements ClienteRepository {
       e.categoria.codExt,
       new CategoriaDescripcion(e.categoria.descripcion),
     );
-    return new Cliente(
-      new ClienteId(e.id),
-      new ClienteDni(e.dni),
-      new ClienteNombre(e.nombre),
-      new ClienteApellido(e.apellido),
-      new ClienteSexo(e.sexo),
-      new ClienteFechaNacimiento(e.fecNacimiento),
-      new ClienteStatus(e.status),
-      catDom,
-      new ClienteTarjetaFidely(e.tarjetaFidely),
-      new ClienteIdFidely(e.idFidely),
-      new ClienteEmail(e.email),
-      new ClienteTelefono(e.telefono),
-      new ClienteDireccion(e.direccion),
-      new ClienteCodigoPostal(e.codPostal),
-      new ClienteLocalidad(e.localidad),
-      new ClienteProvincia(e.provincia),
-      e.fechaBaja ? new ClienteFechaBaja(e.fechaBaja) : undefined,
-    );
+
+    return new Cliente({
+      id: new ClienteId(e.id),
+      dni: new ClienteDni(e.dni),
+      status: new ClienteStatus(e.status),
+      categoria: catDom,
+      tarjetaFidely: new ClienteTarjetaFidely(e.tarjetaFidely),
+      idFidely: new ClienteIdFidely(e.idFidely),
+      fechaAlta: new ClienteFechaAlta(e.fechaAlta ?? e.createdAt),
+      fechaBaja: e.fechaBaja ? new ClienteFechaBaja(e.fechaBaja) : undefined,
+      createdAt: e.createdAt,
+      updatedAt: e.updatedAt,
+    });
   }
 
   private toEntity(c: Cliente): ClienteEntity {
     const e = new ClienteEntity();
-    e.id = c.id.value; // no se modificará en el ON CONFLICT
+    e.id = c.id.value;
     e.dni = c.dni.value;
-    e.nombre = c.nombre.value;
-    e.apellido = c.apellido.value;
-    e.sexo = c.sexo.value;
-    e.fecNacimiento = c.fechaNacimiento ? c.fechaNacimiento.value : null;
     e.status = c.status.value;
     e.categoria = { id: c.categoria.id.value } as CategoriaEntity;
     e.tarjetaFidely = c.fidelyStatus.tarjetaFidely.value;
-    e.idFidely = c.fidelyStatus.idFidely.value ?? undefined;
-    e.email = c.email.value;
-    e.telefono = c.telefono.value;
-    e.direccion = c.fullAdress.direccion.value;
-    e.codPostal = c.fullAdress.codPostal.value;
-    e.localidad = c.fullAdress.localidad.value;
-    e.provincia = c.fullAdress.provincia.value;
+
+    const idFidely = c.fidelyStatus.idFidely.value;
+    if (idFidely !== undefined && idFidely !== null) {
+      e.idFidely = idFidely;
+    }
+
+    e.fechaAlta = c.fidelyStatus.fechaAlta.value;
     e.fechaBaja = c.fidelyStatus.fechaBaja.value ?? null;
     return e;
   }

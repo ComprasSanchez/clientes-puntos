@@ -2,6 +2,7 @@ import { forwardRef, Module } from '@nestjs/common';
 import {
   CONSULTAR_CLIENTE_ADAPTER,
   CONSULTAR_ESTADISTICAS_CLIENTE_ADAPTER,
+  CONSULTAR_NOVEDADES_CLIENTE_ADAPTER,
   FIDELIZAR_CLIENTE_ADAPTER,
   FIDELIZAR_PRODUCTO_ADAPTER,
   FIDELIZAR_VENTA_ADAPTER,
@@ -21,6 +22,8 @@ import { JwtGuard } from '@infrastructure/auth/jwt.guard';
 import { FidelizarProductoPlexAdapter } from './use-cases/FidelizarProducto/adapters/fidelizar-producto.adapter';
 import { ProductoModule } from 'src/context/Producto/infrastructure/producto.module';
 import { ClientesIntegrationModule } from '../CLIENTES/clientes.integration.module';
+import { ConsultarNovedadesClientePlexAdapter } from './use-cases/ConsultarNovedadesCliente/adapters/consultar-novedades-cliente.adapter';
+import { SociosaController } from './sociosa.controller';
 
 @Module({
   imports: [
@@ -32,7 +35,7 @@ import { ClientesIntegrationModule } from '../CLIENTES/clientes.integration.modu
     forwardRef(() => ProductoModule),
     DatabaseModule,
   ],
-  controllers: [PlexController],
+  controllers: [PlexController, SociosaController],
   providers: [
     JwtGuard,
     {
@@ -55,6 +58,10 @@ import { ClientesIntegrationModule } from '../CLIENTES/clientes.integration.modu
       provide: FIDELIZAR_PRODUCTO_ADAPTER,
       useClass: FidelizarProductoPlexAdapter,
     },
+    {
+      provide: CONSULTAR_NOVEDADES_CLIENTE_ADAPTER,
+      useClass: ConsultarNovedadesClientePlexAdapter,
+    },
     TransactionalRunner,
   ],
   exports: [
@@ -63,6 +70,7 @@ import { ClientesIntegrationModule } from '../CLIENTES/clientes.integration.modu
     CONSULTAR_CLIENTE_ADAPTER,
     FIDELIZAR_PRODUCTO_ADAPTER,
     CONSULTAR_ESTADISTICAS_CLIENTE_ADAPTER,
+    CONSULTAR_NOVEDADES_CLIENTE_ADAPTER,
     TransactionalRunner,
   ],
 })
