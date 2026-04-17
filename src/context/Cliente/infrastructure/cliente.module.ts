@@ -69,6 +69,7 @@ const providers: Provider[] = [
   controllers: [CategoriaController, ClienteController],
   providers,
   exports: [
+    CLIENTE_REPO,
     CLIENTE_QUERY_PORT,
     ClienteCreate,
     ClienteUpdate,

@@ -20,7 +20,7 @@ interface ClienteUpdateInput {
   dni?: string;
   status?: string;
   categoriaId?: string;
-  idFidely: number;
+  idFidely?: number;
   tarjetaFidely?: string;
   fechaBaja?: string | null;
 }
@@ -47,6 +47,9 @@ export class ClienteUpdate {
       if (!cliente || cliente === null)
         throw new ClienteNotFoundError(input.id);
     } else {
+      if (input.idFidely === undefined || input.idFidely === null) {
+        throw new ClienteNotFoundError(input.dni ?? 'unknown');
+      }
       cliente = await this.repository.findByIdFidely(
         new ClienteIdFidely(input.idFidely),
       );
@@ -58,6 +61,10 @@ export class ClienteUpdate {
     if (input.dni !== undefined) cliente.editarDni(new ClienteDni(input.dni));
     if (input.status !== undefined)
       cliente.editarStatus(new ClienteStatus(input.status));
+
+    if (input.idFidely !== undefined) {
+      cliente.editarIdFidely(new ClienteIdFidely(input.idFidely));
+    }
 
     if (input.categoriaId !== undefined) {
       const catIdVo = new CategoriaId(input.categoriaId);

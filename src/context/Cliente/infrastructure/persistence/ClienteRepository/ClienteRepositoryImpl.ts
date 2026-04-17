@@ -113,6 +113,9 @@ export class TypeOrmClienteRepository implements ClienteRepository {
   private async insertOnConflictUpdateByDni(
     entity: ClienteEntity,
   ): Promise<void> {
+    const hasExplicitIdFidely =
+      entity.idFidely !== undefined && entity.idFidely !== null;
+
     const idFidelyVal =
       entity.idFidely !== undefined && entity.idFidely !== null
         ? entity.idFidely
@@ -131,10 +134,10 @@ export class TypeOrmClienteRepository implements ClienteRepository {
         "status_cliente" = EXCLUDED."status_cliente",
         "categoria_id" = EXCLUDED."categoria_id",
         "tarjeta_fidely" = EXCLUDED."tarjeta_fidely",
-        "id_fidely" = COALESCE(
-          "cliente"."id_fidely",
-          EXCLUDED."id_fidely"
-        ),
+        "id_fidely" = CASE
+          WHEN $${nextPlaceholderIndex + 2} THEN EXCLUDED."id_fidely"
+          ELSE "cliente"."id_fidely"
+        END,
         "fecha_baja" = EXCLUDED."fecha_baja",
         "updated_at" = NOW();
     `;
@@ -148,6 +151,7 @@ export class TypeOrmClienteRepository implements ClienteRepository {
       ...(typeof idFidelyVal === 'number' ? [idFidelyVal] : []),
       entity.fechaAlta ?? new Date(),
       entity.fechaBaja ?? null,
+      hasExplicitIdFidely,
     ];
 
     await this.dataSource.query(sql, params);

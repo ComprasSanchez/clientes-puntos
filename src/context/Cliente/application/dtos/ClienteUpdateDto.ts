@@ -11,7 +11,7 @@ export class UpdateClienteDto {
   categoriaId?: string;
 
   @ApiPropertyOptional()
-  idFidely: number;
+  idFidely?: number;
 
   @ApiPropertyOptional()
   tarjetaFidely: string;

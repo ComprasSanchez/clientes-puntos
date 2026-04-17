@@ -13,7 +13,7 @@ export class Cliente {
   private _dni: ClienteDni;
   private _status: ClienteStatus;
   private _categoria: Categoria;
-  private readonly _idFidely: ClienteIdFidely;
+  private _idFidely: ClienteIdFidely;
   private _tarjetaFidely: ClienteTarjetaFidely;
   private _fechaAlta: ClienteFechaAlta;
   private _fechaBaja: ClienteFechaBaja;
@@ -100,6 +100,11 @@ export class Cliente {
 
   editarTarjetaFidely(nuevaTarjeta: ClienteTarjetaFidely): void {
     this._tarjetaFidely = nuevaTarjeta;
+    this.touch();
+  }
+
+  editarIdFidely(nuevoIdFidely: ClienteIdFidely): void {
+    this._idFidely = nuevoIdFidely;
     this.touch();
   }
 
