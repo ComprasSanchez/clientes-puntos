@@ -4,6 +4,7 @@ import { AxiosError, AxiosInstance, isAxiosError } from 'axios';
 import {
   ClientesFsaClienteDto,
   ClientesFsaClienteIdDto,
+  ClientesFsaMeDto,
   ClientesFsaUpsertVerificacionRequest,
 } from '../dto/clientes-fsa.dto';
 import { CLIENTES_HTTP } from '../tokens/tokens';
@@ -35,6 +36,22 @@ export class ClientesFsaClient {
       }
 
       this.logDownstreamError('findById', error, { path, id });
+      throw error;
+    }
+  }
+
+  async findMe(): Promise<ClientesFsaMeDto | null> {
+    const path = '/clientes/me';
+
+    try {
+      const response = await this.http.get<ClientesFsaMeDto>(path);
+      return response.data;
+    } catch (error) {
+      if (this.isNotFound(error)) {
+        return null;
+      }
+
+      this.logDownstreamError('findMe', error, { path });
       throw error;
     }
   }

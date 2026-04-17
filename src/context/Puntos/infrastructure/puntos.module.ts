@@ -60,6 +60,9 @@ import { OperacionValorService } from '@puntos/application/services/OperacionVal
 import { FindOperacionDetalleByIdUseCase } from '@puntos/application/use-cases/OperacionDetalleView/OperacionDetalleView';
 import { ClienteInfrastructureModule } from '@cliente/infrastructure/cliente.module';
 import { GetHistorialSaldoCliente } from '@puntos/application/use-cases/ObtenerHistorialSaldo/GetHistorialSaldoCliente';
+import { PuntosMeController } from './controllers/puntos-me.controller';
+import { PuntosServiceWIBI } from './adapters/PuntosServiceWIBI/PuntosServiceWIBI';
+import { ClientesFsaClient } from '@infrastructure/integrations/CLIENTES/services/clientes-fsa.client';
 
 @Module({
   imports: [
@@ -74,6 +77,7 @@ import { GetHistorialSaldoCliente } from '@puntos/application/use-cases/ObtenerH
     TransaccionController,
     LoteController,
     AjusteController,
+    PuntosMeController,
   ],
   providers: [
     { provide: UUIDGenerator, useClass: UUIDv4Generator },
@@ -106,6 +110,8 @@ import { GetHistorialSaldoCliente } from '@puntos/application/use-cases/ObtenerH
     { provide: OBTENER_SALDO_SERVICE, useClass: ObtenerSaldo },
     { provide: OPERACION_VALOR_SERVICE, useClass: OperacionValorService },
     { provide: OBTENER_HSITORIAL_SALDO, useClass: GetHistorialSaldoCliente },
+    PuntosServiceWIBI,
+    ClientesFsaClient,
 
     {
       provide: IPUNTOS_SERVICE, // el token del puerto

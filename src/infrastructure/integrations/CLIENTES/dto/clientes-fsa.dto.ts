@@ -5,6 +5,8 @@ export type ClientesFsaDocumentoDto = {
 
 export type ClientesFsaClienteDto = {
   id: string;
+  nnro_documento?: string | null;
+  nro_documento?: string | null;
   documento: ClientesFsaDocumentoDto;
   nombre?: string | null;
   apellido?: string | null;
@@ -30,6 +32,13 @@ export type ClientesFsaClienteDto = {
     descripcion?: string | null;
     principal?: boolean | string | number | null;
     verificado?: boolean | string | number | null;
+  }>;
+};
+
+export type ClientesFsaMeDto = ClientesFsaClienteDto & {
+  fuentesDatos?: Array<{
+    sistema?: string;
+    extId?: string;
   }>;
 };
 

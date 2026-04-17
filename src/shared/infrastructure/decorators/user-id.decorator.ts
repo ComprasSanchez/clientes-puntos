@@ -4,13 +4,15 @@ import { Request } from 'express';
 interface AuthenticatedRequest extends Request {
   user?: {
     sub?: string;
-    // otros campos si querés
+  };
+  auth?: {
+    sub?: string;
   };
 }
 
 export const UserId = createParamDecorator(
   (data: unknown, ctx: ExecutionContext): string | undefined => {
     const request = ctx.switchToHttp().getRequest<AuthenticatedRequest>();
-    return request.user?.sub;
+    return request.auth?.sub ?? request.user?.sub;
   },
 );
