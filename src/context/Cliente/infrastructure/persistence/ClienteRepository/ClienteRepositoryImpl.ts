@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, In, Repository } from 'typeorm';
 import { ClienteRepository } from '@cliente/core/repository/ClienteRepository';
 import { ClienteEntity } from '../../entities/ClienteEntity';
 import { Cliente } from '@cliente/core/entities/Cliente';
@@ -48,12 +48,10 @@ export class TypeOrmClienteRepository implements ClienteRepository {
       return null;
     }
 
-    // Buscar con todos los candidatos usando ILIKE (case-insensitive)
-    // Primero intenta match exacto, luego con padding
-    const entity = await this.ormRepo
-      .createQueryBuilder('c')
-      .where('c.dni IN (:...candidates)', { candidates })
-      .getOne();
+    // Buscar con todos los candidatos (carga relación eager de categoría)
+    const entity = await this.ormRepo.findOne({
+      where: { dni: In(candidates) },
+    });
 
     if (entity) {
       return this.toDomain(entity);
@@ -187,6 +185,10 @@ export class TypeOrmClienteRepository implements ClienteRepository {
   }
 
   private toDomain(e: ClienteEntity): Cliente {
+    if (!e.categoria) {
+      throw new Error(`Cliente ${e.id} sin categoria cargada`);
+    }
+
     const catDom = new Categoria(
       new CategoriaId(e.categoria.id),
       new CategoriaNombre(e.categoria.nombre),
