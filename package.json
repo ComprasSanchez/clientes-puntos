@@ -25,8 +25,8 @@
     "typeorm": "node -r ts-node/register -r tsconfig-paths/register ./node_modules/typeorm/cli.js -d src/typeorm.config.ts",
     "db:migration:gen": "npm run typeorm -- migration:generate src/migrations/auto",
     "db:migration:create": "npm run typeorm -- migration:create src/migrations/init",
-    "db:migrate": "cross-env NODE_ENV=development TZ=America/Argentina/Buenos_Aires DOTENV_CONFIG_PATH=.env.development node -r dotenv/config ./node_modules/typeorm/cli.js -d dist/typeorm.config.js migration:run --transaction none",
-    "db:revert": "cross-env DOTENV_CONFIG_PATH=.env.development node -r dotenv/config ./node_modules/typeorm/cli.js -d dist/typeorm.config.js migration:revert --transaction none"
+    "db:migrate": "node -r dotenv/config ./node_modules/typeorm/cli.js -d dist/typeorm.config.js migration:run --transaction none",
+    "db:revert": "node -r dotenv/config ./node_modules/typeorm/cli.js -d dist/typeorm.config.js migration:revert --transaction none"
   },
   "dependencies": {
     "@nestjs/bullmq": "^11.0.3",
