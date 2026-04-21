@@ -10,6 +10,7 @@ export interface ClienteRepository {
   countAll(): Promise<number>;
   findById(id: ClienteId): Promise<Cliente | null>;
   findByDni(dni: ClienteDni): Promise<Cliente | null>;
+  findByDNICandidates(candidates: string[]): Promise<Cliente | null>;
   findByNroTarjeta(nroTarjeta: ClienteTarjetaFidely): Promise<Cliente | null>;
   findByIdFidely(idFidely: ClienteIdFidely): Promise<Cliente | null>;
   existsByTarjetaFidely(numero: string): Promise<boolean>;

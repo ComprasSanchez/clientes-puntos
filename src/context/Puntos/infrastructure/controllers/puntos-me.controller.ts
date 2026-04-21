@@ -288,24 +288,22 @@ export class PuntosMeController {
     input?: string | null,
   ): Promise<{ clienteId: string; dniForSync: string } | null> {
     const candidates = this.resolveDniCandidates(input);
-
-    for (const dni of candidates) {
-      try {
-        const cliente = await this.clienteRepo.findByDni(new ClienteDni(dni));
-        if (!cliente) {
-          continue;
-        }
-
-        return {
-          clienteId: cliente.id.value,
-          dniForSync: this.normalizeDniForClientesFsa(dni),
-        };
-      } catch {
-        continue;
-      }
+    if (candidates.length === 0) {
+      return null;
     }
 
-    return null;
+    // Usar el método optimizado que busca todos los candidatos en una sola query
+    const cliente = await this.clienteRepo.findByDNICandidates(candidates);
+
+    if (!cliente) {
+      return null;
+    }
+
+    // Retornar el primer candidato que matcheó como dniForSync
+    return {
+      clienteId: cliente.id.value,
+      dniForSync: this.normalizeDniForClientesFsa(candidates[0]),
+    };
   }
 
   private resolveDniCandidates(input?: string | null): string[] {

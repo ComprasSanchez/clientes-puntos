@@ -43,6 +43,35 @@ export class TypeOrmClienteRepository implements ClienteRepository {
     return entity ? this.toDomain(entity) : null;
   }
 
+  async findByDNICandidates(candidates: string[]): Promise<Cliente | null> {
+    if (candidates.length === 0) {
+      return null;
+    }
+
+    // Buscar con todos los candidatos usando ILIKE (case-insensitive)
+    // Primero intenta match exacto, luego con padding
+    const entity = await this.ormRepo
+      .createQueryBuilder('c')
+      .where('c.dni IN (:...candidates)', { candidates })
+      .getOne();
+
+    if (entity) {
+      return this.toDomain(entity);
+    }
+
+    // Fallback: buscar con LIKE para handlear padding (ej: 0040772342)
+    for (const dni of candidates) {
+      const exactMatch = await this.ormRepo.findOne({
+        where: { dni: dni },
+      });
+      if (exactMatch) {
+        return this.toDomain(exactMatch);
+      }
+    }
+
+    return null;
+  }
+
   async findByNroTarjeta(
     nroTarjeta: ClienteTarjetaFidely,
   ): Promise<Cliente | null> {
