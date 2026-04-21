@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   Inject,
+  Logger,
   NotFoundException,
   Query,
   UseGuards,
@@ -22,12 +23,24 @@ import { CLIENTE_REPO } from '@cliente/core/tokens/tokens';
 import { ClienteRepository } from '@cliente/core/repository/ClienteRepository';
 import { ClienteId } from '@cliente/core/value-objects/ClienteId';
 import { ClienteDni } from '@cliente/core/value-objects/ClienteDni';
+import { FindOperacionesByClienteUseCase } from '@puntos/application/use-cases/OperacionFindbyCliente/OperacionFindByCliente';
+import { OperacionResponseDto } from '../dtos/OperacionResponseDto';
+import { PaginationQueryDto } from '@shared/infrastructure/dtos/pagination-query.dto';
+import { OperacionValorService } from '@puntos/application/services/OperacionValorService';
+import { OPERACION_VALOR_SERVICE } from '@puntos/core/tokens/tokens';
 import { PuntosServiceWIBI } from '../adapters/PuntosServiceWIBI/PuntosServiceWIBI';
 
 type PuntosMeSaldoResponse = {
   clienteId: string;
   nroTarjeta: string;
   saldoActual: number;
+  movimientos: {
+    items: OperacionResponseDto[];
+    total: number;
+    page: number;
+    limit: number;
+    hasNext: boolean;
+  };
 };
 
 @ApiTags('Puntos - Me')
@@ -39,9 +52,14 @@ type PuntosMeSaldoResponse = {
 })
 @Controller('puntos/me')
 export class PuntosMeController {
+  private readonly logger = new Logger(PuntosMeController.name);
+
   constructor(
     private readonly clientesFsaClient: ClientesFsaClient,
     private readonly wibiService: PuntosServiceWIBI,
+    private readonly findByCliente: FindOperacionesByClienteUseCase,
+    @Inject(OPERACION_VALOR_SERVICE)
+    private readonly operacionValorService: OperacionValorService,
     @Inject(CLIENTE_REPO)
     private readonly clienteRepo: ClienteRepository,
   ) {}
@@ -59,13 +77,32 @@ export class PuntosMeController {
         clienteId: { type: 'string' },
         nroTarjeta: { type: 'string' },
         saldoActual: { type: 'number' },
+        movimientos: {
+          type: 'object',
+          properties: {
+            items: { type: 'array', items: { type: 'object' } },
+            total: { type: 'number' },
+            page: { type: 'number' },
+            limit: { type: 'number' },
+            hasNext: { type: 'boolean' },
+          },
+        },
       },
     },
   })
   async getSaldoActual(
     @UserId() userId: string,
+    @Query() query: PaginationQueryDto,
     @Query('clienteId') clienteId?: string,
   ): Promise<PuntosMeSaldoResponse> {
+    this.logger.log({
+      msg: 'Inicio GET /puntos/me',
+      userId: userId ?? null,
+      clienteIdQuery: clienteId ?? null,
+      page: query.page,
+      limit: query.limit,
+    });
+
     let puntosClienteId = String(clienteId ?? '').trim();
 
     if (!puntosClienteId) {
@@ -99,6 +136,12 @@ export class PuntosMeController {
           'No se pudo resolver cliente de PUNTOS ni por fuenteDatos ni por DNI',
         );
       }
+
+      this.logger.log({
+        msg: 'Cliente PUNTOS resuelto por /clientes/me o fallback DNI',
+        userId,
+        puntosClienteId,
+      });
     }
 
     let cliente = await this.clienteRepo.findById(new ClienteId(puntosClienteId));
@@ -136,17 +179,92 @@ export class PuntosMeController {
       );
     }
 
+    const saldoActual = await this.resolveSaldoActual(nroTarjeta);
+
+    const movimientos = await this.resolveMovimientos(puntosClienteId, query);
+
+    this.logger.log({
+      msg: 'GET /puntos/me resuelto',
+      puntosClienteId,
+      saldoActual,
+      movimientosCount: movimientos.items.length,
+      totalMovimientos: movimientos.total,
+      page: movimientos.page,
+      limit: movimientos.limit,
+      hasNext: movimientos.hasNext,
+    });
+
+    return {
+      clienteId: puntosClienteId,
+      nroTarjeta,
+      saldoActual,
+      movimientos,
+    };
+  }
+
+  private async resolveMovimientos(
+    puntosClienteId: string,
+    query: PaginationQueryDto,
+  ): Promise<PuntosMeSaldoResponse['movimientos']> {
     try {
-      const saldoActual = await this.wibiService.obtenerSaldoActualByTarjeta(
-        nroTarjeta,
+      const pageResult = await this.findByCliente.run(
+        puntosClienteId,
+        query.toParams(),
       );
+      const valorMap =
+        await this.operacionValorService.calcularParaOperaciones(pageResult.items);
+
+      const items = pageResult.items.map((op) => {
+        const dto = OperacionResponseDto.fromDomain(op);
+        const valor = valorMap.get(op.id.value);
+
+        if (valor) {
+          dto.puntosCredito = valor.puntosCredito;
+          dto.puntosDebito = valor.puntosDebito;
+          dto.puntosDelta = valor.puntosDelta;
+        }
+
+        return dto;
+      });
+
+      const hasNext =
+        pageResult.total > 0 &&
+        pageResult.page < Math.ceil(pageResult.total / pageResult.limit);
 
       return {
-        clienteId: puntosClienteId,
-        nroTarjeta,
-        saldoActual,
+        items,
+        total: pageResult.total,
+        page: pageResult.page,
+        limit: pageResult.limit,
+        hasNext,
       };
     } catch (error) {
+      this.logger.warn({
+        msg: 'No se pudieron resolver movimientos en /puntos/me',
+        puntosClienteId,
+        reason: error instanceof Error ? error.message : 'unknown_error',
+      });
+
+      return {
+        items: [],
+        total: 0,
+        page: query.page,
+        limit: query.limit,
+        hasNext: false,
+      };
+    }
+  }
+
+  private async resolveSaldoActual(nroTarjeta: string): Promise<number> {
+    try {
+      return await this.wibiService.obtenerSaldoActualByTarjeta(nroTarjeta);
+    } catch (error) {
+      this.logger.error({
+        msg: 'Error obteniendo saldo WIBI en /puntos/me',
+        nroTarjeta,
+        reason: error instanceof Error ? error.message : 'unknown_error',
+      });
+
       throw new BadGatewayException(
         error instanceof Error
           ? `Falló consulta de saldo WIBI: ${error.message}`
