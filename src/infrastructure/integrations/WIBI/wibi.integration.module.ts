@@ -6,6 +6,7 @@ import { ClienteEntity } from '@cliente/infrastructure/entities/ClienteEntity';
 import { CategoriaEntity } from '@cliente/infrastructure/entities/CategoriaEntity';
 import { OperacionEntity } from '@puntos/infrastructure/entities/operacion.entity';
 import { LoteEntity } from '@puntos/infrastructure/entities/lote.entity';
+import { TransaccionEntity } from '@puntos/infrastructure/entities/transaccion.entity';
 import { WibiSyncController } from './controller/wibi-sync.controller';
 import { WibiSyncService } from './services/wibi-sync.service';
 import { WibiSyncCron } from './cron/wibi-sync.cron';
@@ -19,6 +20,7 @@ import { WibiSyncCron } from './cron/wibi-sync.cron';
       CategoriaEntity,
       OperacionEntity,
       LoteEntity,
+      TransaccionEntity,
     ]),
   ],
   controllers: [WibiSyncController],

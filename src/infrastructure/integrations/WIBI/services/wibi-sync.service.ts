@@ -4,12 +4,19 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { ClienteEntity } from '@cliente/infrastructure/entities/ClienteEntity';
 import { CategoriaEntity } from '@cliente/infrastructure/entities/CategoriaEntity';
 import { OpTipo } from '@shared/core/enums/OpTipo';
+import { TipoMoneda } from '@shared/core/enums/TipoMoneda';
 import { OperacionEntity } from '@puntos/infrastructure/entities/operacion.entity';
+import { TransaccionEntity } from '@puntos/infrastructure/entities/transaccion.entity';
+import { TxTipo } from '@puntos/core/enums/TxTipo';
 import { DataSource, In, Repository } from 'typeorm';
 import { Pool } from 'pg';
 import { randomUUID } from 'crypto';
 import { BatchEstado } from '@puntos/core/enums/BatchEstado';
 import { StatusCliente } from '@cliente/core/enums/StatusCliente';
+import {
+  type Pool as MySqlPool,
+  createPool as createMySqlPool,
+} from 'mysql2/promise';
 
 interface WibiSyncInput {
   batchSize?: number;
@@ -37,7 +44,16 @@ interface MovimientoSourceRow {
   monto: number | null;
   puntos: number;
   puntosDebito: number | null;
+  idMovimientoRef: number | null;
+  nroComprobante: string | null;
+  comprobanteExt: string | null;
   descripcion: string | null;
+}
+
+interface PuntoVtaSucursalRow {
+  puntoVta: number;
+  sucursal: number;
+  qty: number;
 }
 
 interface SyncCheckpoint {
@@ -64,6 +80,8 @@ interface SyncRunCounters {
 export class WibiSyncService implements OnModuleDestroy {
   private readonly logger = new Logger(WibiSyncService.name);
   private pool: Pool | null = null;
+  private plexPool: MySqlPool | null = null;
+  private puntoVtaSucursalCache = new Map<number, string>();
   private lastGeneratedOperacionId = 0;
 
   constructor(
@@ -75,12 +93,19 @@ export class WibiSyncService implements OnModuleDestroy {
     private readonly categoriaRepo: Repository<CategoriaEntity>,
     @InjectRepository(OperacionEntity)
     private readonly operacionRepo: Repository<OperacionEntity>,
+    @InjectRepository(TransaccionEntity)
+    private readonly transaccionRepo: Repository<TransaccionEntity>,
   ) {}
 
   async onModuleDestroy(): Promise<void> {
     if (this.pool) {
       await this.pool.end();
       this.pool = null;
+    }
+
+    if (this.plexPool) {
+      await this.plexPool.end();
+      this.plexPool = null;
     }
   }
 
@@ -270,6 +295,25 @@ export class WibiSyncService implements OnModuleDestroy {
         error_message TEXT NOT NULL,
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       )
+    `);
+
+    await this.dataSource.query(`
+      CREATE TABLE IF NOT EXISTS wibi_sync_imported_movements (
+        movement_id BIGINT PRIMARY KEY,
+        operation_id BIGINT NULL,
+        ref_movement_id BIGINT NULL,
+        imported_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      )
+    `);
+
+    await this.dataSource.query(`
+      ALTER TABLE wibi_sync_imported_movements
+      ADD COLUMN IF NOT EXISTS operation_id BIGINT NULL
+    `);
+
+    await this.dataSource.query(`
+      ALTER TABLE wibi_sync_imported_movements
+      ADD COLUMN IF NOT EXISTS ref_movement_id BIGINT NULL
     `);
 
     await this.dataSource.query(
@@ -564,6 +608,18 @@ export class WibiSyncService implements OnModuleDestroy {
       this.config.get<string>('WIBI_MOVIMIENTOS_DESCRIPCION_COLUMN') ??
         'Motivo',
     );
+    const idMovimientoRefColumn = this.safeIdentifier(
+      this.config.get<string>('WIBI_MOVIMIENTOS_ID_MOVIMIENTO_REF_COLUMN') ??
+        'IdMovimientoRef',
+    );
+    const nroComprobanteColumn = this.safeIdentifier(
+      this.config.get<string>('WIBI_MOVIMIENTOS_NRO_COMPROBANTE_COLUMN') ??
+        'NroComprobante',
+    );
+    const comprobanteExtColumn = this.safeIdentifier(
+      this.config.get<string>('WIBI_MOVIMIENTOS_COMPROBANTE_EXT_COLUMN') ??
+        'ComprobanteExt',
+    );
     const puntosDebitoColumnRaw = this.config.get<string>(
       'WIBI_MOVIMIENTOS_PUNTOS_DEBITO_COLUMN',
     );
@@ -572,6 +628,9 @@ export class WibiSyncService implements OnModuleDestroy {
       : `0::numeric AS "puntosDebito"`;
 
     const checkpoint = await this.loadCheckpoint(dryRun);
+    const importedTableAvailable = dryRun
+      ? await this.tableExists('wibi_sync_imported_movements')
+      : true;
     const baseCheckpoint = checkpoint;
     let currentCursor: SyncCheckpoint | null = null;
     let newestProcessed: SyncCheckpoint | null = null;
@@ -607,6 +666,9 @@ export class WibiSyncService implements OnModuleDestroy {
           ${montoColumn} AS "monto",
           ${puntosColumn} AS "puntos",
           ${puntosDebitoSelect},
+          ${idMovimientoRefColumn} AS "idMovimientoRef",
+          ${nroComprobanteColumn} AS "nroComprobante",
+          ${comprobanteExtColumn} AS "comprobanteExt",
           ${descripcionColumn} AS "descripcion"
         FROM ${table}
         WHERE (${fechaColumn} > $1
@@ -624,6 +686,9 @@ export class WibiSyncService implements OnModuleDestroy {
           ${montoColumn} AS "monto",
           ${puntosColumn} AS "puntos",
           ${puntosDebitoSelect},
+          ${idMovimientoRefColumn} AS "idMovimientoRef",
+          ${nroComprobanteColumn} AS "nroComprobante",
+          ${comprobanteExtColumn} AS "comprobanteExt",
           ${descripcionColumn} AS "descripcion"
         FROM ${table}
         WHERE (${fechaColumn} > $1
@@ -679,26 +744,33 @@ export class WibiSyncService implements OnModuleDestroy {
       const insertCandidates: Array<{
         entity: OperacionEntity;
         row: MovimientoSourceRow;
+        transacciones: TransaccionEntity[];
+        movementId: number;
+        operationId: number;
+        refMovementId: number | null;
       }> = [];
-      const refs = rows.map((row) =>
-        this.toExternalRef(Number(row.movimientoId)),
+      const movementIds = rows.map((row) => Number(row.movimientoId));
+      const importedMovements = await this.findAlreadyImportedMovements(
+        movementIds,
+        importedTableAvailable,
       );
-      const existing = await this.operacionRepo.find({
-        where: { refOperacion: In(refs) },
-        select: { refOperacion: true },
-      });
-      const existingRefs = new Set(
-        existing
-          .map((item) => item.refOperacion)
-          .filter((item): item is string => !!item),
+      const referencedMovementIds: number[] = Array.from(
+        new Set(
+          rows
+            .map((row) => Number(row.idMovimientoRef ?? 0))
+            .filter((value) => Number.isFinite(value) && value > 0),
+        ),
       );
+      const refAnulacionByMovementId = await this.findOperationIdsByMovementIds(
+        referencedMovementIds,
+        importedTableAvailable,
+      );
+      const sucursalByPuntoVta = await this.resolveSucursalByPuntoVta(rows);
 
       for (const row of rows) {
         const movementId = Number(row.movimientoId);
         const sourceClienteId = Number(row.sourceClienteId);
-        const referencia = this.toExternalRef(movementId);
-
-        if (existingRefs.has(referencia)) {
+        if (importedMovements.has(movementId)) {
           counters.movimientosDuplicados += 1;
           continue;
         }
@@ -718,7 +790,22 @@ export class WibiSyncService implements OnModuleDestroy {
           continue;
         }
 
-        const tipoOperacion = puntosRaw >= 0 ? OpTipo.COMPRA : OpTipo.AJUSTE;
+        const tipoOperacion = this.resolveOperacionTipo(row, puntosRaw);
+        const nroComprobante = this.normalizeNullableText(
+          row.nroComprobante,
+          50,
+        );
+        const comprobanteExt = this.normalizeNullableText(
+          row.comprobanteExt,
+          50,
+        );
+        const refOperacion = nroComprobante;
+        const referenciaTransaccion = nroComprobante ?? comprobanteExt;
+
+        const puntoVta = this.parsePuntoVtaFromNroComprobante(nroComprobante);
+        const codSucursal =
+          puntoVta !== null ? (sucursalByPuntoVta.get(puntoVta) ?? null) : null;
+        const refMovementId = this.resolveRefMovementId(row);
 
         const operationId = this.nextOperacionId();
         const entity = this.operacionRepo.create({
@@ -729,14 +816,37 @@ export class WibiSyncService implements OnModuleDestroy {
           origenTipo: this.getOrigenTipo(),
           puntos,
           monto: this.normalizeMovementAmount(row.monto),
-          moneda: null,
-          refOperacion: referencia,
-          refAnulacion: null,
-          codSucursal: null,
+          moneda: TipoMoneda.ARS,
+          refOperacion,
+          refAnulacion:
+            refMovementId !== null
+              ? (refAnulacionByMovementId.get(refMovementId) ?? null)
+              : null,
+          codSucursal,
           items: null,
         });
 
-        insertCandidates.push({ entity, row });
+        const transacciones = this.buildTransacciones(
+          row,
+          operationId,
+          referenciaTransaccion,
+        );
+
+        if (transacciones.length === 0) {
+          counters.movimientosDuplicados += 1;
+          continue;
+        }
+
+        insertCandidates.push({
+          entity,
+          row,
+          transacciones,
+          movementId,
+          operationId,
+          refMovementId,
+        });
+
+        refAnulacionByMovementId.set(movementId, operationId);
       }
 
       await this.persistMovimientosBatch(insertCandidates, counters, dryRun);
@@ -757,6 +867,10 @@ export class WibiSyncService implements OnModuleDestroy {
       this.logger.log(
         `[WIBI_SYNC][movimientos] batch=${batchNumber} step=processed rows=${rows.length} inserted=${counters.movimientosInsertados} duplicated=${counters.movimientosDuplicados} noMatch=${counters.movimientosSinMatch} errors=${counters.movimientosError} nextCursorFecha=${currentCursor.lastFecha.toISOString()} nextCursorId=${currentCursor.lastMovimientoId} elapsedMs=${Date.now() - batchStartedAt}`,
       );
+    }
+
+    if (!dryRun) {
+      await this.reconcileRefAnulaciones(importedTableAvailable);
     }
 
     if (!dryRun && newestProcessed) {
@@ -843,6 +957,10 @@ export class WibiSyncService implements OnModuleDestroy {
     insertCandidates: Array<{
       entity: OperacionEntity;
       row: MovimientoSourceRow;
+      transacciones: TransaccionEntity[];
+      movementId: number;
+      operationId: number;
+      refMovementId: number | null;
     }>,
     counters: SyncRunCounters,
     dryRun: boolean,
@@ -857,22 +975,44 @@ export class WibiSyncService implements OnModuleDestroy {
     }
 
     try {
-      const result = await this.operacionRepo
-        .createQueryBuilder()
-        .insert()
-        .into(OperacionEntity)
-        .values(insertCandidates.map((candidate) => candidate.entity))
-        .orIgnore()
-        .returning('id')
-        .execute();
+      await this.dataSource.transaction(async (manager) => {
+        await manager
+          .createQueryBuilder()
+          .insert()
+          .into(OperacionEntity)
+          .values(insertCandidates.map((candidate) => candidate.entity))
+          .execute();
 
-      const insertedCount = Array.isArray(result.raw) ? result.raw.length : 0;
-      const duplicatedCount = Math.max(
-        0,
-        insertCandidates.length - insertedCount,
-      );
-      counters.movimientosInsertados += insertedCount;
-      counters.movimientosDuplicados += duplicatedCount;
+        const txEntities = insertCandidates.flatMap(
+          (candidate) => candidate.transacciones,
+        );
+        if (txEntities.length > 0) {
+          await manager
+            .createQueryBuilder()
+            .insert()
+            .into(TransaccionEntity)
+            .values(txEntities)
+            .execute();
+        }
+
+        await manager.query(
+          `INSERT INTO wibi_sync_imported_movements (movement_id, operation_id, ref_movement_id, imported_at)
+           SELECT u.movement_id, u.operation_id, u.ref_movement_id, NOW()
+           FROM UNNEST($1::bigint[], $2::bigint[], $3::bigint[]) AS u(movement_id, operation_id, ref_movement_id)
+           ON CONFLICT (movement_id)
+           DO UPDATE SET
+             operation_id = EXCLUDED.operation_id,
+             ref_movement_id = EXCLUDED.ref_movement_id,
+             imported_at = EXCLUDED.imported_at`,
+          [
+            insertCandidates.map((candidate) => candidate.movementId),
+            insertCandidates.map((candidate) => candidate.operationId),
+            insertCandidates.map((candidate) => candidate.refMovementId),
+          ],
+        );
+      });
+
+      counters.movimientosInsertados += insertCandidates.length;
       return;
     } catch (bulkError) {
       const bulkMessage =
@@ -886,7 +1026,26 @@ export class WibiSyncService implements OnModuleDestroy {
 
     for (const candidate of insertCandidates) {
       try {
-        await this.operacionRepo.insert(candidate.entity);
+        await this.dataSource.transaction(async (manager) => {
+          await manager.insert(OperacionEntity, candidate.entity);
+          if (candidate.transacciones.length > 0) {
+            await manager.insert(TransaccionEntity, candidate.transacciones);
+          }
+          await manager.query(
+            `INSERT INTO wibi_sync_imported_movements (movement_id, operation_id, ref_movement_id, imported_at)
+             VALUES ($1, $2, $3, NOW())
+             ON CONFLICT (movement_id)
+             DO UPDATE SET
+               operation_id = EXCLUDED.operation_id,
+               ref_movement_id = EXCLUDED.ref_movement_id,
+               imported_at = EXCLUDED.imported_at`,
+            [
+              candidate.movementId,
+              candidate.operationId,
+              candidate.refMovementId,
+            ],
+          );
+        });
         counters.movimientosInsertados += 1;
       } catch (error) {
         if (this.isUniqueViolation(error)) {
@@ -918,12 +1077,333 @@ export class WibiSyncService implements OnModuleDestroy {
     return result.rows as T[];
   }
 
-  private toExternalRef(movimientoId: number): string {
-    return `WIBI:${movimientoId}`;
-  }
-
   private getOrigenTipo(): string {
     return this.config.get<string>('WIBI_ORIGEN_TIPO') ?? 'WIBI_SYNC_TEMP';
+  }
+
+  private resolveRefMovementId(row: MovimientoSourceRow): number | null {
+    const idMovimientoRef = Number(row.idMovimientoRef ?? 0);
+    if (!Number.isFinite(idMovimientoRef) || idMovimientoRef <= 0) {
+      return null;
+    }
+    return idMovimientoRef;
+  }
+
+  private resolveOperacionTipo(
+    row: MovimientoSourceRow,
+    puntosRaw: number,
+  ): OpTipo {
+    const tipoRaw = Number(row.tipoMovimiento ?? 0);
+    switch (tipoRaw) {
+      case 1:
+        return OpTipo.COMPRA;
+      case 2:
+        return OpTipo.DEVOLUCION;
+      case 3:
+        return OpTipo.ANULACION;
+      case 5:
+        return OpTipo.AJUSTE;
+      default:
+        break;
+    }
+
+    const comprobanteTipo = this.parseComprobanteTipo(row.nroComprobante);
+    if (comprobanteTipo === 'NC') {
+      return OpTipo.DEVOLUCION;
+    }
+    if (comprobanteTipo === 'FV') {
+      return OpTipo.COMPRA;
+    }
+
+    return puntosRaw >= 0 ? OpTipo.COMPRA : OpTipo.AJUSTE;
+  }
+
+  private buildTransacciones(
+    row: MovimientoSourceRow,
+    operationId: number,
+    referenciaId: string | null,
+  ): TransaccionEntity[] {
+    const result: TransaccionEntity[] = [];
+
+    const puntosAcreditados = this.normalizePoints(row.puntos);
+    if (puntosAcreditados > 0) {
+      result.push(
+        this.transaccionRepo.create({
+          id: randomUUID(),
+          operationId,
+          loteId: randomUUID(),
+          tipo: TxTipo.ACREDITACION,
+          cantidad: puntosAcreditados,
+          referenciaId,
+          reglasAplicadas: {},
+        }),
+      );
+    }
+
+    const puntosDebito = this.normalizePoints(row.puntosDebito);
+    if (puntosDebito > 0) {
+      result.push(
+        this.transaccionRepo.create({
+          id: randomUUID(),
+          operationId,
+          loteId: randomUUID(),
+          tipo: TxTipo.GASTO,
+          cantidad: puntosDebito,
+          referenciaId,
+          reglasAplicadas: {},
+        }),
+      );
+    }
+
+    return result;
+  }
+
+  private parseComprobanteTipo(nroComprobante: string | null | undefined):
+    | 'FV'
+    | 'NC'
+    | null {
+    const normalized = this.normalizeNullableText(nroComprobante, 50);
+    if (!normalized) {
+      return null;
+    }
+    const match = normalized.match(/^([A-Za-z]{2})\s+/);
+    if (!match) {
+      return null;
+    }
+    const token = match[1].toUpperCase();
+    if (token === 'FV' || token === 'NC') {
+      return token;
+    }
+    return null;
+  }
+
+  private parsePuntoVtaFromNroComprobante(
+    nroComprobante: string | null | undefined,
+  ): number | null {
+    const normalized = this.normalizeNullableText(nroComprobante, 50);
+    if (!normalized) {
+      return null;
+    }
+
+    const match = normalized.match(/^[A-Za-z]{2}\s+([0-9]{4})\s+[0-9]{8}$/);
+    if (!match) {
+      return null;
+    }
+
+    const value = Number(match[1]);
+    if (!Number.isFinite(value)) {
+      return null;
+    }
+    return value;
+  }
+
+  private async findAlreadyImportedMovements(
+    movementIds: number[],
+    tableAvailable = true,
+  ): Promise<Set<number>> {
+    if (movementIds.length === 0 || !tableAvailable) {
+      return new Set<number>();
+    }
+
+    const rows = (await this.dataSource.query(
+      `SELECT movement_id
+       FROM wibi_sync_imported_movements
+       WHERE movement_id = ANY($1::bigint[])`,
+      [movementIds],
+    )) as Array<{ movement_id: number }>;
+
+    return new Set(rows.map((row) => Number(row.movement_id)));
+  }
+
+  private async findOperationIdsByMovementIds(
+    movementIds: number[],
+    tableAvailable = true,
+  ): Promise<Map<number, number>> {
+    const result = new Map<number, number>();
+    if (movementIds.length === 0 || !tableAvailable) {
+      return result;
+    }
+
+    const rows = (await this.dataSource.query(
+      `SELECT movement_id, operation_id
+       FROM wibi_sync_imported_movements
+       WHERE movement_id = ANY($1::bigint[])
+         AND operation_id IS NOT NULL`,
+      [movementIds],
+    )) as Array<{ movement_id: number; operation_id: number }>;
+
+    for (const row of rows) {
+      const movementId = Number(row.movement_id);
+      const operationId = Number(row.operation_id);
+      if (Number.isFinite(movementId) && Number.isFinite(operationId)) {
+        result.set(movementId, operationId);
+      }
+    }
+
+    return result;
+  }
+
+  private async reconcileRefAnulaciones(
+    importedTableAvailable: boolean,
+  ): Promise<void> {
+    if (!importedTableAvailable) {
+      return;
+    }
+
+    await this.dataSource.query(
+      `UPDATE operaciones AS anul
+       SET "refAnulacion" = src.operation_id
+       FROM wibi_sync_imported_movements AS rel
+       JOIN wibi_sync_imported_movements AS src
+         ON src.movement_id = rel.ref_movement_id
+       WHERE rel.operation_id = anul.id
+         AND anul."origenTipo" = $1
+         AND anul.tipo = $2
+         AND src.operation_id IS NOT NULL
+         AND (anul."refAnulacion" IS NULL OR anul."refAnulacion" <> src.operation_id)`,
+      [this.getOrigenTipo(), OpTipo.ANULACION],
+    );
+  }
+
+  private async resolveSucursalByPuntoVta(
+    rows: MovimientoSourceRow[],
+  ): Promise<Map<number, string>> {
+    const puntoVtas = Array.from(
+      new Set(
+        rows
+          .map((row) => this.parsePuntoVtaFromNroComprobante(row.nroComprobante))
+          .filter((value): value is number => value !== null),
+      ),
+    );
+
+    const result = new Map<number, string>();
+    if (puntoVtas.length === 0) {
+      return result;
+    }
+
+    const unresolved = puntoVtas.filter(
+      (puntoVta) => !this.puntoVtaSucursalCache.has(puntoVta),
+    );
+
+    if (unresolved.length > 0) {
+      try {
+        const sourceRows = await this.fetchPuntoVtaSucursalRows(unresolved);
+        const grouped = new Map<number, PuntoVtaSucursalRow[]>();
+        for (const row of sourceRows) {
+          const puntoVta = Number(row.puntoVta);
+          if (!Number.isFinite(puntoVta)) {
+            continue;
+          }
+          const current = grouped.get(puntoVta) ?? [];
+          current.push(row);
+          grouped.set(puntoVta, current);
+        }
+
+        for (const [puntoVta, alternatives] of grouped.entries()) {
+          alternatives.sort((a, b) => Number(b.qty) - Number(a.qty));
+          const top = alternatives[0];
+          if (!top) {
+            continue;
+          }
+          this.puntoVtaSucursalCache.set(
+            puntoVta,
+            String(Number(top.sucursal)),
+          );
+        }
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        this.logger.warn(
+          `[WIBI_SYNC][movimientos] no se pudo resolver sucursal por PuntoVta desde PLEX: ${message}`,
+        );
+      }
+    }
+
+    for (const puntoVta of puntoVtas) {
+      const codSucursal = this.puntoVtaSucursalCache.get(puntoVta);
+      if (codSucursal) {
+        result.set(puntoVta, codSucursal);
+      }
+    }
+
+    return result;
+  }
+
+  private async fetchPuntoVtaSucursalRows(
+    puntoVtas: number[],
+  ): Promise<PuntoVtaSucursalRow[]> {
+    if (puntoVtas.length === 0) {
+      return [];
+    }
+
+    const pool = this.getPlexPool();
+    const placeholders = puntoVtas.map(() => '?').join(',');
+    const sql = `
+      SELECT
+        CAST(PuntoVta AS UNSIGNED) AS puntoVta,
+        CAST(Sucursal AS UNSIGNED) AS sucursal,
+        COUNT(*) AS qty
+      FROM factcabecera
+      WHERE PuntoVta IN (${placeholders})
+      GROUP BY PuntoVta, Sucursal
+    `;
+
+    const [rows] = await pool.query(sql, puntoVtas);
+    return rows as PuntoVtaSucursalRow[];
+  }
+
+  private getPlexPool(): MySqlPool {
+    if (this.plexPool) {
+      return this.plexPool;
+    }
+
+    const url = this.resolvePlexConnectionUrl();
+    if (!url) {
+      throw new Error(
+        'Missing PLEX database config. Set WIBI_PLEX_DATABASE_URL, DB_PLEX_URL o PLEX_DB_*',
+      );
+    }
+
+    this.plexPool = createMySqlPool({
+      uri: url,
+      waitForConnections: true,
+      connectionLimit: 2,
+      enableKeepAlive: true,
+    });
+
+    return this.plexPool;
+  }
+
+  private resolvePlexConnectionUrl(): string | null {
+    const fromUrl = this.config.get<string>('WIBI_PLEX_DATABASE_URL');
+    if (fromUrl && fromUrl.trim().length > 0) {
+      return fromUrl.trim();
+    }
+
+    const legacyUrl = this.config.get<string>('DB_PLEX_URL');
+    if (legacyUrl && legacyUrl.trim().length > 0) {
+      return legacyUrl.trim();
+    }
+
+    const host = this.config.get<string>('PLEX_DB_HOST');
+    const port = this.config.get<string>('PLEX_DB_PORT');
+    const database = this.config.get<string>('PLEX_DB_DATABASE');
+    const user = this.config.get<string>('PLEX_DB_USER');
+    const password = this.config.get<string>('PLEX_DB_PASSWORD') ?? '';
+
+    if (
+      !host ||
+      host.trim().length === 0 ||
+      !port ||
+      port.trim().length === 0 ||
+      !database ||
+      database.trim().length === 0 ||
+      !user ||
+      user.trim().length === 0
+    ) {
+      return null;
+    }
+
+    return `mysql://${encodeURIComponent(user)}:${encodeURIComponent(password)}@${host}:${port}/${database}`;
   }
 
   private normalizePoints(value: unknown): number {
