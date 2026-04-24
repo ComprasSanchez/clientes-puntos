@@ -4,12 +4,12 @@ import { ClientesFsaClient } from '@infrastructure/integrations/CLIENTES/service
 
 describe('ConsultarNovedadesClientePlexAdapter', () => {
   let clienteFindUpdatedBetween: { run: jest.Mock };
-  let clientesFsaClient: { findByDni: jest.Mock };
+  let clientesFsaClient: { findManyByDni: jest.Mock };
   let adapter: ConsultarNovedadesClientePlexAdapter;
 
   beforeEach(() => {
     clienteFindUpdatedBetween = { run: jest.fn() };
-    clientesFsaClient = { findByDni: jest.fn().mockResolvedValue(null) };
+    clientesFsaClient = { findManyByDni: jest.fn().mockResolvedValue(new Map()) };
     adapter = new ConsultarNovedadesClientePlexAdapter(
       clienteFindUpdatedBetween as unknown as ClienteFindUpdatedBetween,
       clientesFsaClient as unknown as ClientesFsaClient,
@@ -51,6 +51,14 @@ describe('ConsultarNovedadesClientePlexAdapter', () => {
     const result = await adapter.handle(xml, 'SUC-01');
 
     expect(clienteFindUpdatedBetween.run).toHaveBeenCalledTimes(1);
+    expect(clienteFindUpdatedBetween.run).toHaveBeenCalledWith(
+      {
+        from: new Date(2026, 2, 1, 0, 0, 0),
+        to: new Date(2026, 2, 6, 23, 59, 59),
+      },
+      { skipCanonicalHydration: true },
+    );
+    expect(clientesFsaClient.findManyByDni).toHaveBeenCalledWith(['30111222']);
     expect(result.response).toContain('<RespCode>0</RespCode>');
     expect(result.response).toContain('<Novedades>');
     expect(result.response).toContain('<Clientes>');

@@ -12,7 +12,10 @@ export class ClienteFindUpdatedBetween {
     private readonly canonicalHydrator: ClienteCanonicalHydrator,
   ) {}
 
-  async run(params: { from: Date; to: Date }): Promise<ClienteResponseDto[]> {
+  async run(
+    params: { from: Date; to: Date },
+    options?: { skipCanonicalHydration?: boolean },
+  ): Promise<ClienteResponseDto[]> {
     const clientes = await this.repository.findUpdatedBetween(params);
 
     if (!Array.isArray(clientes) || clientes.length === 0) {
@@ -38,6 +41,10 @@ export class ClienteFindUpdatedBetween {
       provincia: null,
       fechaBaja: c.fidelyStatus.fechaBaja.value?.toISOString() ?? null,
     }));
+
+    if (options?.skipCanonicalHydration) {
+      return mapped;
+    }
 
     return this.canonicalHydrator.enrichMany(mapped);
   }

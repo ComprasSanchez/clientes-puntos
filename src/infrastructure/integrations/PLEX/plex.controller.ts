@@ -82,7 +82,7 @@ function escapeXml(s: string): string {
 export class PlexController {
   private readonly logger = new Logger(PlexController.name);
   private readonly requestTimeoutMs =
-    Number(process.env.PLEX_REQUEST_TIMEOUT_MS ?? '20000') || 20000;
+    Number(process.env.PLEX_REQUEST_TIMEOUT_MS ?? '60000') || 60000;
 
   constructor(
     @Inject(FIDELIZAR_VENTA_ADAPTER)

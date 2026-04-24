@@ -46,7 +46,10 @@ export class ConsultarNovedadesClientePlexAdapter {
       throw new Error('FechaDesde debe ser menor o igual a FechaHasta');
     }
 
-    const clientes = await this.clienteFindUpdatedBetween.run({ from, to });
+    const clientes = await this.clienteFindUpdatedBetween.run(
+      { from, to },
+      { skipCanonicalHydration: true },
+    );
     const clientesCanonicos = await this.enrichClientesConCanonico(clientes);
 
     const responseDto = PlexConsultarNovedadesClienteResponseMapper.fromDomain({
@@ -108,52 +111,71 @@ export class ConsultarNovedadesClientePlexAdapter {
   private async enrichClientesConCanonico(
     clientes: ClienteResponseDto[],
   ): Promise<ClienteResponseDto[]> {
-    return Promise.all(
-      clientes.map(async (cliente) => {
-        try {
-          const canonico = await this.clientesFsaClient.findByDni(cliente.dni);
-
-          if (!canonico) {
-            return cliente;
-          }
-
-          const telefono = this.pickBestContactoByTipo(canonico, ['TELEFONO']);
-          const email = this.pickBestContactoByTipo(canonico, ['EMAIL']);
-          const direccion = this.extractDireccion(canonico);
-          const codPostal = this.extractCodPostal(canonico);
-          const localidad = this.extractLocalidad(canonico);
-          const provincia = this.extractProvincia(canonico);
-          const fechaNacimiento = this.normalizeFechaNacimiento(
-            this.extractFechaNacimiento(canonico),
-          );
-          const sexo = this.extractSexo(canonico);
-
-          return {
-            ...cliente,
-            nombre: canonico.nombre ?? cliente.nombre,
-            apellido: canonico.apellido ?? cliente.apellido,
-            dni: canonico.documento?.numero ?? cliente.dni,
-            telefono: telefono ?? canonico.telefono ?? cliente.telefono,
-            email: email ?? canonico.email ?? cliente.email,
-            direccion: direccion ?? cliente.direccion,
-            codPostal: codPostal ?? cliente.codPostal,
-            localidad: localidad ?? cliente.localidad,
-            provincia: provincia ?? cliente.provincia,
-            fechaNacimiento: fechaNacimiento ?? cliente.fechaNacimiento,
-            sexo: sexo ?? cliente.sexo,
-          };
-        } catch (error) {
-          this.logger.warn(
-            {
-              dni: cliente.dni,
-              message: error instanceof Error ? error.message : String(error),
-            },
-            'No se pudo enriquecer cliente desde clientes-fsa',
-          );
-          return cliente;
-        }
-      }),
+    const dnis = Array.from(
+      new Set(
+        clientes
+          .map((cliente) => this.normalizeDni(cliente.dni))
+          .filter((dni) => dni.length > 0),
+      ),
     );
+
+    if (!dnis.length) {
+      return clientes;
+    }
+
+    let canonicosByDni: Map<string, ClientesFsaClienteDto>;
+    try {
+      canonicosByDni = await this.clientesFsaClient.findManyByDni(dnis);
+    } catch (error) {
+      this.logger.warn(
+        {
+          requested: dnis.length,
+          message: error instanceof Error ? error.message : String(error),
+        },
+        'No se pudo enriquecer clientes desde clientes-fsa (bulk)',
+      );
+      return clientes;
+    }
+
+    return clientes.map((cliente) => {
+      const canonico = canonicosByDni.get(this.normalizeDni(cliente.dni));
+
+      if (!canonico) {
+        return cliente;
+      }
+
+      const telefono = this.pickBestContactoByTipo(canonico, ['TELEFONO']);
+      const email = this.pickBestContactoByTipo(canonico, ['EMAIL']);
+      const direccion = this.extractDireccion(canonico);
+      const codPostal = this.extractCodPostal(canonico);
+      const localidad = this.extractLocalidad(canonico);
+      const provincia = this.extractProvincia(canonico);
+      const fechaNacimiento = this.normalizeFechaNacimiento(
+        this.extractFechaNacimiento(canonico),
+      );
+      const sexo = this.extractSexo(canonico);
+
+      return {
+        ...cliente,
+        nombre: canonico.nombre ?? cliente.nombre,
+        apellido: canonico.apellido ?? cliente.apellido,
+        dni: canonico.documento?.numero ?? cliente.dni,
+        telefono: telefono ?? canonico.telefono ?? cliente.telefono,
+        email: email ?? canonico.email ?? cliente.email,
+        direccion: direccion ?? cliente.direccion,
+        codPostal: codPostal ?? cliente.codPostal,
+        localidad: localidad ?? cliente.localidad,
+        provincia: provincia ?? cliente.provincia,
+        fechaNacimiento: fechaNacimiento ?? cliente.fechaNacimiento,
+        sexo: sexo ?? cliente.sexo,
+      };
+    });
+  }
+
+  private normalizeDni(dni: string): string {
+    const trimmed = String(dni).trim();
+    const withoutLeadingZeros = trimmed.replace(/^0+/, '');
+    return withoutLeadingZeros.length > 0 ? withoutLeadingZeros : trimmed;
   }
 
   private pickBestContactoByTipo(

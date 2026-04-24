@@ -4,6 +4,8 @@ import { AxiosError, AxiosInstance, isAxiosError } from 'axios';
 import {
   ClientesFsaClienteDto,
   ClientesFsaClienteIdDto,
+  ClientesFsaClientesBulkRequestDto,
+  ClientesFsaClientesBulkResponseDto,
   ClientesFsaMeDto,
   ClientesFsaUpsertVerificacionRequest,
 } from '../dto/clientes-fsa.dto';
@@ -93,6 +95,49 @@ export class ClientesFsaClient {
       this.logDownstreamError('findByDni', error, {
         path,
         dniLast4: dni.slice(-4),
+      });
+      throw error;
+    }
+  }
+
+  async findManyByDni(dnis: string[]): Promise<Map<string, ClientesFsaClienteDto>> {
+    const documentos = Array.from(
+      new Set(
+        dnis
+          .map((dni) => this.normalizeDni(dni))
+          .map((dni) => dni.trim())
+          .filter((dni) => dni.length > 0),
+      ),
+    );
+
+    if (!documentos.length) {
+      return new Map();
+    }
+
+    const path = '/clientes/doc/DNI/bulk';
+    const payload: ClientesFsaClientesBulkRequestDto = {
+      documentos,
+    };
+
+    try {
+      const response =
+        await this.http.post<ClientesFsaClientesBulkResponseDto>(path, payload);
+
+      const map = new Map<string, ClientesFsaClienteDto>();
+
+      for (const item of response.data?.items ?? []) {
+        const numero = String(item.documento?.numero ?? '').trim();
+        const normalized = this.normalizeDni(numero);
+        if (!normalized) continue;
+
+        map.set(normalized, item);
+      }
+
+      return map;
+    } catch (error) {
+      this.logDownstreamError('findManyByDni', error, {
+        path,
+        requested: documentos.length,
       });
       throw error;
     }
