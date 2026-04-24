@@ -7,6 +7,7 @@ describe('ConsultarNovedadesClientePlexAdapter', () => {
   let clientesFsaClient: {
     findManyByDni: jest.Mock;
     findManyByExternalIds: jest.Mock;
+    findProfileById: jest.Mock;
   };
   let adapter: ConsultarNovedadesClientePlexAdapter;
 
@@ -15,6 +16,7 @@ describe('ConsultarNovedadesClientePlexAdapter', () => {
     clientesFsaClient = {
       findManyByDni: jest.fn().mockResolvedValue(new Map()),
       findManyByExternalIds: jest.fn().mockResolvedValue(new Map()),
+      findProfileById: jest.fn().mockResolvedValue(null),
     };
     adapter = new ConsultarNovedadesClientePlexAdapter(
       clienteFindUpdatedBetween as unknown as ClienteFindUpdatedBetween,
@@ -74,6 +76,28 @@ describe('ConsultarNovedadesClientePlexAdapter', () => {
         ],
       ]),
     );
+    clientesFsaClient.findProfileById.mockResolvedValue({
+      id: 'fsa-1',
+      documento: { tipo: 'DNI', numero: '30111222' },
+      nombre: 'Juan',
+      apellido: 'Perez',
+      sexo: 'M',
+      fechaNacimiento: '1990-01-01',
+      telefono: '111',
+      email: 'juan@mail.com',
+      direccion: 'Calle 123',
+      codPostal: '5000',
+      localidad: 'Cordoba',
+      provincia: 'Cordoba',
+      contactos: [],
+      domicilio: {
+        calle: 'Calle 123',
+        numero: '1',
+        ciudad: 'Cordoba',
+        provincia: 'Cordoba',
+        codPostal: '5000',
+      },
+    });
 
     const xml =
       '<?xml version="1.0" encoding="utf-8"?>' +
@@ -99,6 +123,7 @@ describe('ConsultarNovedadesClientePlexAdapter', () => {
       ['cli-1'],
     );
     expect(clientesFsaClient.findManyByDni).toHaveBeenCalledWith(['30111222']);
+    expect(clientesFsaClient.findProfileById).toHaveBeenCalledWith('fsa-1');
     expect(result.response).toContain('<RespCode>0</RespCode>');
     expect(result.response).toContain('<Novedades>');
     expect(result.response).toContain('<Clientes>');
