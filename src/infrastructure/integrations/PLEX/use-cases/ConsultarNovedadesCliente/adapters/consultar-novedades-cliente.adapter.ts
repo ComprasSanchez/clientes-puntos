@@ -50,7 +50,9 @@ export class ConsultarNovedadesClientePlexAdapter {
       { from, to },
       { skipCanonicalHydration: true },
     );
-    const clientesCanonicos = await this.resolveClientesFromFsa(clientes);
+    const clientesCanonicos = await this.resolveClientesFromFsaInBatches(
+      clientes,
+    );
 
     const responseDto = PlexConsultarNovedadesClienteResponseMapper.fromDomain({
       clientes: clientesCanonicos,
@@ -108,7 +110,26 @@ export class ConsultarNovedadesClientePlexAdapter {
     return date;
   }
 
-  private async resolveClientesFromFsa(
+  private async resolveClientesFromFsaInBatches(
+    clientes: ClienteResponseDto[],
+  ): Promise<ClienteResponseDto[]> {
+    const batchSize = Math.max(
+      1,
+      Number(process.env.CLIENTES_FSA_ENRICH_BATCH_SIZE ?? '1000') || 1000,
+    );
+
+    const resolved: ClienteResponseDto[] = [];
+
+    for (let i = 0; i < clientes.length; i += batchSize) {
+      const batch = clientes.slice(i, i + batchSize);
+      const batchResolved = await this.resolveClientesFromFsaBatch(batch);
+      resolved.push(...batchResolved);
+    }
+
+    return resolved;
+  }
+
+  private async resolveClientesFromFsaBatch(
     clientes: ClienteResponseDto[],
   ): Promise<ClienteResponseDto[]> {
     const externalIds = Array.from(

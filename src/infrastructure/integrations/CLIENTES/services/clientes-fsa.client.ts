@@ -118,22 +118,30 @@ export class ClientesFsaClient {
     }
 
     const path = '/clientes/doc/DNI/bulk';
-    const payload: ClientesFsaClientesBulkRequestDto = {
-      documentos,
-    };
+    const batchSize = Math.max(
+      1,
+      Number(process.env.CLIENTES_FSA_BULK_DNI_BATCH_SIZE ?? '1000') || 1000,
+    );
+    const batches = this.chunkArray(documentos, batchSize);
+    const map = new Map<string, ClientesFsaClienteDto>();
 
     try {
-      const response =
-        await this.http.post<ClientesFsaClientesBulkResponseDto>(path, payload);
+      for (const documentosBatch of batches) {
+        const payload: ClientesFsaClientesBulkRequestDto = {
+          documentos: documentosBatch,
+        };
+        const response = await this.http.post<ClientesFsaClientesBulkResponseDto>(
+          path,
+          payload,
+        );
 
-      const map = new Map<string, ClientesFsaClienteDto>();
+        for (const item of response.data?.items ?? []) {
+          const numero = String(item.documento?.numero ?? '').trim();
+          const normalized = this.normalizeDni(numero);
+          if (!normalized) continue;
 
-      for (const item of response.data?.items ?? []) {
-        const numero = String(item.documento?.numero ?? '').trim();
-        const normalized = this.normalizeDni(numero);
-        if (!normalized) continue;
-
-        map.set(normalized, item);
+          map.set(normalized, item);
+        }
       }
 
       return map;
@@ -141,6 +149,8 @@ export class ClientesFsaClient {
       this.logDownstreamError('findManyByDni', error, {
         path,
         requested: documentos.length,
+        batchSize,
+        totalBatches: batches.length,
       });
       throw error;
     }
@@ -163,26 +173,33 @@ export class ClientesFsaClient {
     }
 
     const path = `/clientes/external/${encodeURIComponent(sistema)}/bulk`;
-    const payload: ClientesFsaClientesByExternalBulkRequestDto = {
-      extIds: normalizedExtIds,
-    };
+    const batchSize = Math.max(
+      1,
+      Number(process.env.CLIENTES_FSA_BULK_EXTERNAL_BATCH_SIZE ?? '1000') ||
+        1000,
+    );
+    const batches = this.chunkArray(normalizedExtIds, batchSize);
+    const map = new Map<string, ClientesFsaClienteDto>();
 
     try {
-      const response =
-        await this.http.post<ClientesFsaClientesByExternalBulkResponseDto>(
-          path,
-          payload,
-        );
+      for (const extIdsBatch of batches) {
+        const payload: ClientesFsaClientesByExternalBulkRequestDto = {
+          extIds: extIdsBatch,
+        };
+        const response =
+          await this.http.post<ClientesFsaClientesByExternalBulkResponseDto>(
+            path,
+            payload,
+          );
 
-      const map = new Map<string, ClientesFsaClienteDto>();
+        for (const item of response.data?.items ?? []) {
+          const extId = String(
+            (item as ClientesFsaClienteByExternalBulkItemDto).extId ?? '',
+          ).trim();
+          if (!extId) continue;
 
-      for (const item of response.data?.items ?? []) {
-        const extId = String(
-          (item as ClientesFsaClienteByExternalBulkItemDto).extId ?? '',
-        ).trim();
-        if (!extId) continue;
-
-        map.set(extId, item);
+          map.set(extId, item);
+        }
       }
 
       return map;
@@ -191,6 +208,8 @@ export class ClientesFsaClient {
         path,
         sistema,
         requested: normalizedExtIds.length,
+        batchSize,
+        totalBatches: batches.length,
       });
       throw error;
     }
@@ -333,5 +352,15 @@ export class ClientesFsaClient {
     const trimmed = String(dni ?? '').replace(/\D/g, '').trim();
     const noLeadingZeros = trimmed.replace(/^0+/, '');
     return noLeadingZeros.length > 0 ? noLeadingZeros : trimmed;
+  }
+
+  private chunkArray<T>(items: T[], batchSize: number): T[][] {
+    const chunks: T[][] = [];
+
+    for (let i = 0; i < items.length; i += batchSize) {
+      chunks.push(items.slice(i, i + batchSize));
+    }
+
+    return chunks;
   }
 }
