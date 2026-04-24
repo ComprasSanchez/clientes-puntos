@@ -3,7 +3,10 @@ import { InjectDownstreamHttp } from '@sistemas-fsa/authz/nest';
 import { AxiosError, AxiosInstance, isAxiosError } from 'axios';
 import {
   ClientesFsaClienteDto,
+  ClientesFsaClienteByExternalBulkItemDto,
   ClientesFsaClienteIdDto,
+  ClientesFsaClientesByExternalBulkRequestDto,
+  ClientesFsaClientesByExternalBulkResponseDto,
   ClientesFsaClientesBulkRequestDto,
   ClientesFsaClientesBulkResponseDto,
   ClientesFsaMeDto,
@@ -138,6 +141,56 @@ export class ClientesFsaClient {
       this.logDownstreamError('findManyByDni', error, {
         path,
         requested: documentos.length,
+      });
+      throw error;
+    }
+  }
+
+  async findManyByExternalIds(
+    sistema: string,
+    extIds: string[],
+  ): Promise<Map<string, ClientesFsaClienteDto>> {
+    const normalizedExtIds = Array.from(
+      new Set(
+        extIds
+          .map((extId) => String(extId).trim())
+          .filter((extId) => extId.length > 0),
+      ),
+    );
+
+    if (!normalizedExtIds.length) {
+      return new Map();
+    }
+
+    const path = `/clientes/external/${encodeURIComponent(sistema)}/bulk`;
+    const payload: ClientesFsaClientesByExternalBulkRequestDto = {
+      extIds: normalizedExtIds,
+    };
+
+    try {
+      const response =
+        await this.http.post<ClientesFsaClientesByExternalBulkResponseDto>(
+          path,
+          payload,
+        );
+
+      const map = new Map<string, ClientesFsaClienteDto>();
+
+      for (const item of response.data?.items ?? []) {
+        const extId = String(
+          (item as ClientesFsaClienteByExternalBulkItemDto).extId ?? '',
+        ).trim();
+        if (!extId) continue;
+
+        map.set(extId, item);
+      }
+
+      return map;
+    } catch (error) {
+      this.logDownstreamError('findManyByExternalIds', error, {
+        path,
+        sistema,
+        requested: normalizedExtIds.length,
       });
       throw error;
     }

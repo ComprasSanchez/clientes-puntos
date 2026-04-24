@@ -4,12 +4,18 @@ import { ClientesFsaClient } from '@infrastructure/integrations/CLIENTES/service
 
 describe('ConsultarNovedadesClientePlexAdapter', () => {
   let clienteFindUpdatedBetween: { run: jest.Mock };
-  let clientesFsaClient: { findManyByDni: jest.Mock };
+  let clientesFsaClient: {
+    findManyByDni: jest.Mock;
+    findManyByExternalIds: jest.Mock;
+  };
   let adapter: ConsultarNovedadesClientePlexAdapter;
 
   beforeEach(() => {
     clienteFindUpdatedBetween = { run: jest.fn() };
-    clientesFsaClient = { findManyByDni: jest.fn().mockResolvedValue(new Map()) };
+    clientesFsaClient = {
+      findManyByDni: jest.fn().mockResolvedValue(new Map()),
+      findManyByExternalIds: jest.fn().mockResolvedValue(new Map()),
+    };
     adapter = new ConsultarNovedadesClientePlexAdapter(
       clienteFindUpdatedBetween as unknown as ClienteFindUpdatedBetween,
       clientesFsaClient as unknown as ClientesFsaClient,
@@ -57,6 +63,10 @@ describe('ConsultarNovedadesClientePlexAdapter', () => {
         to: new Date(2026, 2, 6, 23, 59, 59),
       },
       { skipCanonicalHydration: true },
+    );
+    expect(clientesFsaClient.findManyByExternalIds).toHaveBeenCalledWith(
+      'PUNTOS',
+      ['cli-1'],
     );
     expect(clientesFsaClient.findManyByDni).toHaveBeenCalledWith(['30111222']);
     expect(result.response).toContain('<RespCode>0</RespCode>');

@@ -54,6 +54,18 @@ export type ClientesFsaClientesBulkResponseDto = {
   items: ClientesFsaClienteDto[];
 };
 
+export type ClientesFsaClientesByExternalBulkRequestDto = {
+  extIds: string[];
+};
+
+export type ClientesFsaClienteByExternalBulkItemDto = ClientesFsaClienteDto & {
+  extId: string;
+};
+
+export type ClientesFsaClientesByExternalBulkResponseDto = {
+  items: ClientesFsaClienteByExternalBulkItemDto[];
+};
+
 export type ClientesFsaUpsertVerificacionRequest = {
   tipoDocumento: string;
   nroDocumento: string;

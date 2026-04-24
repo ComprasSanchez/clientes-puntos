@@ -111,6 +111,14 @@ export class ConsultarNovedadesClientePlexAdapter {
   private async enrichClientesConCanonico(
     clientes: ClienteResponseDto[],
   ): Promise<ClienteResponseDto[]> {
+    const externalIds = Array.from(
+      new Set(
+        clientes
+          .map((cliente) => String(cliente.id ?? '').trim())
+          .filter((id) => id.length > 0),
+      ),
+    );
+
     const dnis = Array.from(
       new Set(
         clientes
@@ -119,26 +127,54 @@ export class ConsultarNovedadesClientePlexAdapter {
       ),
     );
 
-    if (!dnis.length) {
+    if (!externalIds.length && !dnis.length) {
       return clientes;
+    }
+
+    let canonicosByExternalId = new Map<string, ClientesFsaClienteDto>();
+    if (externalIds.length) {
+      try {
+        canonicosByExternalId = await this.clientesFsaClient.findManyByExternalIds(
+          'PUNTOS',
+          externalIds,
+        );
+      } catch (error) {
+        this.logger.warn(
+          {
+            requested: externalIds.length,
+            message: error instanceof Error ? error.message : String(error),
+          },
+          'No se pudo enriquecer clientes por externalId desde clientes-fsa (bulk)',
+        );
+      }
     }
 
     let canonicosByDni: Map<string, ClientesFsaClienteDto>;
-    try {
-      canonicosByDni = await this.clientesFsaClient.findManyByDni(dnis);
-    } catch (error) {
-      this.logger.warn(
-        {
-          requested: dnis.length,
-          message: error instanceof Error ? error.message : String(error),
-        },
-        'No se pudo enriquecer clientes desde clientes-fsa (bulk)',
-      );
-      return clientes;
+    if (dnis.length) {
+      try {
+        canonicosByDni = await this.clientesFsaClient.findManyByDni(dnis);
+      } catch (error) {
+        this.logger.warn(
+          {
+            requested: dnis.length,
+            message: error instanceof Error ? error.message : String(error),
+          },
+          'No se pudo enriquecer clientes por DNI desde clientes-fsa (bulk)',
+        );
+        canonicosByDni = new Map();
+      }
+    } else {
+      canonicosByDni = new Map();
     }
 
     return clientes.map((cliente) => {
-      const canonico = canonicosByDni.get(this.normalizeDni(cliente.dni));
+      const canonicoByExternal = canonicosByExternalId.get(
+        String(cliente.id ?? '').trim(),
+      );
+      const canonicoByDni = canonicosByDni.get(this.normalizeDni(cliente.dni));
+      const canonico = this.hasCoreIdentityData(canonicoByExternal)
+        ? canonicoByExternal
+        : canonicoByDni;
 
       if (!canonico) {
         return cliente;
@@ -182,6 +218,16 @@ export class ConsultarNovedadesClientePlexAdapter {
     const trimmed = String(dni ?? '').trim();
     const withoutLeadingZeros = trimmed.replace(/^0+/, '');
     return withoutLeadingZeros.length > 0 ? withoutLeadingZeros : trimmed;
+  }
+
+  private hasCoreIdentityData(cliente: ClientesFsaClienteDto | undefined): boolean {
+    if (!cliente) return false;
+
+    const nombre = String(cliente.nombre ?? '').trim();
+    const apellido = String(cliente.apellido ?? '').trim();
+    const dni = String(cliente.documento?.numero ?? '').trim();
+
+    return nombre.length > 0 && apellido.length > 0 && dni.length > 0;
   }
 
   private pickBestContactoByTipo(
