@@ -159,7 +159,7 @@ export class ConsultarNovedadesClientePlexAdapter {
         ...cliente,
         nombre: canonico.nombre ?? cliente.nombre,
         apellido: canonico.apellido ?? cliente.apellido,
-        dni: canonico.documento?.numero ?? cliente.dni,
+        dni: this.normalizeDniForOutput(canonico.documento?.numero ?? cliente.dni),
         telefono: telefono ?? canonico.telefono ?? cliente.telefono,
         email: email ?? canonico.email ?? cliente.email,
         direccion: direccion ?? cliente.direccion,
@@ -174,6 +174,12 @@ export class ConsultarNovedadesClientePlexAdapter {
 
   private normalizeDni(dni: string): string {
     const trimmed = String(dni).trim();
+    const withoutLeadingZeros = trimmed.replace(/^0+/, '');
+    return withoutLeadingZeros.length > 0 ? withoutLeadingZeros : trimmed;
+  }
+
+  private normalizeDniForOutput(dni: string): string {
+    const trimmed = String(dni ?? '').trim();
     const withoutLeadingZeros = trimmed.replace(/^0+/, '');
     return withoutLeadingZeros.length > 0 ? withoutLeadingZeros : trimmed;
   }

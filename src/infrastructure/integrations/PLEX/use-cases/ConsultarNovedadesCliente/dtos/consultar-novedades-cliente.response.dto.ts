@@ -39,7 +39,7 @@ export class PlexConsultarNovedadesClienteResponseMapper {
         nombre: cliente.nombre ?? '',
         apellido: cliente.apellido ?? '',
         fecNac: cliente.fechaNacimiento ?? '',
-        dni: cliente.dni ?? '',
+        dni: normalizeDniForOutput(cliente.dni ?? ''),
         telefono: cliente.telefono ?? '',
         direccion: cliente.direccion ?? '',
         email: cliente.email ?? '',
@@ -84,4 +84,10 @@ export class PlexConsultarNovedadesClienteResponseMapper {
       },
     };
   }
+}
+
+function normalizeDniForOutput(value: string): string {
+  const trimmed = String(value ?? '').trim();
+  const noLeadingZeros = trimmed.replace(/^0+/, '');
+  return noLeadingZeros.length > 0 ? noLeadingZeros : trimmed;
 }
