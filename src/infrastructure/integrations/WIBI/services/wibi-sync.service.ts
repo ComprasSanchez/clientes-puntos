@@ -620,9 +620,9 @@ export class WibiSyncService implements OnModuleDestroy {
       this.config.get<string>('WIBI_MOVIMIENTOS_COMPROBANTE_EXT_COLUMN') ??
         'ComprobanteExt',
     );
-    const puntosDebitoColumnRaw = this.config.get<string>(
-      'WIBI_MOVIMIENTOS_PUNTOS_DEBITO_COLUMN',
-    );
+    const puntosDebitoColumnRaw =
+      this.config.get<string>('WIBI_MOVIMIENTOS_PUNTOS_DEBITO_COLUMN') ??
+      'PuntosDescontados';
     const puntosDebitoSelect = puntosDebitoColumnRaw
       ? `${this.safeIdentifier(puntosDebitoColumnRaw)} AS "puntosDebito"`
       : `0::numeric AS "puntosDebito"`;
@@ -804,7 +804,9 @@ export class WibiSyncService implements OnModuleDestroy {
 
         const puntoVta = this.parsePuntoVtaFromNroComprobante(nroComprobante);
         const codSucursal =
-          puntoVta !== null ? (sucursalByPuntoVta.get(puntoVta) ?? null) : null;
+          puntoVta !== null
+            ? (sucursalByPuntoVta.get(puntoVta) ?? String(puntoVta))
+            : null;
         const refMovementId = this.resolveRefMovementId(row);
 
         const operationId = this.nextOperacionId();
