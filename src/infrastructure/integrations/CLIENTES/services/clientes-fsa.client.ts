@@ -330,7 +330,7 @@ export class ClientesFsaClient {
   }
 
   private normalizeDni(dni: string): string {
-    const trimmed = String(dni).trim();
+    const trimmed = String(dni ?? '').replace(/\D/g, '').trim();
     const noLeadingZeros = trimmed.replace(/^0+/, '');
     return noLeadingZeros.length > 0 ? noLeadingZeros : trimmed;
   }

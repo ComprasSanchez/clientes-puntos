@@ -50,7 +50,7 @@ export class ConsultarNovedadesClientePlexAdapter {
       { from, to },
       { skipCanonicalHydration: true },
     );
-    const clientesCanonicos = await this.enrichClientesConCanonico(clientes);
+    const clientesCanonicos = await this.resolveClientesFromFsa(clientes);
 
     const responseDto = PlexConsultarNovedadesClienteResponseMapper.fromDomain({
       clientes: clientesCanonicos,
@@ -108,7 +108,7 @@ export class ConsultarNovedadesClientePlexAdapter {
     return date;
   }
 
-  private async enrichClientesConCanonico(
+  private async resolveClientesFromFsa(
     clientes: ClienteResponseDto[],
   ): Promise<ClienteResponseDto[]> {
     const externalIds = Array.from(
@@ -144,7 +144,7 @@ export class ConsultarNovedadesClientePlexAdapter {
             requested: externalIds.length,
             message: error instanceof Error ? error.message : String(error),
           },
-          'No se pudo enriquecer clientes por externalId desde clientes-fsa (bulk)',
+          'No se pudo resolver clientes por externalId desde clientes-fsa (bulk)',
         );
       }
     }
@@ -159,7 +159,7 @@ export class ConsultarNovedadesClientePlexAdapter {
             requested: dnis.length,
             message: error instanceof Error ? error.message : String(error),
           },
-          'No se pudo enriquecer clientes por DNI desde clientes-fsa (bulk)',
+          'No se pudo resolver clientes por DNI desde clientes-fsa (bulk)',
         );
         canonicosByDni = new Map();
       }
@@ -177,7 +177,20 @@ export class ConsultarNovedadesClientePlexAdapter {
         : canonicoByDni;
 
       if (!canonico) {
-        return cliente;
+        return {
+          ...cliente,
+          dni: this.normalizeDniForOutput(cliente.dni),
+          nombre: '',
+          apellido: '',
+          telefono: '',
+          email: '',
+          direccion: '',
+          codPostal: '',
+          localidad: '',
+          provincia: '',
+          fechaNacimiento: '',
+          sexo: '',
+        };
       }
 
       const telefono = this.pickBestContactoByTipo(canonico, ['TELEFONO']);
@@ -193,23 +206,23 @@ export class ConsultarNovedadesClientePlexAdapter {
 
       return {
         ...cliente,
-        nombre: canonico.nombre ?? cliente.nombre,
-        apellido: canonico.apellido ?? cliente.apellido,
+        nombre: canonico.nombre ?? '',
+        apellido: canonico.apellido ?? '',
         dni: this.normalizeDniForOutput(canonico.documento?.numero ?? cliente.dni),
-        telefono: telefono ?? canonico.telefono ?? cliente.telefono,
-        email: email ?? canonico.email ?? cliente.email,
-        direccion: direccion ?? cliente.direccion,
-        codPostal: codPostal ?? cliente.codPostal,
-        localidad: localidad ?? cliente.localidad,
-        provincia: provincia ?? cliente.provincia,
-        fechaNacimiento: fechaNacimiento ?? cliente.fechaNacimiento,
-        sexo: sexo ?? cliente.sexo,
+        telefono: telefono ?? canonico.telefono ?? '',
+        email: email ?? canonico.email ?? '',
+        direccion: direccion ?? '',
+        codPostal: codPostal ?? '',
+        localidad: localidad ?? '',
+        provincia: provincia ?? '',
+        fechaNacimiento: fechaNacimiento ?? '',
+        sexo: sexo ?? '',
       };
     });
   }
 
   private normalizeDni(dni: string): string {
-    const trimmed = String(dni).trim();
+    const trimmed = String(dni ?? '').replace(/\D/g, '').trim();
     const withoutLeadingZeros = trimmed.replace(/^0+/, '');
     return withoutLeadingZeros.length > 0 ? withoutLeadingZeros : trimmed;
   }

@@ -45,6 +45,36 @@ describe('ConsultarNovedadesClientePlexAdapter', () => {
       },
     ]);
 
+    clientesFsaClient.findManyByExternalIds.mockResolvedValue(
+      new Map([
+        [
+          'cli-1',
+          {
+            id: 'fsa-1',
+            documento: { tipo: 'DNI', numero: '30111222' },
+            nombre: 'Juan',
+            apellido: 'Perez',
+            sexo: 'M',
+            fechaNacimiento: '1990-01-01',
+            telefono: '111',
+            email: 'juan@mail.com',
+            direccion: 'Calle 123',
+            codPostal: '5000',
+            localidad: 'Cordoba',
+            provincia: 'Cordoba',
+            contactos: [],
+            domicilio: {
+              calle: 'Calle 123',
+              numero: '1',
+              ciudad: 'Cordoba',
+              provincia: 'Cordoba',
+              codPostal: '5000',
+            },
+          },
+        ],
+      ]),
+    );
+
     const xml =
       '<?xml version="1.0" encoding="utf-8"?>' +
       '<MensajeFidelyGB>' +
