@@ -188,22 +188,14 @@ export class ConsultarNovedadesClientePlexAdapter {
       canonicosByDni = new Map();
     }
 
-    const perfilesById = await this.fetchProfilesByIds([
-      ...Array.from(canonicosByExternalId.values()),
-      ...Array.from(canonicosByDni.values()),
-    ]);
-
     return clientes.map((cliente) => {
       const canonicoByExternal = canonicosByExternalId.get(
         String(cliente.id ?? '').trim(),
       );
       const canonicoByDni = canonicosByDni.get(this.normalizeDni(cliente.dni));
-      const canonicoBase = this.hasCoreIdentityData(canonicoByExternal)
+      const canonico = this.hasCoreIdentityData(canonicoByExternal)
         ? canonicoByExternal
         : canonicoByDni;
-      const canonicoId = String(canonicoBase?.id ?? '').trim();
-      const canonico =
-        (canonicoId ? perfilesById.get(canonicoId) : undefined) ?? canonicoBase;
 
       if (!canonico) {
         return {
@@ -248,56 +240,6 @@ export class ConsultarNovedadesClientePlexAdapter {
         sexo: sexo ?? '',
       };
     });
-  }
-
-  private async fetchProfilesByIds(
-    canonicos: ClientesFsaClienteDto[],
-  ): Promise<Map<string, ClientesFsaClienteDto>> {
-    const ids = Array.from(
-      new Set(
-        canonicos
-          .map((cliente) => String(cliente?.id ?? '').trim())
-          .filter((id) => id.length > 0),
-      ),
-    );
-
-    if (!ids.length) {
-      return new Map();
-    }
-
-    const batchSize = Math.max(
-      1,
-      Number(process.env.CLIENTES_FSA_PROFILE_BATCH_SIZE ?? '25') || 25,
-    );
-    const profilesById = new Map<string, ClientesFsaClienteDto>();
-
-    for (let i = 0; i < ids.length; i += batchSize) {
-      const batch = ids.slice(i, i + batchSize);
-      const settled = await Promise.all(
-        batch.map(async (id) => {
-          try {
-            const profile = await this.clientesFsaClient.findProfileById(id);
-            return { id, profile };
-          } catch (error) {
-            this.logger.warn(
-              {
-                id,
-                message: error instanceof Error ? error.message : String(error),
-              },
-              'No se pudo hidratar profile por id desde clientes-fsa',
-            );
-            return { id, profile: null };
-          }
-        }),
-      );
-
-      for (const item of settled) {
-        if (!item.profile) continue;
-        profilesById.set(item.id, item.profile);
-      }
-    }
-
-    return profilesById;
   }
 
   private normalizeDni(dni: string): string {
