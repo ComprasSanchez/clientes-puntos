@@ -743,6 +743,37 @@ export class WibiSyncService implements OnModuleDestroy {
         }
       }
 
+      const saldoLoteByClienteId = await this.loadSaldoLoteIdByClienteIds(
+        clientes.map((cliente) => cliente.id),
+      );
+
+      const clienteSourceMap = new Map<string, number>();
+      for (const row of rows) {
+        const sourceClienteId = Number(row.sourceClienteId);
+        const clienteId = byFidely.get(sourceClienteId);
+        if (!clienteId) {
+          continue;
+        }
+        if (!clienteSourceMap.has(clienteId)) {
+          clienteSourceMap.set(clienteId, sourceClienteId);
+        }
+      }
+
+      const clienteSourcePairs: Array<{ clienteId: string; sourceId: number }> =
+        Array.from(clienteSourceMap.entries()).map(([clienteId, sourceId]) => ({
+          clienteId,
+          sourceId,
+        }));
+
+      await this.ensureSaldoLotesExistForClientes(clienteSourcePairs);
+
+      const saldoLoteMapAfterEnsure = await this.loadSaldoLoteIdByClienteIds(
+        clienteSourcePairs.map((item) => item.clienteId),
+      );
+      for (const [clienteId, loteId] of saldoLoteMapAfterEnsure.entries()) {
+        saldoLoteByClienteId.set(clienteId, loteId);
+      }
+
       const insertCandidates: Array<{
         entity: OperacionEntity;
         row: MovimientoSourceRow;
@@ -806,10 +837,17 @@ export class WibiSyncService implements OnModuleDestroy {
 
         const puntoVta = this.parsePuntoVtaFromNroComprobante(nroComprobante);
         const codSucursal =
-          puntoVta !== null
-            ? (sucursalByPuntoVta.get(puntoVta) ?? String(puntoVta))
-            : null;
+          puntoVta !== null ? (sucursalByPuntoVta.get(puntoVta) ?? null) : null;
         const refMovementId = this.resolveRefMovementId(row);
+
+        const saldoLoteId = saldoLoteByClienteId.get(clienteId);
+        if (!saldoLoteId) {
+          counters.movimientosError += 1;
+          this.logger.error(
+            `[WIBI_SYNC][movimientos] missing saldo lote clienteId=${clienteId} sourceClienteId=${sourceClienteId}`,
+          );
+          continue;
+        }
 
         const operationId = this.nextOperacionId();
         const entity = this.operacionRepo.create({
@@ -833,6 +871,7 @@ export class WibiSyncService implements OnModuleDestroy {
         const transacciones = this.buildTransacciones(
           row,
           operationId,
+          saldoLoteId,
           referenciaTransaccion,
         );
 
@@ -1125,6 +1164,7 @@ export class WibiSyncService implements OnModuleDestroy {
   private buildTransacciones(
     row: MovimientoSourceRow,
     operationId: number,
+    loteId: string,
     referenciaId: string | null,
   ): TransaccionEntity[] {
     const result: TransaccionEntity[] = [];
@@ -1135,7 +1175,7 @@ export class WibiSyncService implements OnModuleDestroy {
         this.transaccionRepo.create({
           id: randomUUID(),
           operationId,
-          loteId: randomUUID(),
+          loteId,
           tipo: TxTipo.ACREDITACION,
           cantidad: puntosAcreditados,
           referenciaId,
@@ -1150,7 +1190,7 @@ export class WibiSyncService implements OnModuleDestroy {
         this.transaccionRepo.create({
           id: randomUUID(),
           operationId,
-          loteId: randomUUID(),
+          loteId,
           tipo: TxTipo.GASTO,
           cantidad: puntosDebito,
           referenciaId,
@@ -1451,6 +1491,7 @@ export class WibiSyncService implements OnModuleDestroy {
   ): Promise<void> {
     const referencia = this.getSaldoLoteRef(sourceId);
     const origen = this.getSaldoLoteOrigen();
+    const enforceSingleLote = this.resolveEnforceSingleLote();
 
     const rows = (await this.dataSource.query(
       `WITH saldo_upsert AS (
@@ -1458,6 +1499,28 @@ export class WibiSyncService implements OnModuleDestroy {
          VALUES ($1, $2)
          ON CONFLICT (cliente_id)
          DO UPDATE SET saldo_total = EXCLUDED.saldo_total
+       ),
+       normalized AS (
+         UPDATE lotes
+         SET "remaining" = 0,
+             "estado" = $6,
+             "updatedAt" = NOW()
+         WHERE "clienteId" = $1
+           AND "referenciaId" IS DISTINCT FROM $3
+           AND $7 = TRUE
+         RETURNING id
+       ),
+       other_lotes AS (
+         SELECT COALESCE(SUM(l."remaining"), 0)::int AS remaining_total
+         FROM lotes l
+         WHERE l."clienteId" = $1
+           AND l."referenciaId" IS DISTINCT FROM $3
+       ),
+       target AS (
+         SELECT CASE
+           WHEN $7 = TRUE THEN GREATEST(0, $2)::int
+           ELSE GREATEST(0, $2 - (SELECT remaining_total FROM other_lotes))::int
+         END AS remaining_target
        ),
        ranked_sync AS (
          SELECT
@@ -1490,17 +1553,17 @@ export class WibiSyncService implements OnModuleDestroy {
        ),
        updated AS (
           UPDATE lotes AS l
-          SET "cantidadOriginal" = GREATEST(0, e."cantidadOriginal" + ($2 - e."remaining")),
-              "remaining" = GREATEST(0, e."remaining" + ($2 - e."remaining")),
-             "estado" = $4,
-             "origenTipo" = $5,
-             "updatedAt" = NOW()
-         FROM existing AS e
-         WHERE l.id = e.id
-           AND ($2 - e."remaining") <> 0
-         RETURNING l.id
-       ),
-       inserted AS (
+           SET "cantidadOriginal" = GREATEST(0, e."cantidadOriginal" + ((SELECT remaining_target FROM target) - e."remaining")),
+               "remaining" = (SELECT remaining_target FROM target),
+               "estado" = $4,
+               "origenTipo" = $5,
+               "updatedAt" = NOW()
+           FROM existing AS e
+           WHERE l.id = e.id
+             AND ((SELECT remaining_target FROM target) - e."remaining") <> 0
+           RETURNING l.id
+         ),
+         inserted AS (
          INSERT INTO lotes (
            "clienteId",
            "cantidadOriginal",
@@ -1512,10 +1575,10 @@ export class WibiSyncService implements OnModuleDestroy {
            "createdAt",
            "updatedAt"
          )
-         SELECT $1, $2, $2, $4, $5, $3, NULL, NOW(), NOW()
-         WHERE NOT EXISTS (SELECT 1 FROM existing)
-         RETURNING id
-       )
+           SELECT $1, (SELECT remaining_target FROM target), (SELECT remaining_target FROM target), $4, $5, $3, NULL, NOW(), NOW()
+           WHERE NOT EXISTS (SELECT 1 FROM existing)
+           RETURNING id
+         )
         SELECT
           (SELECT COUNT(*)::int FROM inserted) AS inserted_count,
           (SELECT COUNT(*)::int FROM updated) AS updated_count,
@@ -1527,6 +1590,7 @@ export class WibiSyncService implements OnModuleDestroy {
         BatchEstado.DISPONIBLE,
         origen,
         BatchEstado.EXPIRADO,
+        enforceSingleLote,
       ],
     )) as Array<{
       inserted_count: number;
@@ -1553,6 +1617,82 @@ export class WibiSyncService implements OnModuleDestroy {
   private getSaldoLoteOrigen(): string {
     return (
       this.config.get<string>('WIBI_SALDO_LOTE_ORIGEN') ?? 'WIBI_SYNC_SALDO'
+    );
+  }
+
+  private resolveEnforceSingleLote(): boolean {
+    const raw = (
+      this.config.get<string>('WIBI_SYNC_ENFORCE_SINGLE_LOTE') ?? 'false'
+    )
+      .trim()
+      .toLowerCase();
+    return ['1', 'true', 'yes', 'y', 'si'].includes(raw);
+  }
+
+  private async loadSaldoLoteIdByClienteIds(
+    clienteIds: string[],
+  ): Promise<Map<string, string>> {
+    const result = new Map<string, string>();
+    if (clienteIds.length === 0) {
+      return result;
+    }
+
+    const rows = (await this.dataSource.query(
+      `SELECT DISTINCT ON (l."clienteId")
+         l."clienteId" AS cliente_id,
+         l.id AS lote_id
+       FROM lotes l
+       WHERE l."clienteId" = ANY($1::uuid[])
+         AND l."origenTipo" = $2
+       ORDER BY l."clienteId", l."updatedAt" DESC`,
+      [clienteIds, this.getSaldoLoteOrigen()],
+    )) as Array<{ cliente_id: string; lote_id: string }>;
+
+    for (const row of rows) {
+      if (row?.cliente_id && row?.lote_id) {
+        result.set(row.cliente_id, row.lote_id);
+      }
+    }
+    return result;
+  }
+
+  private async ensureSaldoLotesExistForClientes(
+    clientes: Array<{ clienteId: string; sourceId: number }>,
+  ): Promise<void> {
+    if (clientes.length === 0) {
+      return;
+    }
+
+    const clienteIds = clientes.map((item) => item.clienteId);
+    const referencias = clientes.map((item) => this.getSaldoLoteRef(item.sourceId));
+    const origen = this.getSaldoLoteOrigen();
+
+    await this.dataSource.query(
+      `INSERT INTO lotes (
+         "clienteId",
+         "cantidadOriginal",
+         "remaining",
+         "estado",
+         "origenTipo",
+         "referenciaId",
+         "expiraEn",
+         "createdAt",
+         "updatedAt"
+       )
+       SELECT u.cliente_id, 0, 0, $3, $4, u.referencia_id, NULL, NOW(), NOW()
+       FROM UNNEST($1::uuid[], $2::varchar[]) AS u(cliente_id, referencia_id)
+       WHERE NOT EXISTS (
+         SELECT 1
+         FROM lotes l
+         WHERE l."clienteId" = u.cliente_id
+           AND l."referenciaId" = u.referencia_id
+       )`,
+      [
+        clienteIds,
+        referencias,
+        BatchEstado.DISPONIBLE,
+        origen,
+      ],
     );
   }
 
