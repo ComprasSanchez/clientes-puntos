@@ -69,6 +69,7 @@ interface SyncRunCounters {
   saldosActualizados: number;
   lotesSaldoCreados: number;
   lotesSaldoActualizados: number;
+  lotesSaldoDuplicadosExpirados: number;
   movimientosLeidos: number;
   movimientosInsertados: number;
   movimientosDuplicados: number;
@@ -135,6 +136,7 @@ export class WibiSyncService implements OnModuleDestroy {
       saldosActualizados: 0,
       lotesSaldoCreados: 0,
       lotesSaldoActualizados: 0,
+      lotesSaldoDuplicadosExpirados: 0,
       movimientosLeidos: 0,
       movimientosInsertados: 0,
       movimientosDuplicados: 0,
@@ -1457,17 +1459,39 @@ export class WibiSyncService implements OnModuleDestroy {
          ON CONFLICT (cliente_id)
          DO UPDATE SET saldo_total = EXCLUDED.saldo_total
        ),
+       ranked_sync AS (
+         SELECT
+           l.id,
+           l."cantidadOriginal",
+           l."remaining",
+           ROW_NUMBER() OVER (
+             ORDER BY l."updatedAt" DESC, l."createdAt" DESC, l.id DESC
+           ) AS rn
+         FROM lotes l
+         WHERE l."clienteId" = $1
+           AND l."origenTipo" = $5
+           AND l.estado = $4
+       ),
+       expired_duplicates AS (
+         UPDATE lotes AS l
+         SET "remaining" = 0,
+             "estado" = $6,
+             "updatedAt" = NOW()
+         FROM ranked_sync rs
+         WHERE l.id = rs.id
+           AND rs.rn > 1
+         RETURNING l.id
+       ),
        existing AS (
-         SELECT id, "cantidadOriginal", "remaining"
-         FROM lotes
-         WHERE "clienteId" = $1
-           AND "referenciaId" = $3
-         LIMIT 1
+          SELECT rs.id, rs."cantidadOriginal", rs."remaining"
+          FROM ranked_sync rs
+          WHERE rs.rn = 1
+          LIMIT 1
        ),
        updated AS (
-         UPDATE lotes AS l
-         SET "cantidadOriginal" = GREATEST(0, e."cantidadOriginal" + ($2 - e."remaining")),
-             "remaining" = GREATEST(0, e."remaining" + ($2 - e."remaining")),
+          UPDATE lotes AS l
+          SET "cantidadOriginal" = GREATEST(0, e."cantidadOriginal" + ($2 - e."remaining")),
+              "remaining" = GREATEST(0, e."remaining" + ($2 - e."remaining")),
              "estado" = $4,
              "origenTipo" = $5,
              "updatedAt" = NOW()
@@ -1492,11 +1516,23 @@ export class WibiSyncService implements OnModuleDestroy {
          WHERE NOT EXISTS (SELECT 1 FROM existing)
          RETURNING id
        )
-       SELECT
-         (SELECT COUNT(*)::int FROM inserted) AS inserted_count,
-         (SELECT COUNT(*)::int FROM updated) AS updated_count`,
-      [clienteId, saldo, referencia, BatchEstado.DISPONIBLE, origen],
-    )) as Array<{ inserted_count: number; updated_count: number }>;
+        SELECT
+          (SELECT COUNT(*)::int FROM inserted) AS inserted_count,
+          (SELECT COUNT(*)::int FROM updated) AS updated_count,
+          (SELECT COUNT(*)::int FROM expired_duplicates) AS duplicated_expired_count`,
+      [
+        clienteId,
+        saldo,
+        referencia,
+        BatchEstado.DISPONIBLE,
+        origen,
+        BatchEstado.EXPIRADO,
+      ],
+    )) as Array<{
+      inserted_count: number;
+      updated_count: number;
+      duplicated_expired_count: number;
+    }>;
 
     const result = rows[0];
     if (!result) {
@@ -1505,6 +1541,9 @@ export class WibiSyncService implements OnModuleDestroy {
 
     counters.lotesSaldoCreados += Number(result.inserted_count ?? 0);
     counters.lotesSaldoActualizados += Number(result.updated_count ?? 0);
+    counters.lotesSaldoDuplicadosExpirados += Number(
+      result.duplicated_expired_count ?? 0,
+    );
   }
 
   private getSaldoLoteRef(sourceId: number): string {
