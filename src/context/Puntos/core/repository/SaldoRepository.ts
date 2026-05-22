@@ -2,6 +2,7 @@ import { TransactionContext } from '../../../../shared/core/interfaces/Transacti
 import { HistorialSaldo } from '../entities/SaldoHistorial';
 import { SaldoClienteDto } from '../interfaces/SaldoResponseDTO';
 import { CantidadPuntos } from '../value-objects/CantidadPuntos';
+import { PaginationParams } from '@shared/core/contracts/pagination';
 
 /**
  * Puerto de repositorio para la entidad Saldo.
@@ -53,7 +54,17 @@ export interface SaldoRepository {
   /**
    * Consulta el historial de cambios de saldo de un cliente.
    * @param clienteId  Identificador del cliente
-   * @returns Lista de cambios de saldo (puede ser una entidad/DTO HistorialSaldo)
+   * @returns Lista de cambios de saldo
    */
-  findHistorialByClienteId(clienteId: string): Promise<HistorialSaldo[]>; // Puedes tipar esto según tu entidad de historial
+  findHistorialByClienteId(clienteId: string): Promise<HistorialSaldo[]>;
+
+  /**
+   * Consulta el historial de cambios de saldo de un cliente con paginación.
+   * @param clienteId  Identificador del cliente
+   * @param params     Parámetros de paginación
+   */
+  findHistorialByClienteIdPaginated(
+    clienteId: string,
+    params: PaginationParams,
+  ): Promise<{ items: HistorialSaldo[]; total: number }>;
 }

@@ -27,8 +27,12 @@ import { FindOperacionesByClienteUseCase } from '@puntos/application/use-cases/O
 import { OperacionResponseDto } from '../dtos/OperacionResponseDto';
 import { PaginationQueryDto } from '@shared/infrastructure/dtos/pagination-query.dto';
 import { OperacionValorService } from '@puntos/application/services/OperacionValorService';
-import { OPERACION_VALOR_SERVICE } from '@puntos/core/tokens/tokens';
+import { OBTENER_HSITORIAL_SALDO, OPERACION_VALOR_SERVICE } from '@puntos/core/tokens/tokens';
 import { PuntosServiceWIBI } from '../adapters/PuntosServiceWIBI/PuntosServiceWIBI';
+import {
+  GetHistorialSaldoCliente,
+  HistorialSaldoPageResponse,
+} from '@puntos/application/use-cases/ObtenerHistorialSaldo/GetHistorialSaldoCliente';
 
 type PuntosMeSaldoResponse = {
   clienteId: string;
@@ -62,6 +66,8 @@ export class PuntosMeController {
     private readonly operacionValorService: OperacionValorService,
     @Inject(CLIENTE_REPO)
     private readonly clienteRepo: ClienteRepository,
+    @Inject(OBTENER_HSITORIAL_SALDO)
+    private readonly historialSaldo: GetHistorialSaldoCliente,
   ) {}
 
   @Get()
@@ -103,46 +109,7 @@ export class PuntosMeController {
       limit: query.limit,
     });
 
-    let puntosClienteId = String(clienteId ?? '').trim();
-
-    if (!puntosClienteId) {
-      if (!userId) {
-        throw new NotFoundException('Usuario autenticado sin subject');
-      }
-
-      const clienteFsaMe = await this.clientesFsaClient.findMe();
-      if (!clienteFsaMe) {
-        throw new NotFoundException('No se pudo resolver el perfil del cliente');
-      }
-
-      puntosClienteId = this.extractPuntosClienteId(clienteFsaMe.fuentesDatos) ?? '';
-
-      if (!puntosClienteId) {
-        const fallback = await this.findPuntosClienteByDni(
-          clienteFsaMe.documento?.numero,
-        );
-        puntosClienteId = fallback?.clienteId ?? '';
-
-        if (puntosClienteId && fallback?.dniForSync) {
-          await this.syncFuenteDatosPuntos({
-            puntosId: puntosClienteId,
-            dni: fallback.dniForSync,
-          });
-        }
-      }
-
-      if (!puntosClienteId) {
-        throw new NotFoundException(
-          'No se pudo resolver cliente de PUNTOS ni por fuenteDatos ni por DNI',
-        );
-      }
-
-      this.logger.log({
-        msg: 'Cliente PUNTOS resuelto por /clientes/me o fallback DNI',
-        userId,
-        puntosClienteId,
-      });
-    }
+    let puntosClienteId = await this.resolvePuntosClienteId(userId, clienteId);
 
     let cliente = await this.clienteRepo.findById(new ClienteId(puntosClienteId));
 
@@ -200,6 +167,74 @@ export class PuntosMeController {
       saldoActual,
       movimientos,
     };
+  }
+
+  @Get('historial-saldo')
+  @ClientPerms('me:read')
+  @ApiOperation({ summary: 'Historial de cambios de saldo del cliente autenticado (paginado)' })
+  async getHistorialSaldo(
+    @UserId() userId: string,
+    @Query() query: PaginationQueryDto,
+    @Query('clienteId') clienteId?: string,
+  ): Promise<HistorialSaldoPageResponse> {
+    this.logger.log({
+      msg: 'Inicio GET /puntos/me/historial-saldo',
+      userId: userId ?? null,
+      clienteIdQuery: clienteId ?? null,
+      page: query.page,
+      limit: query.limit,
+    });
+
+    const puntosClienteId = await this.resolvePuntosClienteId(userId, clienteId);
+    return this.historialSaldo.runPaginated(puntosClienteId, query.toParams());
+  }
+
+  private async resolvePuntosClienteId(
+    userId: string,
+    clienteIdQuery?: string,
+  ): Promise<string> {
+    let puntosClienteId = String(clienteIdQuery ?? '').trim();
+
+    if (!puntosClienteId) {
+      if (!userId) {
+        throw new NotFoundException('Usuario autenticado sin subject');
+      }
+
+      const clienteFsaMe = await this.clientesFsaClient.findMe();
+      if (!clienteFsaMe) {
+        throw new NotFoundException('No se pudo resolver el perfil del cliente');
+      }
+
+      puntosClienteId = this.extractPuntosClienteId(clienteFsaMe.fuentesDatos) ?? '';
+
+      if (!puntosClienteId) {
+        const fallback = await this.findPuntosClienteByDni(
+          clienteFsaMe.documento?.numero,
+        );
+        puntosClienteId = fallback?.clienteId ?? '';
+
+        if (puntosClienteId && fallback?.dniForSync) {
+          await this.syncFuenteDatosPuntos({
+            puntosId: puntosClienteId,
+            dni: fallback.dniForSync,
+          });
+        }
+      }
+
+      if (!puntosClienteId) {
+        throw new NotFoundException(
+          'No se pudo resolver cliente de PUNTOS ni por fuenteDatos ni por DNI',
+        );
+      }
+
+      this.logger.log({
+        msg: 'Cliente PUNTOS resuelto por /clientes/me o fallback DNI',
+        userId,
+        puntosClienteId,
+      });
+    }
+
+    return puntosClienteId;
   }
 
   private async resolveMovimientos(

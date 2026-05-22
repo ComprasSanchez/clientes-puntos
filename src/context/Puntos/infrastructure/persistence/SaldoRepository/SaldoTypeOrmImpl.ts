@@ -11,6 +11,7 @@ import { OpTipo } from '@shared/core/enums/OpTipo';
 import { TransactionContext } from '@shared/core/interfaces/TransactionContext';
 import { TypeOrmBaseRepository } from '@shared/infrastructure/transaction/TypeOrmBaseRepository';
 import { Repository } from 'typeorm';
+import { PaginationParams } from '@shared/core/contracts/pagination';
 
 @Injectable()
 export class TypeOrmSaldoRepository
@@ -107,20 +108,33 @@ export class TypeOrmSaldoRepository
       where: { cliente_id: clienteId },
       order: { fecha_cambio: 'DESC' },
     });
-    // Mapea los resultados a tu entidad de dominio:
-    return rows.map(
-      (row) =>
-        new HistorialSaldo(
-          row.id,
-          row.cliente_id,
-          new CantidadPuntos(row.saldo_anterior),
-          new CantidadPuntos(row.saldo_nuevo),
-          row.motivo as OpTipo,
-          row.referencia_operacion !== undefined
-            ? OperacionId.instance(row.referencia_operacion)
-            : undefined,
-          row.fecha_cambio,
-        ),
+    return rows.map((row) => this.rowToDomain(row));
+  }
+
+  async findHistorialByClienteIdPaginated(
+    clienteId: string,
+    params: PaginationParams,
+  ): Promise<{ items: HistorialSaldo[]; total: number }> {
+    const [rows, total] = await this.historialRepo.findAndCount({
+      where: { cliente_id: clienteId },
+      order: { fecha_cambio: 'DESC' },
+      skip: (params.page - 1) * params.limit,
+      take: params.limit,
+    });
+    return { items: rows.map((row) => this.rowToDomain(row)), total };
+  }
+
+  private rowToDomain(row: HistorialSaldoCliente): HistorialSaldo {
+    return new HistorialSaldo(
+      row.id,
+      row.cliente_id,
+      new CantidadPuntos(row.saldo_anterior),
+      new CantidadPuntos(row.saldo_nuevo),
+      row.motivo as OpTipo,
+      row.referencia_operacion !== undefined
+        ? OperacionId.instance(row.referencia_operacion)
+        : undefined,
+      row.fecha_cambio,
     );
   }
 }
