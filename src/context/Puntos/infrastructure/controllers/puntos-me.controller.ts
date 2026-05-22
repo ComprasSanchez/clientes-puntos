@@ -171,12 +171,12 @@ export class PuntosMeController {
 
   @Get('historial-saldo')
   @ClientPerms('me:read')
-  @ApiOperation({ summary: 'Historial de cambios de saldo del cliente autenticado (paginado)' })
+  @ApiOperation({ summary: 'Historial de operaciones del cliente autenticado (paginado)' })
   async getHistorialSaldo(
     @UserId() userId: string,
     @Query() query: PaginationQueryDto,
     @Query('clienteId') clienteId?: string,
-  ): Promise<HistorialSaldoPageResponse> {
+  ): Promise<PuntosMeSaldoResponse['movimientos']> {
     this.logger.log({
       msg: 'Inicio GET /puntos/me/historial-saldo',
       userId: userId ?? null,
@@ -186,7 +186,7 @@ export class PuntosMeController {
     });
 
     const puntosClienteId = await this.resolvePuntosClienteId(userId, clienteId);
-    return this.historialSaldo.runPaginated(puntosClienteId, query.toParams());
+    return this.resolveMovimientos(puntosClienteId, query);
   }
 
   private async resolvePuntosClienteId(
