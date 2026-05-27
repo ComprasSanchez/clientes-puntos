@@ -1685,8 +1685,10 @@ export class WibiSyncService implements OnModuleDestroy {
          SELECT 1
          FROM lotes l
          WHERE l."clienteId" = u.cliente_id
-           AND l."referenciaId" = u.referencia_id
-       )`,
+           AND l."origenTipo" = $4
+           AND l."estado" = $3
+       )
+       ON CONFLICT DO NOTHING`,
       [
         clienteIds,
         referencias,
