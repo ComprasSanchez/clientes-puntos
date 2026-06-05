@@ -61,6 +61,7 @@ export class Operacion {
     private readonly _moneda?: Moneda,
     private readonly _refOperacion?: ReferenciaMovimiento,
     private readonly _refAnulacion?: OperacionId,
+    private readonly _idComprobante?: number | null,
     private readonly _codSucursal?: string,
     private readonly _items?: CarritoItem[],
   ) {
@@ -115,6 +116,10 @@ export class Operacion {
   get refAnulacion(): OperacionId | undefined {
     return this._refAnulacion;
   }
+
+  get idComprobante(): number | undefined | null {
+  return this._idComprobante;
+}
 
   get codSucursal(): string | undefined {
     return this._codSucursal;
@@ -194,6 +199,7 @@ export class Operacion {
     const refAnulacion = obj._refAnulacion
       ? OperacionId.instance(obj._refAnulacion)
       : undefined;
+    const idComprobante = obj._idComprobante ?? undefined;
     const codSucursal = obj._codSucursal;
 
     const items = obj._items?.map((i) => ({
@@ -213,6 +219,7 @@ export class Operacion {
       moneda,
       refOperacion,
       refAnulacion,
+      idComprobante,
       codSucursal,
       items,
     );
@@ -230,6 +237,7 @@ export class Operacion {
       _moneda: this._moneda?.value,
       _refOperacion: this._refOperacion?.value,
       _refAnulacion: this._refAnulacion?.value,
+      _idComprobante: this._idComprobante,
       _codSucursal: this._codSucursal,
       _items: this._items?.map((i) => ({
         codExt: i.codExt,

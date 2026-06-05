@@ -6,10 +6,12 @@ export interface OperacionDto {
   moneda?: string;
   referencia?: string;
   refOperacion?: number;
+  idComprobante?: number | null;
+  idComprobanteRef?: number | null;
   codSucursal?: string;
   productos?: Array<{
     codExt: number;
     cantidad: number;
-    precio: number; // importe unitario (misma moneda que `moneda`)
+    precio: number;
   }>;
 }

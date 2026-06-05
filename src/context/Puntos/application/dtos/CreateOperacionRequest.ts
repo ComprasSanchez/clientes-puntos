@@ -30,11 +30,17 @@ export interface CreateOperacionRequest {
   /** Id de la Operacion para acciones de devolucion y/o anulacion */
   operacionId?: OperacionId;
 
+  /** Id del comprobante de Plex (para linkear NC con FV) */
+  idComprobante?: number | null;
+
+  /** Id del comprobante de referencia (viene en la NC para buscar la FV original) */
+  idComprobanteRef?: number | null;
+
   codSucursal?: string;
 
   productos?: Array<{
     codExt: number;
     cantidad: number;
-    precio: number; // importe unitario (misma moneda que `moneda`)
+    precio: number;
   }>;
 }

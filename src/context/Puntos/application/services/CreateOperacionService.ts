@@ -94,7 +94,18 @@ export class CreateOperacionService {
           txsOriginal = await this.txRepo.findByReferencia(
             req.referencia.value!,
           );
-          req.operacionId = txsOriginal[0]?.operationId; // Para consistencia
+          req.operacionId = txsOriginal[0]?.operationId;
+        } else if (req.idComprobanteRef) {
+          // Buscar la operación original por idComprobante de Plex
+          const opOriginal = await this.operacionRepo.findByIdComprobante(
+            req.idComprobanteRef,
+          );
+          if (opOriginal.length > 0) {
+            txsOriginal = await this.txRepo.findByOperationId(
+              opOriginal[0].id.value,
+            );
+            req.operacionId = opOriginal[0].id;
+          }
         }
         handlerResult = await this.devolucionHandler.handle(
           req,

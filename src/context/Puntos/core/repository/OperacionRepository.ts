@@ -44,6 +44,13 @@ export interface OperacionRepository {
    */
   findByFecha(fecha: FechaOperacion): Promise<Operacion[]>;
 
+
+  /**
+ * Busca operaciones por idComprobante de Plex.
+ * @param idComprobante ID del comprobante de Plex
+ */
+  findByIdComprobante(idComprobante: number): Promise<Operacion[]>;
+
   /**
    * Persiste una nueva operación en el sistema.
    * @param operacion Operación a guardar

@@ -46,6 +46,7 @@ export class CompraUseCase {
       moneda: input.moneda,
       referencia: referenciaVO,
       operacionId: operacionIdVO,
+      idComprobante: input.idComprobante,
       codSucursal: input.codSucursal,
       productos: input.productos?.map((p) => ({
         codExt: p.codExt,

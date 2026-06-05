@@ -51,10 +51,22 @@ export class FidelizarVentaPlexAdapter {
     const puntosCanjeados = toDec(plexDto.puntosCanjeados) ?? 0;
     const importeTotal = toDec(plexDto.importeTotal) ?? 0;
 
-    const refOperacionRaw = toInt(plexDto.idMovimiento);
-    const refOperacion =
-      typeof refOperacionRaw === 'number' && refOperacionRaw > 0
-        ? refOperacionRaw
+const refOperacionRaw = toInt(plexDto.idMovimiento);
+const refOperacion =
+  typeof refOperacionRaw === 'number' && refOperacionRaw > 0
+    ? refOperacionRaw
+    : undefined;
+
+    const idComprobanteRaw = toInt(plexDto.idComprobante);
+    const idComprobante =
+      typeof idComprobanteRaw === 'number' && idComprobanteRaw > 0
+        ? idComprobanteRaw
+        : undefined;
+
+    const idComprobanteRefRaw = toInt(plexDto.idComprobanteRef);
+    const idComprobanteRef =
+      typeof idComprobanteRefRaw === 'number' && idComprobanteRefRaw > 0
+        ? idComprobanteRefRaw
         : undefined;
 
     const domainRequest = {
@@ -65,6 +77,8 @@ export class FidelizarVentaPlexAdapter {
       moneda: TipoMoneda.ARS,
       referencia: plexDto.nroComprobante || undefined,
       refOperacion,
+      idComprobante,
+      idComprobanteRef,
       codSucursal: sucId,
       productos: plexDto.productos?.map((p) => ({
         codExt: p.idProducto,
