@@ -15,6 +15,7 @@ export class PlexFidelizarVentaRequestDto {
   valorCanjePunto: number;
   puntosCanjeados: number;
   idComprobante: string;
+  idComprobanteRef?: string;
   nroComprobante: string;
   fechaComprobante: string;
   productos: Array<{
@@ -76,6 +77,10 @@ export class PlexFidelizarVentaRequestDto {
       idComprobante: venta.IdComprobante
         ? String(venta.IdComprobante).trim()
         : '',
+      idComprobanteRef: productosArr[0]?.IdComprobanteRef
+  ? String(productosArr[0].IdComprobanteRef).trim()
+  : undefined,
+
       nroComprobante: venta.NroComprobante
         ? String(venta.NroComprobante).trim()
         : '',

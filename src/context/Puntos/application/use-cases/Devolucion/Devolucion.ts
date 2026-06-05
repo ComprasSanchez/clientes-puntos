@@ -46,6 +46,7 @@ export class DevolucionUseCase {
       moneda: input.moneda,
       referencia: referenciaVO,
       operacionId: operacionIdVO,
+      idComprobanteRef: input.idComprobanteRef, 
       codSucursal: input.codSucursal,
       productos: input.productos?.map((p) => ({
         codExt: p.codExt,

@@ -85,24 +85,34 @@ export class CreateOperacionService {
         break;
 
       case OpTipo.DEVOLUCION:
-        // Buscar transacciones originales (puede quedar vacío)
-        if (req.operacionId) {
-          txsOriginal = await this.txRepo.findByOperationId(
-            req.operacionId.value,
-          );
-        } else if (req.referencia) {
-          txsOriginal = await this.txRepo.findByReferencia(
-            req.referencia.value!,
-          );
-          req.operacionId = txsOriginal[0]?.operationId; // Para consistencia
-        }
-        handlerResult = await this.devolucionHandler.handle(
-          req,
-          saldo,
-          txsOriginal,
-          ctx,
-        );
-        break;
+  if (req.idComprobanteRef) {
+    const opOriginal = await this.operacionRepo.findByIdComprobante(
+      req.idComprobanteRef,
+    );
+    if (opOriginal.length > 0) {
+      txsOriginal = await this.txRepo.findByOperationId(
+        opOriginal[0].id.value,
+      );
+      req.operacionId = opOriginal[0].id;
+    }
+    console.log(`[DEVOLUCION] idComprobanteRef=${req.idComprobanteRef} opOriginal=${opOriginal.length} txs=${txsOriginal.length} tipos=${txsOriginal.map(t => t.tipo).join(',')}`);
+  } else if (req.operacionId) {
+    txsOriginal = await this.txRepo.findByOperationId(
+      req.operacionId.value,
+    );
+  } else if (req.referencia) {
+    txsOriginal = await this.txRepo.findByReferencia(
+      req.referencia.value!,
+    );
+    req.operacionId = txsOriginal[0]?.operationId;
+  }
+  handlerResult = await this.devolucionHandler.handle(
+    req,
+    saldo,
+    txsOriginal,
+    ctx,
+  );
+  break;
 
       case OpTipo.ANULACION: {
         // Buscar transacciones originales (NO puede quedar vacío)

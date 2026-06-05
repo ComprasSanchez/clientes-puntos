@@ -51,11 +51,25 @@ export class FidelizarVentaPlexAdapter {
     const puntosCanjeados = toDec(plexDto.puntosCanjeados) ?? 0;
     const importeTotal = toDec(plexDto.importeTotal) ?? 0;
 
-    const refOperacionRaw = toInt(plexDto.idMovimiento);
-    const refOperacion =
-      typeof refOperacionRaw === 'number' && refOperacionRaw > 0
-        ? refOperacionRaw
+const refOperacionRaw = toInt(plexDto.idMovimiento);
+const refOperacion =
+  typeof refOperacionRaw === 'number' && refOperacionRaw > 0
+    ? refOperacionRaw
+    : undefined;
+
+    const idComprobanteRaw = toInt(plexDto.idComprobante);
+    const idComprobante =
+      typeof idComprobanteRaw === 'number' && idComprobanteRaw > 0
+        ? idComprobanteRaw
         : undefined;
+
+    const idComprobanteRefRaw = toInt(plexDto.idComprobanteRef);
+    const idComprobanteRef =
+      typeof idComprobanteRefRaw === 'number' && idComprobanteRefRaw > 0
+        ? idComprobanteRefRaw
+        : undefined;
+
+    console.log(`[ADAPTER] codAccion=${plexDto.codAccion} idComprobante=${plexDto.idComprobante} idComprobanteRef=${plexDto.idComprobanteRef} nroComprobante=${plexDto.nroComprobante}`);
 
     const domainRequest = {
       clienteId: cliente.id,
@@ -63,8 +77,10 @@ export class FidelizarVentaPlexAdapter {
       montoMoneda: importeTotal,
       origenTipo: 'PLEX' as const,
       moneda: TipoMoneda.ARS,
-      referencia: plexDto.nroComprobante || undefined,
+      referencia: plexDto.codAccion === '201' ? undefined : (plexDto.nroComprobante || undefined),
       refOperacion,
+      idComprobante,
+      idComprobanteRef,
       codSucursal: sucId,
       productos: plexDto.productos?.map((p) => ({
         codExt: p.idProducto,

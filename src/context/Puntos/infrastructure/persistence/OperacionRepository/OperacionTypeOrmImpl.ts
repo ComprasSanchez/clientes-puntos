@@ -107,6 +107,14 @@ export class TypeOrmOperacionRepository
     return entities.map((e) => e.toDomain());
   }
 
+async findByIdComprobante(idComprobante: number): Promise<Operacion[]> {
+  const entities = await this.ormRepo.find({
+    where: { idComprobante },
+  });
+  return entities.map((e) => e.toDomain());
+}
+
+
   async save(operacion: Operacion, ctx?: TransactionContext): Promise<void> {
     const entity = OperacionEntity.fromDomain(operacion);
     const manager = this.extractManager(ctx);

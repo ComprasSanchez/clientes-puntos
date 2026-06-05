@@ -68,6 +68,9 @@ export class OperacionEntity {
   @Column('bigint', { nullable: true })
   refAnulacion: number | null;
 
+  @Column('bigint', { nullable: true })
+idComprobante: number | null;
+
   @Column('varchar', { nullable: true })
   codSucursal: string | null;
 
@@ -105,6 +108,7 @@ export class OperacionEntity {
       this.refAnulacion !== null
         ? OperacionId.instance(this.refAnulacion)
         : undefined,
+      this.idComprobante ?? undefined,
       this.codSucursal ?? undefined,
       // 🔹 pasar carrito al dominio (último parámetro del ctor)
       items,
@@ -123,6 +127,7 @@ export class OperacionEntity {
     entity.moneda = operacion.moneda?.value ?? null;
     entity.refOperacion = operacion.refOperacion?.value ?? null;
     entity.refAnulacion = operacion.refAnulacion?.value ?? null;
+    entity.idComprobante = operacion.idComprobante ?? null;
     entity.codSucursal = operacion.codSucursal ?? null;
 
     // 🔹 dominio → JSON
