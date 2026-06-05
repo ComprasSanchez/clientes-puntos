@@ -14,6 +14,7 @@ import { TransactionContext } from '@shared/core/interfaces/TransactionContext';
 import { HandlerResult } from '../dtos/HandlerResult';
 import { Saldo } from '@puntos/core/entities/Saldo';
 import { Transaccion } from '@puntos/core/entities/Transaccion';
+import { CantidadPuntos } from '@puntos/core/value-objects/CantidadPuntos';
 
 @Injectable()
 export class DevolucionHandler {
@@ -35,10 +36,27 @@ export class DevolucionHandler {
     // 1. Crear la operación
     const operacion = this.operacionFactory.create(req);
 
-    // 2. Ejecutar reglas de devolución si corresponde
-    const instrucciones = await operacion.ejecutarEn(saldo, this.reglaEngine);
+   // 2. Ejecutar reglas de devolución si corresponde
+const instrucciones = await operacion.ejecutarEn(saldo, this.reglaEngine);
 
-    // 3. Aplicar la devolución en saldo
+// 2.1 Si el motor no calculó crédito pero tenemos txs originales, usar sus puntos
+if (
+  transaccionesOriginales.length > 0 &&
+  (!instrucciones.creditos[0] || instrucciones.creditos[0].cantidad.value <= 0)
+) {
+  const totalPuntos = transaccionesOriginales.reduce(
+    (acc, tx) => acc + tx.cantidad.value,
+    0,
+  );
+  instrucciones.creditos = [
+    {
+      cantidad: new CantidadPuntos(totalPuntos),
+      expiraEn: undefined,
+    },
+  ];
+}
+
+// 3. Aplicar la devolución en saldo
     const { detallesDebito, nuevoLote } = this.saldoHandler.aplicarDevolucion(
       saldo,
       operacion,
