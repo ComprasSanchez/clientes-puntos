@@ -1,4 +1,5 @@
 import { Injectable, Inject } from '@nestjs/common';
+import { TxTipo } from '@puntos/core/enums/TxTipo';
 import { OperacionFactory } from '@puntos/core/factories/OperacionFactory';
 import { SaldoHandler } from './SaldoHandler';
 import { TransaccionBuilder } from '../services/Transaccionbuilder';
@@ -15,6 +16,7 @@ import { HandlerResult } from '../dtos/HandlerResult';
 import { Saldo } from '@puntos/core/entities/Saldo';
 import { Transaccion } from '@puntos/core/entities/Transaccion';
 import { CantidadPuntos } from '@puntos/core/value-objects/CantidadPuntos';
+
 
 @Injectable()
 export class DevolucionHandler {
@@ -56,8 +58,18 @@ if (
   ];
 }
 
+
+
+
+// 2.2 Si hay txs mixtas (GASTO + ACREDITACION), usar lógica de anulación
+const tieneMixtas = transaccionesOriginales.length > 0 &&
+  transaccionesOriginales.some(tx => tx.tipo === TxTipo.GASTO) &&
+  transaccionesOriginales.some(tx => tx.tipo === TxTipo.ACREDITACION);
+
 // 3. Aplicar la devolución en saldo
-    const { detallesDebito, nuevoLote } = this.saldoHandler.aplicarDevolucion(
+const { detallesDebito, nuevoLote } = tieneMixtas
+  ? this.saldoHandler.aplicarAnulacion(saldo, operacion, transaccionesOriginales)
+  : this.saldoHandler.aplicarDevolucion(
       saldo,
       operacion,
       instrucciones.debitos[0]?.cantidad,
