@@ -69,6 +69,8 @@ const refOperacion =
         ? idComprobanteRefRaw
         : undefined;
 
+    console.log(`[ADAPTER] codAccion=${plexDto.codAccion} idComprobante=${plexDto.idComprobante} idComprobanteRef=${plexDto.idComprobanteRef} nroComprobante=${plexDto.nroComprobante}`);
+
     const domainRequest = {
       clienteId: cliente.id,
       puntos: puntosCanjeados,
