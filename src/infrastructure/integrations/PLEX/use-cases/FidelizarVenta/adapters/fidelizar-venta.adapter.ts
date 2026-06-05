@@ -77,7 +77,7 @@ const refOperacion =
       montoMoneda: importeTotal,
       origenTipo: 'PLEX' as const,
       moneda: TipoMoneda.ARS,
-      referencia: plexDto.nroComprobante || undefined,
+      referencia: plexDto.codAccion === '201' ? undefined : (plexDto.nroComprobante || undefined),
       refOperacion,
       idComprobante,
       idComprobanteRef,
