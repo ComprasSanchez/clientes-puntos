@@ -69,7 +69,7 @@ export class OperacionEntity {
   refAnulacion: number | null;
 
   @Column('bigint', { nullable: true })
-idComprobante: number | null;
+  idComprobante: number | null;
 
   @Column('varchar', { nullable: true })
   codSucursal: string | null;

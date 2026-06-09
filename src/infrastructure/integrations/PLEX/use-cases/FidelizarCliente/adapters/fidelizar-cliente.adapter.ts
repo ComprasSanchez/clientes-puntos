@@ -53,13 +53,12 @@ export class FidelizarClientePlexAdapter {
         case codFidelizarCliente.NUEVO:
         case codFidelizarCliente.TARJETA_VIRTUAL: {
           const existingByDni = await this.clienteRepository.findByDni(
-            new ClienteDni(plexDto.dni),
-          );
-          if (existingByDni) {
-            throw new Error(
-              `DNI ${plexDto.dni} ya existe; para actualizar use codAccion 101 o 102`,
-            );
-          }
+  new ClienteDni(plexDto.dni),
+);
+if (existingByDni) {
+  domainResponse = existingByDni;
+  break;
+}
 
           // No enviar tarjetaFidely ni idFidely: el caso de uso decide la tarjeta,
           // y la DB autogenera id_fidely si corresponde.
