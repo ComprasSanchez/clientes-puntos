@@ -52,11 +52,13 @@ export class AjusteHandler {
           : undefined);
     } else if (tipoAjuste === TxTipo.GASTO) {
       // En gasto esperamos débitos; si no hay, usamos req.puntos como débito
-      total =
-        instrucciones.debitos?.[0]?.cantidad ??
-        (typeof req.puntos === 'number' && req.puntos > 0
-          ? new CantidadPuntos(req.puntos)
-          : undefined);
+      const debitoValor = instrucciones.debitos?.[0]?.cantidad?.value;
+total =
+  (debitoValor != null && debitoValor > 0)
+    ? instrucciones.debitos![0].cantidad
+    : (typeof req.puntos === 'number' && req.puntos > 0
+        ? new CantidadPuntos(req.puntos)
+        : undefined);
     } else {
       throw new Error('Tipo de ajuste no soportado');
     }
