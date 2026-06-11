@@ -1,5 +1,5 @@
 // src/application/handlers/AjusteHandler.ts
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable, Inject, Logger } from '@nestjs/common';
 import { OperacionFactory } from '@puntos/core/factories/OperacionFactory';
 import { SaldoHandler } from './SaldoHandler';
 import { IReglaEngine } from '@puntos/core/interfaces/IReglaEngine';
@@ -19,6 +19,7 @@ import { CantidadPuntos } from '@puntos/core/value-objects/CantidadPuntos';
 
 @Injectable()
 export class AjusteHandler {
+  private readonly logger = new Logger(AjusteHandler.name);
   constructor(
     @Inject(OP_FACTORY)
     private readonly operacionFactory: OperacionFactory,
@@ -59,7 +60,7 @@ export class AjusteHandler {
     } else {
       throw new Error('Tipo de ajuste no soportado');
     }
-
+    this.logger.log(`[AJUSTE] tipo=${tipoAjuste} req.puntos=${req.puntos} debitos=${instrucciones.debitos?.[0]?.cantidad?.value} total=${total?.value}`);
     if (!total || total.value <= 0) {
       total = new CantidadPuntos(0);
     }
