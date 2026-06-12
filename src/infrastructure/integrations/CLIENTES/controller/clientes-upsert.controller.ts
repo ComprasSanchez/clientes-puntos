@@ -1,4 +1,4 @@
-import { Body, Controller, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Patch, Post, UseGuards } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiBody,
@@ -40,4 +40,9 @@ export class ClientesUpsertController {
   ): Promise<UpsertClienteFromPlexResponseDto> {
     return this.service.run(dto);
   }
+  @Patch('touch')
+@ApiOperation({ summary: 'Toca updated_at de un cliente por DNI' })
+async touch(@Body('dni') dni: string): Promise<void> {
+  await this.service.touch(dni);
+}
 }

@@ -63,4 +63,9 @@ export class ClientesUpsertFromPlexService {
       action: 'updated',
     };
   }
+
+    async touch(dni: string): Promise<void> {
+    await this.clienteRepo.touchByDni(dni);
+  }
+
 }

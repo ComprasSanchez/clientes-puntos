@@ -136,7 +136,13 @@ export class TypeOrmClienteRepository implements ClienteRepository {
 
     return rows.map((row) => this.toDomain(row));
   }
-
+async touchByDni(dni: string): Promise<void> {
+  const normalized = dni.replace(/^0+/, '');
+  await this.dataSource.query(
+    `UPDATE cliente SET updated_at = NOW() WHERE REGEXP_REPLACE(dni, '^0+', '') = $1`,
+    [normalized],
+  );
+}
   private async insertOnConflictUpdateByDni(
     entity: ClienteEntity,
   ): Promise<void> {

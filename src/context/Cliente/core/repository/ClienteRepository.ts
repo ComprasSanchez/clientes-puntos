@@ -16,6 +16,7 @@ export interface ClienteRepository {
   existsByTarjetaFidely(numero: string): Promise<boolean>;
   create(cliente: Cliente, ctx?: TransactionContext): Promise<void>;
   update(cliente: Cliente, ctx?: TransactionContext): Promise<void>;
+  touchByDni(dni: string): Promise<void>;
 
   findPagedByIdAsc(params: {
     lastId?: ClienteId | null;
