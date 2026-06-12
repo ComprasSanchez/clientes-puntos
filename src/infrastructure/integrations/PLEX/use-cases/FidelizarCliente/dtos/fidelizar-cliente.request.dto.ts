@@ -62,7 +62,7 @@ export class PlexFidelizarClienteRequestMapper {
       nroTarjeta: cliente.NroTarjeta
         ? String(cliente.NroTarjeta).trim()
         : undefined,
-      dni: cliente.DNI ? String(cliente.DNI).trim().padStart(10, '0') : '',
+      dni: cliente.DNI ? String(cliente.DNI).trim().replace(/^0+/, '') : '',
       nombre:
         normalizeNameLike(
           cliente.Nombre ? String(cliente.Nombre) : undefined,

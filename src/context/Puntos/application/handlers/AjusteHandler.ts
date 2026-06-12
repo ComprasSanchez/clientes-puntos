@@ -55,7 +55,7 @@ export class AjusteHandler {
       const debitoValor = instrucciones.debitos?.[0]?.cantidad?.value;
 total =
   (debitoValor != null && debitoValor > 0)
-    ? instrucciones.debitos![0].cantidad
+    ? instrucciones.debitos![0].cantidads
     : (typeof req.puntos === 'number' && req.puntos > 0
         ? new CantidadPuntos(req.puntos)
         : undefined);
