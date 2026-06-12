@@ -1,4 +1,4 @@
-import { Body, Controller, Patch, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, HttpCode, HttpStatus, Patch, Post, UseGuards } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiBody,
@@ -40,9 +40,13 @@ export class ClientesUpsertController {
   ): Promise<UpsertClienteFromPlexResponseDto> {
     return this.service.run(dto);
   }
+
   @Patch('touch')
-@ApiOperation({ summary: 'Toca updated_at de un cliente por DNI' })
-async touch(@Body('dni') dni: string): Promise<void> {
-  await this.service.touch(dni);
-}
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Marca updated_at de un cliente para que PLEX lo re-sincronice' })
+  @ApiBody({ schema: { type: 'object', properties: { dni: { type: 'string', example: '12345678' } }, required: ['dni'] } })
+  @ApiResponse({ status: 204, description: 'Touch aplicado correctamente.' })
+  async touch(@Body('dni') dni: string): Promise<void> {
+    await this.service.touch(dni);
+  }
 }

@@ -64,8 +64,7 @@ export class ClientesUpsertFromPlexService {
     };
   }
 
-    async touch(dni: string): Promise<void> {
+  async touch(dni: string): Promise<void> {
     await this.clienteRepo.touchByDni(dni);
   }
-
 }
