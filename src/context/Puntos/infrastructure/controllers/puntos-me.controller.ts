@@ -1,5 +1,5 @@
 import {
-  BadGatewayException,
+  // BadGatewayException, // [WIBI] Se usaba para errores de consulta a WIBI
   Controller,
   Get,
   Inject,
@@ -27,8 +27,9 @@ import { FindOperacionesByClienteUseCase } from '@puntos/application/use-cases/O
 import { OperacionResponseDto } from '../dtos/OperacionResponseDto';
 import { PaginationQueryDto } from '@shared/infrastructure/dtos/pagination-query.dto';
 import { OperacionValorService } from '@puntos/application/services/OperacionValorService';
-import { OBTENER_HSITORIAL_SALDO, OPERACION_VALOR_SERVICE } from '@puntos/core/tokens/tokens';
-import { PuntosServiceWIBI } from '../adapters/PuntosServiceWIBI/PuntosServiceWIBI';
+import { OBTENER_HSITORIAL_SALDO, OBTENER_SALDO_SERVICE, OPERACION_VALOR_SERVICE } from '@puntos/core/tokens/tokens';
+import { ObtenerSaldo } from '@puntos/application/use-cases/ObtenerSaldo/ObtenerSaldo';
+// [WIBI] import { PuntosServiceWIBI } from '../adapters/PuntosServiceWIBI/PuntosServiceWIBI';
 import {
   GetHistorialSaldoCliente,
   HistorialSaldoPageResponse,
@@ -60,7 +61,9 @@ export class PuntosMeController {
 
   constructor(
     private readonly clientesFsaClient: ClientesFsaClient,
-    private readonly wibiService: PuntosServiceWIBI,
+    // [WIBI] private readonly wibiService: PuntosServiceWIBI,
+    @Inject(OBTENER_SALDO_SERVICE)
+    private readonly obtenerSaldo: ObtenerSaldo,
     private readonly findByCliente: FindOperacionesByClienteUseCase,
     @Inject(OPERACION_VALOR_SERVICE)
     private readonly operacionValorService: OperacionValorService,
@@ -74,7 +77,7 @@ export class PuntosMeController {
   @ClientPerms('me:read')
   @ApiOperation({
     summary:
-      'Obtiene saldo actual del cliente autenticado consultando directamente a WIBI',
+      'Obtiene saldo actual del cliente autenticado desde la base de datos local (tabla saldo_cliente)',
   })
   @ApiOkResponse({
     schema: {
@@ -140,13 +143,12 @@ export class PuntosMeController {
     }
 
     const nroTarjeta = String(cliente.fidelyStatus.tarjetaFidely.value ?? '').trim();
-    if (!nroTarjeta) {
-      throw new NotFoundException(
-        `El cliente ${puntosClienteId} no posee NroTarjeta para consulta WIBI`,
-      );
-    }
+    // [WIBI] Se eliminó el throw si nroTarjeta está vacío — ya no se necesita para consultar saldo.
+    // [WIBI] if (!nroTarjeta) { throw new NotFoundException(`El cliente ${puntosClienteId} no posee NroTarjeta para consulta WIBI`); }
 
-    const saldoActual = await this.resolveSaldoActual(nroTarjeta);
+    // Saldo desde base de datos local (tabla saldo_cliente)
+    const saldoActual = await this.obtenerSaldo.run(puntosClienteId);
+    // [WIBI] const saldoActual = await this.resolveSaldoActual(nroTarjeta);
 
     const movimientos = await this.resolveMovimientos(puntosClienteId, query);
 
@@ -171,12 +173,12 @@ export class PuntosMeController {
 
   @Get('historial-saldo')
   @ClientPerms('me:read')
-  @ApiOperation({ summary: 'Historial de operaciones del cliente autenticado (paginado)' })
+  @ApiOperation({ summary: 'Historial de cambios de saldo del cliente (tabla historial_saldo_cliente, paginado)' })
   async getHistorialSaldo(
     @UserId() userId: string,
     @Query() query: PaginationQueryDto,
     @Query('clienteId') clienteId?: string,
-  ): Promise<PuntosMeSaldoResponse['movimientos']> {
+  ): Promise<HistorialSaldoPageResponse> {
     this.logger.log({
       msg: 'Inicio GET /puntos/me/historial-saldo',
       userId: userId ?? null,
@@ -186,7 +188,7 @@ export class PuntosMeController {
     });
 
     const puntosClienteId = await this.resolvePuntosClienteId(userId, clienteId);
-    return this.resolveMovimientos(puntosClienteId, query);
+    return this.historialSaldo.runPaginated(puntosClienteId, query.toParams());
   }
 
   private async resolvePuntosClienteId(
@@ -290,23 +292,24 @@ export class PuntosMeController {
     }
   }
 
-  private async resolveSaldoActual(nroTarjeta: string): Promise<number> {
-    try {
-      return await this.wibiService.obtenerSaldoActualByTarjeta(nroTarjeta);
-    } catch (error) {
-      this.logger.error({
-        msg: 'Error obteniendo saldo WIBI en /puntos/me',
-        nroTarjeta,
-        reason: error instanceof Error ? error.message : 'unknown_error',
-      });
-
-      throw new BadGatewayException(
-        error instanceof Error
-          ? `Falló consulta de saldo WIBI: ${error.message}`
-          : 'Falló consulta de saldo WIBI',
-      );
-    }
-  }
+  // [WIBI] Método comentado — saldo ahora se lee de saldo_cliente (local).
+  // [WIBI] Para revertir: ver docs/wibi-saldo-revert.md
+  // private async resolveSaldoActual(nroTarjeta: string): Promise<number> {
+  //   try {
+  //     return await this.wibiService.obtenerSaldoActualByTarjeta(nroTarjeta);
+  //   } catch (error) {
+  //     this.logger.error({
+  //       msg: 'Error obteniendo saldo WIBI en /puntos/me',
+  //       nroTarjeta,
+  //       reason: error instanceof Error ? error.message : 'unknown_error',
+  //     });
+  //     throw new BadGatewayException(
+  //       error instanceof Error
+  //         ? `Falló consulta de saldo WIBI: ${error.message}`
+  //         : 'Falló consulta de saldo WIBI',
+  //     );
+  //   }
+  // }
 
   private extractPuntosClienteId(
     fuentesDatos?: Array<{ sistema?: string; extId?: string }> | null,
