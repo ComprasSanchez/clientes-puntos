@@ -172,7 +172,13 @@ async touchByDni(dni: string): Promise<void> {
           ELSE "cliente"."id_fidely"
         END,
         "fecha_baja" = EXCLUDED."fecha_baja",
-        "updated_at" = NOW();
+        "updated_at" = NOW()
+      WHERE
+        "cliente"."status_cliente"  IS DISTINCT FROM EXCLUDED."status_cliente"
+        OR "cliente"."categoria_id"   IS DISTINCT FROM EXCLUDED."categoria_id"
+        OR "cliente"."tarjeta_fidely" IS DISTINCT FROM EXCLUDED."tarjeta_fidely"
+        OR "cliente"."fecha_baja"     IS DISTINCT FROM EXCLUDED."fecha_baja"
+        OR ($${nextPlaceholderIndex + 2} AND "cliente"."id_fidely" IS DISTINCT FROM EXCLUDED."id_fidely");
     `;
 
     const params = [
