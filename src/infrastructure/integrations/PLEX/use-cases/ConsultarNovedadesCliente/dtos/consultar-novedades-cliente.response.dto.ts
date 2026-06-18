@@ -38,7 +38,7 @@ export class PlexConsultarNovedadesClienteResponseMapper {
         nroTarjeta: cliente.tarjetaFidely ?? '',
         nombre: cliente.nombre ?? '',
         apellido: cliente.apellido ?? '',
-        fecNac: cliente.fechaNacimiento ?? '',
+        fecNac: toPlexDate(cliente.fechaNacimiento),
         dni: normalizeDniForOutput(cliente.dni ?? ''),
         telefono: cliente.telefono ?? '',
         direccion: cliente.direccion ?? '',
@@ -90,4 +90,13 @@ function normalizeDniForOutput(value: string): string {
   const trimmed = String(value ?? '').trim();
   const noLeadingZeros = trimmed.replace(/^0+/, '');
   return noLeadingZeros.length > 0 ? noLeadingZeros : trimmed;
+}
+
+// Convierte yyyy-mm-dd (ISO) → dd/mm/yyyy (formato PLEX)
+function toPlexDate(value: string | null | undefined): string {
+  const raw = String(value ?? '').trim();
+  if (!raw) return '';
+  const match = raw.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (match) return `${match[3]}/${match[2]}/${match[1]}`;
+  return raw;
 }
