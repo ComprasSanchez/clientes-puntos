@@ -1,5 +1,13 @@
 // dtos/plex-consultar-cliente.response.dto.ts
 
+function toPlexDate(value: string | null | undefined): string {
+  const raw = String(value ?? '').trim();
+  if (!raw) return '';
+  const match = raw.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (match) return `${match[3]}/${match[2]}/${match[1]}`;
+  return raw;
+}
+
 import { ConsultarClienteDomainResponse } from '../interfaces/consultar-cliente-domain.interface';
 
 export interface PlexConsultarClienteResponseDto {
@@ -41,7 +49,7 @@ export class PlexConsultarClienteResponseMapper {
         categoria: domain.categoria,
         nombre: domain.nombre,
         apellido: domain.apellido,
-        fecNac: domain.fecNac || '',
+        fecNac: toPlexDate(domain.fecNac),
         dni: domain.dni,
         telefono: domain.telefono || '',
         celular: domain.celular || '',
