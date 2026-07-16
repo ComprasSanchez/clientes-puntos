@@ -42,7 +42,7 @@ import { ClientPerms } from '@sistemas-fsa/authz/nest';
 // Por defecto, este controller acepta tokens emitidos por el SPA y exige client roles de `puntos-fsa`.
 // Si querés cambiar endpoint por endpoint, podés mover el @Authz a cada handler.
 @Authz({
-  allowedAzp: ['puntos-fsa', 'bff'],
+  allowedAzp: ['puntos-fsa', 'bff', 'crm-fsa-back'],
   requireSucursalData: false,
 })
 @Controller('cliente')
