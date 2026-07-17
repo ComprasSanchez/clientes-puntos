@@ -24,7 +24,7 @@ import {
 @ApiBearerAuth()
 @UseGuards(ApiJwtGuard)
 @Authz({
-  allowedAzp: ['puntos-fsa', 'bff'],
+  allowedAzp: ['puntos-fsa', 'bff', 'crm-fsa-back'],
   requireSucursalData: false, // no depende de sucursal
 })
 @Controller('transacciones')

@@ -23,6 +23,7 @@ import {
 } from '@cliente/application/use-cases/ClienteCreate/ClienteCreate';
 import { ClienteFindAll } from '@cliente/application/use-cases/ClienteFindAll/ClienteFindAll';
 import { ClienteFindByDni } from '@cliente/application/use-cases/ClienteFindByDni/ClienteFindByDni';
+import { ClienteFindByTarjeta } from '@cliente/application/use-cases/ClienteFindByTarjeta/ClienteFindByTarjeta';
 import { ClienteGetProfile } from '@cliente/application/use-cases/ClienteGetProfile/ClienteGetProfile';
 import { ClienteFindById } from '@cliente/application/use-cases/ClienteFindbyId/ClienteFindById';
 import { ClienteUpdate } from '@cliente/application/use-cases/ClienteUpdate/ClienteUpdate';
@@ -41,7 +42,7 @@ import { ClientPerms } from '@sistemas-fsa/authz/nest';
 // Por defecto, este controller acepta tokens emitidos por el SPA y exige client roles de `puntos-fsa`.
 // Si querés cambiar endpoint por endpoint, podés mover el @Authz a cada handler.
 @Authz({
-  allowedAzp: ['puntos-fsa', 'bff'],
+  allowedAzp: ['puntos-fsa', 'bff', 'crm-fsa-back'],
   requireSucursalData: false,
 })
 @Controller('cliente')
@@ -51,6 +52,7 @@ export class ClienteController {
     private readonly findAllUseCase: ClienteFindAll,
     private readonly findByIdUseCase: ClienteFindById,
     private readonly findByDniUseCase: ClienteFindByDni,
+    private readonly findByTarjetaUseCase: ClienteFindByTarjeta,
     private readonly getProfileUseCase: ClienteGetProfile,
     private readonly updateUseCase: ClienteUpdate,
     private readonly deleteUseCase: ClienteDelete,
@@ -113,6 +115,27 @@ export class ClienteController {
     @Param('dni') dni: string,
   ): Promise<ClienteResponseDto | null> {
     return this.findByDniUseCase.run(dni);
+  }
+
+  @ApiOperation({ summary: 'Buscar cliente por número de tarjeta Fidely' })
+  @ApiParam({ name: 'tarjeta', type: String })
+  @ApiResponse({
+    status: 200,
+    description: 'Cliente encontrado.',
+    type: ClienteProfileDto,
+  })
+  @ApiResponse({ status: 401, description: 'No autenticado.' })
+  @ApiResponse({ status: 403, description: 'Sin permisos.' })
+  @ApiResponse({
+    status: 404,
+    description: 'No existe un cliente con esa tarjeta.',
+  })
+  @ClientPerms('cliente:read')
+  @Get('tarjeta/:tarjeta')
+  async findByTarjeta(
+    @Param('tarjeta') tarjeta: string,
+  ): Promise<ClienteResponseDto> {
+    return this.findByTarjetaUseCase.run(tarjeta);
   }
 
   @ApiOperation({ summary: 'Buscar cliente por ID' })

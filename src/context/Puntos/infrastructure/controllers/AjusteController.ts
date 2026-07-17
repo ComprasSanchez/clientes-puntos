@@ -20,7 +20,7 @@ import {
 @ApiBearerAuth()
 @UseGuards(ApiJwtGuard)
 @Authz({
-  allowedAzp: ['puntos-fsa', 'bff'],
+  allowedAzp: ['puntos-fsa', 'bff', 'crm-fsa-back'],
   requireSucursalData: true, // <- obligatorio sucursalId / codigoExt en el token
 })
 @Controller('ajuste')
