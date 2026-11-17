@@ -61,7 +61,6 @@ import { FindOperacionDetalleByIdUseCase } from '@puntos/application/use-cases/O
 import { ClienteInfrastructureModule } from '@cliente/infrastructure/cliente.module';
 import { GetHistorialSaldoCliente } from '@puntos/application/use-cases/ObtenerHistorialSaldo/GetHistorialSaldoCliente';
 import { PuntosMeController } from './controllers/puntos-me.controller';
-import { PuntosServiceWIBI } from './adapters/PuntosServiceWIBI/PuntosServiceWIBI';
 import { ClientesFsaClient } from '@infrastructure/integrations/CLIENTES/services/clientes-fsa.client';
 
 @Module({
@@ -110,7 +109,6 @@ import { ClientesFsaClient } from '@infrastructure/integrations/CLIENTES/service
     { provide: OBTENER_SALDO_SERVICE, useClass: ObtenerSaldo },
     { provide: OPERACION_VALOR_SERVICE, useClass: OperacionValorService },
     { provide: OBTENER_HSITORIAL_SALDO, useClass: GetHistorialSaldoCliente },
-    PuntosServiceWIBI,
     ClientesFsaClient,
 
     {
