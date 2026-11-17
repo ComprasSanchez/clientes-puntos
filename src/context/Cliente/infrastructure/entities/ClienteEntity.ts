@@ -2,6 +2,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  Index,
   JoinColumn,
   ManyToOne,
   PrimaryColumn,
@@ -11,6 +12,10 @@ import { StatusCliente } from '@cliente/core/enums/StatusCliente';
 import { CategoriaEntity } from './CategoriaEntity';
 
 @Entity({ name: 'cliente' })
+@Index('idx_cliente_novedad_plex_at', ['novedadPlexAt'])
+@Index('idx_cliente_novedad_plex_pendiente', ['novedadPlexPendienteDesde'], {
+  where: '"novedad_plex_pendiente_desde" IS NOT NULL',
+})
 export class ClienteEntity {
   @PrimaryColumn({ type: 'uuid' })
   id: string;
@@ -60,6 +65,29 @@ export class ClienteEntity {
 
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamp with time zone' })
   updatedAt: Date;
+
+  /**
+   * Momento en que el cliente se publica como novedad para Plex
+   * (ConsultarNovedadesCliente filtra por esta columna, no por updated_at).
+   * Lo pone el liberador de novedades, de a lotes.
+   */
+  @Column({
+    name: 'novedad_plex_at',
+    type: 'timestamp with time zone',
+    nullable: true,
+  })
+  novedadPlexAt?: Date | null;
+
+  /**
+   * Desde cuándo el cliente tiene un cambio pendiente de informar a Plex.
+   * NULL = nada pendiente. Varios cambios seguidos conservan la primera fecha.
+   */
+  @Column({
+    name: 'novedad_plex_pendiente_desde',
+    type: 'timestamp with time zone',
+    nullable: true,
+  })
+  novedadPlexPendienteDesde?: Date | null;
 
   @ManyToOne(() => CategoriaEntity, (cat) => cat.clientes, { eager: true })
   @JoinColumn({ name: 'categoria_id' })

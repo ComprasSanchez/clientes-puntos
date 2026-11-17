@@ -1,9 +1,9 @@
-import { ClienteFindUpdatedBetween } from '@cliente/application/use-cases/ClienteFindUpdatedBetween/ClienteFindUpdatedBetween';
+import { ClienteFindNovedadesPlex } from '@cliente/application/use-cases/ClienteFindNovedadesPlex/ClienteFindNovedadesPlex';
 import { ConsultarNovedadesClientePlexAdapter } from './consultar-novedades-cliente.adapter';
 import { ClientesFsaClient } from '@infrastructure/integrations/CLIENTES/services/clientes-fsa.client';
 
 describe('ConsultarNovedadesClientePlexAdapter', () => {
-  let clienteFindUpdatedBetween: { run: jest.Mock };
+  let clienteFindNovedadesPlex: { run: jest.Mock };
   let clientesFsaClient: {
     findManyByDni: jest.Mock;
     findManyByExternalIds: jest.Mock;
@@ -11,19 +11,19 @@ describe('ConsultarNovedadesClientePlexAdapter', () => {
   let adapter: ConsultarNovedadesClientePlexAdapter;
 
   beforeEach(() => {
-    clienteFindUpdatedBetween = { run: jest.fn() };
+    clienteFindNovedadesPlex = { run: jest.fn() };
     clientesFsaClient = {
       findManyByDni: jest.fn().mockResolvedValue(new Map()),
       findManyByExternalIds: jest.fn().mockResolvedValue(new Map()),
     };
     adapter = new ConsultarNovedadesClientePlexAdapter(
-      clienteFindUpdatedBetween as unknown as ClienteFindUpdatedBetween,
+      clienteFindNovedadesPlex as unknown as ClienteFindNovedadesPlex,
       clientesFsaClient as unknown as ClientesFsaClient,
     );
   });
 
   it('procesa codAccion 302 y responde novedades en XML', async () => {
-    clienteFindUpdatedBetween.run.mockResolvedValue([
+    clienteFindNovedadesPlex.run.mockResolvedValue([
       {
         id: 'cli-1',
         dni: '30111222',
@@ -85,8 +85,8 @@ describe('ConsultarNovedadesClientePlexAdapter', () => {
 
     const result = await adapter.handle(xml, 'SUC-01');
 
-    expect(clienteFindUpdatedBetween.run).toHaveBeenCalledTimes(1);
-    expect(clienteFindUpdatedBetween.run).toHaveBeenCalledWith(
+    expect(clienteFindNovedadesPlex.run).toHaveBeenCalledTimes(1);
+    expect(clienteFindNovedadesPlex.run).toHaveBeenCalledWith(
       {
         from: new Date(2026, 2, 1, 0, 0, 0),
         to: new Date(2026, 2, 6, 23, 59, 59),
