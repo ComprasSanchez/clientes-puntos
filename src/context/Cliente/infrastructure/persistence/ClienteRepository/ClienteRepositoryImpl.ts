@@ -121,28 +121,56 @@ export class TypeOrmClienteRepository implements ClienteRepository {
     return rows.map((row) => this.toDomain(row));
   }
 
-  async findUpdatedBetween(params: {
+  async findNovedadesPlexBetween(params: {
     from: Date;
     to: Date;
   }): Promise<Cliente[]> {
     const rows = await this.ormRepo
       .createQueryBuilder('c')
       .leftJoinAndSelect('c.categoria', 'categoria')
-      .where('c.updatedAt >= :from', { from: params.from })
-      .andWhere('c.updatedAt <= :to', { to: params.to })
-      .orderBy('c.updatedAt', 'ASC')
+      .where('c.novedadPlexAt >= :from', { from: params.from })
+      .andWhere('c.novedadPlexAt <= :to', { to: params.to })
+      .orderBy('c.novedadPlexAt', 'ASC')
       .addOrderBy('c.id', 'ASC')
       .getMany();
 
     return rows.map((row) => this.toDomain(row));
   }
-async touchByDni(dni: string): Promise<void> {
-  const normalized = dni.replace(/^0+/, '');
-  await this.dataSource.query(
-    `UPDATE cliente SET updated_at = NOW() WHERE REGEXP_REPLACE(dni, '^0+', '') = $1`,
-    [normalized],
-  );
-}
+
+  async liberarNovedadesPlex(limite: number): Promise<number> {
+    // SKIP LOCKED: si corre en más de una réplica, cada una toma filas distintas.
+    const rows = (await this.dataSource.query(
+      `UPDATE cliente
+       SET novedad_plex_at = NOW(),
+           novedad_plex_pendiente_desde = NULL
+       WHERE id IN (
+         SELECT id FROM cliente
+         WHERE novedad_plex_pendiente_desde IS NOT NULL
+         ORDER BY novedad_plex_pendiente_desde ASC, id ASC
+         LIMIT $1
+         FOR UPDATE SKIP LOCKED
+       )
+       RETURNING id`,
+      [limite],
+    )) as unknown;
+
+    // pg devuelve [filas, cantidad] en UPDATE ... RETURNING vía TypeORM.
+    if (Array.isArray(rows) && Array.isArray(rows[0])) {
+      return (rows[0] as unknown[]).length;
+    }
+    return Array.isArray(rows) ? rows.length : 0;
+  }
+
+  async touchByDni(dni: string): Promise<void> {
+    const normalized = dni.replace(/^0+/, '');
+    await this.dataSource.query(
+      `UPDATE cliente
+       SET updated_at = NOW(),
+           novedad_plex_pendiente_desde = COALESCE(novedad_plex_pendiente_desde, NOW())
+       WHERE REGEXP_REPLACE(dni, '^0+', '') = $1`,
+      [normalized],
+    );
+  }
   private async insertOnConflictUpdateByDni(
     entity: ClienteEntity,
   ): Promise<void> {
@@ -159,9 +187,9 @@ async touchByDni(dni: string): Promise<void> {
 
     const sql = `
       INSERT INTO "cliente" (
-        "id", "dni", "status_cliente", "categoria_id", "tarjeta_fidely", "id_fidely", "fecha_alta", "fecha_baja", "created_at", "updated_at"
+        "id", "dni", "status_cliente", "categoria_id", "tarjeta_fidely", "id_fidely", "fecha_alta", "fecha_baja", "created_at", "updated_at", "novedad_plex_pendiente_desde"
       ) VALUES (
-        $1, $2, $3, $4, $5, ${idFidelyPlaceholder}, $${nextPlaceholderIndex}, $${nextPlaceholderIndex + 1}, NOW(), NOW()
+        $1, $2, $3, $4, $5, ${idFidelyPlaceholder}, $${nextPlaceholderIndex}, $${nextPlaceholderIndex + 1}, NOW(), NOW(), NOW()
       )
       ON CONFLICT ("dni") DO UPDATE SET
         "status_cliente" = EXCLUDED."status_cliente",
@@ -172,7 +200,9 @@ async touchByDni(dni: string): Promise<void> {
           ELSE "cliente"."id_fidely"
         END,
         "fecha_baja" = EXCLUDED."fecha_baja",
-        "updated_at" = NOW()
+        "updated_at" = NOW(),
+        -- Solo llega acá si cambió algo (ver WHERE): queda pendiente para Plex.
+        "novedad_plex_pendiente_desde" = COALESCE("cliente"."novedad_plex_pendiente_desde", NOW())
       WHERE
         "cliente"."status_cliente"  IS DISTINCT FROM EXCLUDED."status_cliente"
         OR "cliente"."categoria_id"   IS DISTINCT FROM EXCLUDED."categoria_id"

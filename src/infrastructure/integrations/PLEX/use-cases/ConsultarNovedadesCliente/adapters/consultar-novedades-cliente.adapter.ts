@@ -1,5 +1,5 @@
 import { ClienteResponseDto } from '@cliente/application/dtos/ClienteResponseDto';
-import { ClienteFindUpdatedBetween } from '@cliente/application/use-cases/ClienteFindUpdatedBetween/ClienteFindUpdatedBetween';
+import { ClienteFindNovedadesPlex } from '@cliente/application/use-cases/ClienteFindNovedadesPlex/ClienteFindNovedadesPlex';
 import { UseCaseResponse } from '@infrastructure/integrations/PLEX/dto/usecase-response.dto';
 import { codConsultarNovedadesCliente } from '@infrastructure/integrations/PLEX/enums/consultar-novedades-cliente.enum';
 import { ClientesFsaClienteDto } from '@infrastructure/integrations/CLIENTES/dto/clientes-fsa.dto';
@@ -16,8 +16,8 @@ export class ConsultarNovedadesClientePlexAdapter {
   );
 
   constructor(
-    @Inject(ClienteFindUpdatedBetween)
-    private readonly clienteFindUpdatedBetween: ClienteFindUpdatedBetween,
+    @Inject(ClienteFindNovedadesPlex)
+    private readonly clienteFindNovedadesPlex: ClienteFindNovedadesPlex,
     @Inject(ClientesFsaClient)
     private readonly clientesFsaClient: ClientesFsaClient,
   ) { }
@@ -46,10 +46,23 @@ export class ConsultarNovedadesClientePlexAdapter {
       throw new Error('FechaDesde debe ser menor o igual a FechaHasta');
     }
 
-    const clientes = await this.clienteFindUpdatedBetween.run(
+    const clientes = await this.clienteFindNovedadesPlex.run(
       { from, to },
       { skipCanonicalHydration: true },
     );
+
+    // Para ajustar NOVEDADES_PLEX_LOTE: cada cuánto y con qué rango pregunta Plex.
+    this.logger.log(
+      {
+        sucursal,
+        fechaDesde: plexDto.fechaDesde,
+        fechaHasta: plexDto.fechaHasta,
+        rangoMinutos: Math.round((to.getTime() - from.getTime()) / 60_000),
+        clientes: clientes.length,
+      },
+      'Plex ConsultarNovedadesCliente',
+    );
+
     const clientesCanonicos = await this.resolveClientesFromFsaInBatches(
       clientes,
     );

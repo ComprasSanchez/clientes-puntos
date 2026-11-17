@@ -16,11 +16,23 @@ export interface ClienteRepository {
   existsByTarjetaFidely(numero: string): Promise<boolean>;
   create(cliente: Cliente, ctx?: TransactionContext): Promise<void>;
   update(cliente: Cliente, ctx?: TransactionContext): Promise<void>;
+  /** Deja al cliente pendiente de informar a Plex (sin cambiar sus datos). */
   touchByDni(dni: string): Promise<void>;
 
   findPagedByIdAsc(params: {
     lastId?: ClienteId | null;
     limit: number;
   }): Promise<Cliente[]>;
-  findUpdatedBetween(params: { from: Date; to: Date }): Promise<Cliente[]>;
+
+  /** Clientes publicados como novedad para Plex en el rango (novedad_plex_at). */
+  findNovedadesPlexBetween(params: {
+    from: Date;
+    to: Date;
+  }): Promise<Cliente[]>;
+
+  /**
+   * Publica como novedad para Plex hasta `limite` clientes pendientes, los más
+   * viejos primero. Devuelve cuántos publicó.
+   */
+  liberarNovedadesPlex(limite: number): Promise<number>;
 }

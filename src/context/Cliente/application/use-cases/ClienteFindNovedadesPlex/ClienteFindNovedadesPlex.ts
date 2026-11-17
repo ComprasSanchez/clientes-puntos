@@ -4,8 +4,13 @@ import { CLIENTE_REPO } from '@cliente/core/tokens/tokens';
 import { Inject, Injectable } from '@nestjs/common';
 import { ClienteCanonicalHydrator } from '@cliente/application/services/ClienteCanonicalHydrator';
 
+/**
+ * Clientes publicados como novedad para Plex en el rango pedido.
+ * Filtra por novedad_plex_at (lo pone ClienteLiberarNovedadesPlex de a lotes),
+ * no por updated_at: así un cambio masivo no viaja entero en una respuesta.
+ */
 @Injectable()
-export class ClienteFindUpdatedBetween {
+export class ClienteFindNovedadesPlex {
   constructor(
     @Inject(CLIENTE_REPO)
     private readonly repository: ClienteRepository,
@@ -16,7 +21,7 @@ export class ClienteFindUpdatedBetween {
     params: { from: Date; to: Date },
     options?: { skipCanonicalHydration?: boolean },
   ): Promise<ClienteResponseDto[]> {
-    const clientes = await this.repository.findUpdatedBetween(params);
+    const clientes = await this.repository.findNovedadesPlexBetween(params);
 
     if (!Array.isArray(clientes) || clientes.length === 0) {
       return [];
