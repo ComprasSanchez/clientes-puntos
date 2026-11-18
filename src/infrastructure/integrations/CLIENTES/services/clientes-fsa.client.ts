@@ -14,6 +14,11 @@ import {
 } from '../dto/clientes-fsa.dto';
 import { CLIENTES_HTTP } from '../tokens/tokens';
 
+const VERIFICACION_TIMEOUT_MS = (() => {
+  const n = Number(process.env.CLIENTES_VERIFICACION_TIMEOUT_MS);
+  return Number.isInteger(n) && n > 0 ? n : 5000;
+})();
+
 @Injectable()
 export class ClientesFsaClient {
   private readonly logger = new Logger(ClientesFsaClient.name);
@@ -240,6 +245,8 @@ export class ClientesFsaClient {
       const response = await this.http.post<ClientesFsaClienteIdDto>(
         path,
         payload,
+        // Lo llama la fidelización desde Plex (caja): no puede quedar colgado.
+        { timeout: VERIFICACION_TIMEOUT_MS },
       );
 
       return response.data;
