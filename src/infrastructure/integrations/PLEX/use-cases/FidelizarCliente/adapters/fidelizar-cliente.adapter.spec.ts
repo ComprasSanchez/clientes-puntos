@@ -70,6 +70,44 @@ describe('FidelizarClientePlexAdapter', () => {
     );
   });
 
+  it('si clientes-fsa rechaza o falla, igual modifica el cliente en puntos', async () => {
+    clientesFsaClient.upsertVerificacion.mockRejectedValue(
+      Object.assign(new Error('Request failed with status code 422'), {
+        isAxiosError: true,
+        response: {
+          status: 422,
+          data: { message: 'FISICO requiere nombre y apellido' },
+        },
+      }),
+    );
+    clienteUpdate.run.mockResolvedValue({
+      id: { value: 'puntos-id-9' },
+      dni: { value: '30111222' },
+      fidelyStatus: {
+        idFidely: { value: 7788 },
+        tarjetaFidely: { value: '000999' },
+      },
+    });
+
+    const xml =
+      '<?xml version="1.0" encoding="utf-8"?>' +
+      '<MensajeFidelyGB>' +
+      '<CodAccion>102</CodAccion>' +
+      '<Cliente>' +
+      '<IDClienteFidely>7788</IDClienteFidely>' +
+      '<NroTarjeta>000999</NroTarjeta>' +
+      '<DNI>30111222</DNI>' +
+      '</Cliente>' +
+      '</MensajeFidelyGB>';
+
+    const result = await adapter.handle(xml);
+
+    expect(clientesFsaClient.upsertVerificacion).toHaveBeenCalledTimes(1);
+    expect(clienteUpdate.run).toHaveBeenCalledTimes(1);
+    expect(result.response).toContain('<RespCode>0</RespCode>');
+    expect(result.response).toContain('<NroTarjeta>000999</NroTarjeta>');
+  });
+
   it('ignora IDClienteFidely en codAccion 100 y 103', async () => {
     clienteCreate.run.mockResolvedValue({
       id: { value: 'puntos-id-2' },

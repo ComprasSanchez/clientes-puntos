@@ -1,5 +1,6 @@
 import { ClienteCreate } from '@cliente/application/use-cases/ClienteCreate/ClienteCreate';
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
+import { isAxiosError } from 'axios';
 import { TransactionContext } from '@shared/core/interfaces/TransactionContext';
 import { XMLBuilder, XMLParser } from 'fast-xml-parser';
 import { PlexFidelizarClienteRequestMapper } from '../dtos/fidelizar-cliente.request.dto';
@@ -15,8 +16,20 @@ import { ClienteRepository } from '@cliente/core/repository/ClienteRepository';
 import { CLIENTE_REPO } from '@cliente/core/tokens/tokens';
 import { ClienteDni } from '@cliente/core/value-objects/ClienteDni';
 
+/** Mensaje de error de clientes-fsa (ej: "FISICO requiere nombre y apellido") o el de axios. */
+function motivoDeError(error: unknown): string {
+  if (isAxiosError(error)) {
+    const data = error.response?.data as { message?: unknown } | undefined;
+    if (typeof data?.message === 'string') return data.message;
+    return error.message;
+  }
+  return error instanceof Error ? error.message : String(error);
+}
+
 @Injectable()
 export class FidelizarClientePlexAdapter {
+  private readonly logger = new Logger(FidelizarClientePlexAdapter.name);
+
   constructor(
     @Inject(ClienteCreate)
     private readonly clienteCreate: ClienteCreate,
@@ -43,9 +56,7 @@ export class FidelizarClientePlexAdapter {
 
       const plexDto = PlexFidelizarClienteRequestMapper.fromXml(parsedObj);
 
-      await this.clientesFsaClient.upsertVerificacion(
-        this.toClientesFsaUpsertPayload(plexDto),
-      );
+      await this.sincronizarConClientesFsa(plexDto);
 
       let domainResponse: Cliente;
 
@@ -177,6 +188,34 @@ if (existingByDni) {
         throw new Error(`[ADAPTER_CRASH] ${error.message} \nStack: ${error.stack}`);
       }
       throw error;
+    }
+  }
+
+  /**
+   * Copia los datos del cliente a clientes-fsa. Es secundario: si falla
+   * (datos rechazados, clientes-fsa caído o lento) se registra y la operación
+   * de puntos sigue. Antes, cualquier fallo acá dejaba a la caja sin poder
+   * dar de alta ni modificar clientes.
+   */
+  private async sincronizarConClientesFsa(
+    plexDto: ReturnType<typeof PlexFidelizarClienteRequestMapper.fromXml>,
+  ): Promise<void> {
+    try {
+      await this.clientesFsaClient.upsertVerificacion(
+        this.toClientesFsaUpsertPayload(plexDto),
+      );
+    } catch (error) {
+      this.logger.warn(
+        {
+          codAccion: plexDto.codAccion,
+          dniLast4: plexDto.dni?.slice(-4),
+          nombrePresente: !!plexDto.nombre,
+          apellidoPresente: !!plexDto.apellido,
+          status: isAxiosError(error) ? error.response?.status : undefined,
+          motivo: motivoDeError(error),
+        },
+        'Plex fidelizar cliente: no se pudo copiar a clientes-fsa, se sigue con puntos',
+      );
     }
   }
 
