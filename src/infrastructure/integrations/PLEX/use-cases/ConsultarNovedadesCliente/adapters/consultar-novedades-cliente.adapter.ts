@@ -8,6 +8,13 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 import { XMLBuilder, XMLParser } from 'fast-xml-parser';
 import { PlexConsultarNovedadesClienteRequestMapper } from '../dtos/consultar-novedades-cliente.request.dto';
 import { PlexConsultarNovedadesClienteResponseMapper } from '../dtos/consultar-novedades-cliente.response.dto';
+import { ClienteMarcarNovedadesPlexEntregadas } from '@cliente/application/use-cases/ClienteMarcarNovedadesPlexEntregadas/ClienteMarcarNovedadesPlexEntregadas';
+
+/** Máximo de clientes por respuesta de novedades (~1 KB de XML por cliente). */
+const MAX_CLIENTES_POR_RESPUESTA = (() => {
+  const n = Number(process.env.NOVEDADES_PLEX_MAX_CLIENTES);
+  return Number.isInteger(n) && n > 0 ? n : 5000;
+})();
 
 @Injectable()
 export class ConsultarNovedadesClientePlexAdapter {
@@ -20,6 +27,8 @@ export class ConsultarNovedadesClientePlexAdapter {
     private readonly clienteFindNovedadesPlex: ClienteFindNovedadesPlex,
     @Inject(ClientesFsaClient)
     private readonly clientesFsaClient: ClientesFsaClient,
+    @Inject(ClienteMarcarNovedadesPlexEntregadas)
+    private readonly marcarEntregadas: ClienteMarcarNovedadesPlexEntregadas,
   ) { }
 
   async handle(xml: string, sucursal: string): Promise<UseCaseResponse> {
@@ -46,12 +55,16 @@ export class ConsultarNovedadesClientePlexAdapter {
       throw new Error('FechaDesde debe ser menor o igual a FechaHasta');
     }
 
-    const clientes = await this.clienteFindNovedadesPlex.run(
-      { from, to },
+    // Plex manda siempre la misma FechaDesde: respondemos desde lo último
+    // entregado a este consumidor y de a tandas (NOVEDADES_PLEX_MAX_CLIENTES).
+    const consumidor = sucursal || 'sin-sucursal';
+    const tanda = await this.clienteFindNovedadesPlex.run(
+      { consumidor, from, to, limite: MAX_CLIENTES_POR_RESPUESTA },
       { skipCanonicalHydration: true },
     );
+    const clientes = tanda.clientes;
 
-    // Para ajustar NOVEDADES_PLEX_LOTE: cada cuánto y con qué rango pregunta Plex.
+    // Para ajustar NOVEDADES_PLEX_LOTE/MAX_CLIENTES: cada cuánto y con qué rango pregunta Plex.
     this.logger.log(
       {
         sucursal,
@@ -59,6 +72,8 @@ export class ConsultarNovedadesClientePlexAdapter {
         fechaHasta: plexDto.fechaHasta,
         rangoMinutos: Math.round((to.getTime() - from.getTime()) / 60_000),
         clientes: clientes.length,
+        hayMas: tanda.hayMas,
+        tope: MAX_CLIENTES_POR_RESPUESTA,
       },
       'Plex ConsultarNovedadesCliente',
     );
@@ -80,9 +95,27 @@ export class ConsultarNovedadesClientePlexAdapter {
       format: true,
     });
 
+    const ultimoClienteId = tanda.ultimoClienteId;
+
     return {
       response: `<?xml version="1.0" encoding="utf-8"?>\n${builder.build(xmlObj)}`,
       dto: responseDto,
+      // Solo si la respuesta salió completa: si se corta, la próxima
+      // consulta vuelve a traer esta misma tanda.
+      onDelivered: ultimoClienteId
+        ? async () => {
+            await this.marcarEntregadas.run(consumidor, ultimoClienteId);
+            this.logger.log(
+              {
+                sucursal,
+                entregados: clientes.length,
+                ultimoClienteId,
+                hayMas: tanda.hayMas,
+              },
+              'Plex ConsultarNovedadesCliente: tanda entregada',
+            );
+          }
+        : undefined,
     };
   }
 

@@ -24,11 +24,31 @@ export interface ClienteRepository {
     limit: number;
   }): Promise<Cliente[]>;
 
-  /** Clientes publicados como novedad para Plex en el rango (novedad_plex_at). */
-  findNovedadesPlexBetween(params: {
+  /**
+   * Clientes publicados como novedad para Plex en el rango (novedad_plex_at),
+   * a partir de lo último entregado a ese consumidor, de a `limite`, los más
+   * viejos primero. `ultimoClienteId` es el último de la tanda (para marcarla
+   * como entregada); `hayMas` indica que quedaron clientes fuera por el tope.
+   */
+  findNovedadesPlexParaEntregar(params: {
+    consumidor: string;
     from: Date;
     to: Date;
-  }): Promise<Cliente[]>;
+    limite: number;
+  }): Promise<{
+    clientes: Cliente[];
+    ultimoClienteId: string | null;
+    hayMas: boolean;
+  }>;
+
+  /**
+   * Avanza la marca de entrega del consumidor hasta ese cliente (solo hacia
+   * adelante). Se llama cuando la respuesta a Plex salió completa.
+   */
+  marcarNovedadesPlexEntregadas(
+    consumidor: string,
+    ultimoClienteId: string,
+  ): Promise<void>;
 
   /**
    * Publica como novedad para Plex hasta `limite` clientes pendientes, los más

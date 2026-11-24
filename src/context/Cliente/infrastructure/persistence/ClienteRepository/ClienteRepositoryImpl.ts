@@ -121,20 +121,78 @@ export class TypeOrmClienteRepository implements ClienteRepository {
     return rows.map((row) => this.toDomain(row));
   }
 
-  async findNovedadesPlexBetween(params: {
+  async findNovedadesPlexParaEntregar(params: {
+    consumidor: string;
     from: Date;
     to: Date;
-  }): Promise<Cliente[]> {
-    const rows = await this.ormRepo
+    limite: number;
+  }): Promise<{
+    clientes: Cliente[];
+    ultimoClienteId: string | null;
+    hayMas: boolean;
+  }> {
+    // La marca se lee como texto para no perder los microsegundos de
+    // novedad_plex_at (un lote liberado comparte el mismo NOW()).
+    const marcas: Array<{ hasta: string; cliente_id: string }> =
+      await this.dataSource.query(
+        `SELECT entregado_hasta::text AS hasta, entregado_hasta_cliente_id::text AS cliente_id
+           FROM novedades_plex_entrega
+          WHERE consumidor = $1`,
+        [params.consumidor],
+      );
+    const marca = marcas[0];
+
+    const qb = this.ormRepo
       .createQueryBuilder('c')
       .leftJoinAndSelect('c.categoria', 'categoria')
       .where('c.novedadPlexAt >= :from', { from: params.from })
-      .andWhere('c.novedadPlexAt <= :to', { to: params.to })
+      .andWhere('c.novedadPlexAt <= :to', { to: params.to });
+
+    if (marca) {
+      qb.andWhere(
+        '(c.novedadPlexAt, c.id) > (CAST(:marcaHasta AS timestamptz), CAST(:marcaId AS uuid))',
+        { marcaHasta: marca.hasta, marcaId: marca.cliente_id },
+      );
+    }
+
+    // Uno de más para saber si quedó algo afuera por el tope.
+    // limit (no take): categoria es ManyToOne, una fila por cliente.
+    const rows = await qb
       .orderBy('c.novedadPlexAt', 'ASC')
       .addOrderBy('c.id', 'ASC')
+      .limit(params.limite + 1)
       .getMany();
 
-    return rows.map((row) => this.toDomain(row));
+    const hayMas = rows.length > params.limite;
+    const tanda = hayMas ? rows.slice(0, params.limite) : rows;
+
+    return {
+      clientes: tanda.map((row) => this.toDomain(row)),
+      ultimoClienteId: tanda.length ? tanda[tanda.length - 1].id : null,
+      hayMas,
+    };
+  }
+
+  async marcarNovedadesPlexEntregadas(
+    consumidor: string,
+    ultimoClienteId: string,
+  ): Promise<void> {
+    // Copia novedad_plex_at desde la base (precisión completa) y solo avanza.
+    await this.dataSource.query(
+      `INSERT INTO novedades_plex_entrega
+              (consumidor, entregado_hasta, entregado_hasta_cliente_id, actualizado_en)
+       SELECT $1, c.novedad_plex_at, c.id, NOW()
+         FROM cliente c
+        WHERE c.id = $2::uuid AND c.novedad_plex_at IS NOT NULL
+       ON CONFLICT (consumidor) DO UPDATE
+          SET entregado_hasta = EXCLUDED.entregado_hasta,
+              entregado_hasta_cliente_id = EXCLUDED.entregado_hasta_cliente_id,
+              actualizado_en = NOW()
+        WHERE (EXCLUDED.entregado_hasta, EXCLUDED.entregado_hasta_cliente_id)
+            > (novedades_plex_entrega.entregado_hasta,
+               novedades_plex_entrega.entregado_hasta_cliente_id)`,
+      [consumidor, ultimoClienteId],
+    );
   }
 
   async liberarNovedadesPlex(limite: number): Promise<number> {
@@ -182,7 +240,8 @@ export class TypeOrmClienteRepository implements ClienteRepository {
         ? entity.idFidely
         : "nextval('cliente_id_fidely_seq_nuevo_sistema')";
 
-    const idFidelyPlaceholder = typeof idFidelyVal === 'string' ? idFidelyVal : '$6';
+    const idFidelyPlaceholder =
+      typeof idFidelyVal === 'string' ? idFidelyVal : '$6';
     const nextPlaceholderIndex = typeof idFidelyVal === 'number' ? 7 : 6;
 
     const sql = `
