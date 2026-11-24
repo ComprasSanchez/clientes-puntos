@@ -76,6 +76,29 @@ function escapeXml(s: string): string {
     .replace(/'/g, '&apos;');
 }
 
+/** Respuestas más grandes que esto se guardan resumidas en integracion_movimiento. */
+const MAX_RESPONSE_CHARS_MOVIMIENTO = 100_000;
+
+/**
+ * Lo que se guarda de la respuesta en integracion_movimiento. Las respuestas
+ * chicas (ventas, altas) van completas; las grandes (novedades: hasta decenas
+ * de MB) van resumidas para no inflar la tabla ni trabar la base.
+ */
+function resumirRespuestaParaMovimiento(
+  responseXml: UseCaseResponse,
+): Record<string, unknown> {
+  const response = responseXml.response ?? '';
+  if (response.length <= MAX_RESPONSE_CHARS_MOVIMIENTO) {
+    return { response, dto: responseXml.dto };
+  }
+  return {
+    omitido: true,
+    motivo: 'respuesta grande, se guarda solo el resumen',
+    caracteres: response.length,
+    inicio: response.slice(0, 500),
+  };
+}
+
 @ApiTags('Integraciones - PLEX')
 @ApiBearerAuth()
 @Controller('onzecrm')
@@ -342,12 +365,24 @@ export class PlexController {
           movimientoId,
           {
             status: 'OK',
-            responsePayload: responseXml,
+            responsePayload: resumirRespuestaParaMovimiento(responseXml),
           },
         );
       }
 
       // 9. Responder al caller final
+      const onDelivered = responseXml.onDelivered;
+      if (onDelivered) {
+        // 'finish' = la respuesta salió completa. Si la conexión se corta
+        // antes, no se dispara (y por ej. no se marcan novedades entregadas).
+        res.once('finish', () => {
+          onDelivered().catch((err: unknown) => {
+            this.logger.error(
+              `onDelivered falló (codAccion=${accionValue}): ${err instanceof Error ? err.message : String(err)}`,
+            );
+          });
+        });
+      }
       res.set('Content-Type', 'application/xml; charset=utf-8');
       res.status(200).send(responseXml.response);
     } catch (error: unknown) {

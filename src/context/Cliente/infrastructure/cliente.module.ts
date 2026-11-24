@@ -29,6 +29,7 @@ import { uniqueCardGenerator } from '@cliente/application/services/CardGenerator
 import { ClienteQueryAdapter } from './persistence/ClienteRepository/ClienteQueryAdapter';
 import { ClienteFindNovedadesPlex } from '@cliente/application/use-cases/ClienteFindNovedadesPlex/ClienteFindNovedadesPlex';
 import { ClienteLiberarNovedadesPlex } from '@cliente/application/use-cases/ClienteLiberarNovedadesPlex/ClienteLiberarNovedadesPlex';
+import { ClienteMarcarNovedadesPlexEntregadas } from '@cliente/application/use-cases/ClienteMarcarNovedadesPlexEntregadas/ClienteMarcarNovedadesPlexEntregadas';
 import { NovedadesPlexCron } from './cron/novedades-plex.cron';
 import { ClientesIntegrationModule } from '@infrastructure/integrations/CLIENTES/clientes.integration.module';
 import { ClienteCanonicalHydrator } from '@cliente/application/services/ClienteCanonicalHydrator';
@@ -44,6 +45,7 @@ const providers: Provider[] = [
   ClienteGetProfile,
   ClienteFindByTarjeta,
   ClienteFindNovedadesPlex,
+  ClienteMarcarNovedadesPlexEntregadas,
   ClienteLiberarNovedadesPlex,
   NovedadesPlexCron,
   ClienteCanonicalHydrator,
@@ -81,6 +83,7 @@ const providers: Provider[] = [
     ClienteFindByDni,
     ClienteFindByTarjeta,
     ClienteFindNovedadesPlex,
+    ClienteMarcarNovedadesPlexEntregadas,
     DatabaseModule,
     ClientePersistenceModule,
   ],

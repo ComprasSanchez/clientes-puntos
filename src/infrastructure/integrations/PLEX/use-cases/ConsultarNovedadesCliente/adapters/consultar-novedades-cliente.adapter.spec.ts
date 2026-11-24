@@ -1,6 +1,7 @@
 import { ClienteFindNovedadesPlex } from '@cliente/application/use-cases/ClienteFindNovedadesPlex/ClienteFindNovedadesPlex';
 import { ConsultarNovedadesClientePlexAdapter } from './consultar-novedades-cliente.adapter';
 import { ClientesFsaClient } from '@infrastructure/integrations/CLIENTES/services/clientes-fsa.client';
+import { ClienteMarcarNovedadesPlexEntregadas } from '@cliente/application/use-cases/ClienteMarcarNovedadesPlexEntregadas/ClienteMarcarNovedadesPlexEntregadas';
 
 describe('ConsultarNovedadesClientePlexAdapter', () => {
   let clienteFindNovedadesPlex: { run: jest.Mock };
@@ -8,6 +9,7 @@ describe('ConsultarNovedadesClientePlexAdapter', () => {
     findManyByDni: jest.Mock;
     findManyByExternalIds: jest.Mock;
   };
+  let marcarEntregadas: { run: jest.Mock };
   let adapter: ConsultarNovedadesClientePlexAdapter;
 
   beforeEach(() => {
@@ -16,34 +18,40 @@ describe('ConsultarNovedadesClientePlexAdapter', () => {
       findManyByDni: jest.fn().mockResolvedValue(new Map()),
       findManyByExternalIds: jest.fn().mockResolvedValue(new Map()),
     };
+    marcarEntregadas = { run: jest.fn().mockResolvedValue(undefined) };
     adapter = new ConsultarNovedadesClientePlexAdapter(
       clienteFindNovedadesPlex as unknown as ClienteFindNovedadesPlex,
       clientesFsaClient as unknown as ClientesFsaClient,
+      marcarEntregadas as unknown as ClienteMarcarNovedadesPlexEntregadas,
     );
   });
 
   it('procesa codAccion 302 y responde novedades en XML', async () => {
-    clienteFindNovedadesPlex.run.mockResolvedValue([
-      {
-        id: 'cli-1',
-        dni: '30111222',
-        nombre: 'Juan',
-        apellido: 'Perez',
-        sexo: 'M',
-        fechaNacimiento: '1990-01-01',
-        status: 'activo',
-        categoria: 2,
-        email: 'juan@mail.com',
-        telefono: '111',
-        direccion: 'Calle 123',
-        codPostal: '5000',
-        localidad: 'Cordoba',
-        provincia: 'Cordoba',
-        idFidely: 77,
-        tarjetaFidely: '000123',
-        fechaBaja: null,
-      },
-    ]);
+    clienteFindNovedadesPlex.run.mockResolvedValue({
+      ultimoClienteId: 'cli-1',
+      hayMas: false,
+      clientes: [
+        {
+          id: 'cli-1',
+          dni: '30111222',
+          nombre: 'Juan',
+          apellido: 'Perez',
+          sexo: 'M',
+          fechaNacimiento: '1990-01-01',
+          status: 'activo',
+          categoria: 2,
+          email: 'juan@mail.com',
+          telefono: '111',
+          direccion: 'Calle 123',
+          codPostal: '5000',
+          localidad: 'Cordoba',
+          provincia: 'Cordoba',
+          idFidely: 77,
+          tarjetaFidely: '000123',
+          fechaBaja: null,
+        },
+      ],
+    });
 
     clientesFsaClient.findManyByExternalIds.mockResolvedValue(
       new Map([
@@ -88,8 +96,10 @@ describe('ConsultarNovedadesClientePlexAdapter', () => {
     expect(clienteFindNovedadesPlex.run).toHaveBeenCalledTimes(1);
     expect(clienteFindNovedadesPlex.run).toHaveBeenCalledWith(
       {
+        consumidor: 'SUC-01',
         from: new Date(2026, 2, 1, 0, 0, 0),
         to: new Date(2026, 2, 6, 23, 59, 59),
+        limite: 5000,
       },
       { skipCanonicalHydration: true },
     );
@@ -103,7 +113,32 @@ describe('ConsultarNovedadesClientePlexAdapter', () => {
     expect(result.response).toContain('<Clientes>');
     expect(result.response).toContain('<IdClienteFidely>77</IdClienteFidely>');
     expect(result.response).toContain('<Sucursal>SUC-01</Sucursal>');
-    expect(result.response).toContain('<FecNac>1990-01-01</FecNac>');
+    expect(result.response).toContain('<FecNac>01/01/1990</FecNac>');
+
+    // La marca de entrega avanza recién cuando la respuesta sale completa.
+    expect(marcarEntregadas.run).not.toHaveBeenCalled();
+    await result.onDelivered?.();
+    expect(marcarEntregadas.run).toHaveBeenCalledWith('SUC-01', 'cli-1');
+  });
+
+  it('sin clientes no hay nada que marcar como entregado', async () => {
+    clienteFindNovedadesPlex.run.mockResolvedValue({
+      clientes: [],
+      ultimoClienteId: null,
+      hayMas: false,
+    });
+    const xml =
+      '<?xml version="1.0" encoding="utf-8"?>' +
+      '<MensajeFidelyGB>' +
+      '<CodAccion>302</CodAccion>' +
+      '<FechaDesde>17/06/2026 00:00:00</FechaDesde>' +
+      '<FechaHasta>24/11/2026 12:00:00</FechaHasta>' +
+      '</MensajeFidelyGB>';
+
+    const result = await adapter.handle(xml, '6047');
+
+    expect(result.response).toContain('<RespCode>0</RespCode>');
+    expect(result.onDelivered).toBeUndefined();
   });
 
   it('lanza error si FechaDesde no tiene el formato esperado', async () => {

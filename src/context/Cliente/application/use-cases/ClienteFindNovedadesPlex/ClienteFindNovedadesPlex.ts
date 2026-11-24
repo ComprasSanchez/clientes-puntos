@@ -4,10 +4,20 @@ import { CLIENTE_REPO } from '@cliente/core/tokens/tokens';
 import { Inject, Injectable } from '@nestjs/common';
 import { ClienteCanonicalHydrator } from '@cliente/application/services/ClienteCanonicalHydrator';
 
+export type NovedadesPlexTanda = {
+  clientes: ClienteResponseDto[];
+  /** Último cliente de la tanda: se marca como entregado si la respuesta sale completa. */
+  ultimoClienteId: string | null;
+  /** Quedaron clientes afuera por el tope: van en la próxima consulta. */
+  hayMas: boolean;
+};
+
 /**
- * Clientes publicados como novedad para Plex en el rango pedido.
- * Filtra por novedad_plex_at (lo pone ClienteLiberarNovedadesPlex de a lotes),
- * no por updated_at: así un cambio masivo no viaja entero en una respuesta.
+ * Novedades para Plex: clientes con novedad_plex_at en el rango pedido, a
+ * partir de lo último que ya se le entregó a ese consumidor, de a `limite`.
+ *
+ * Plex manda siempre la misma FechaDesde; sin la marca de entrega cada
+ * respuesta repetía todo lo acumulado.
  */
 @Injectable()
 export class ClienteFindNovedadesPlex {
@@ -18,13 +28,14 @@ export class ClienteFindNovedadesPlex {
   ) {}
 
   async run(
-    params: { from: Date; to: Date },
+    params: { consumidor: string; from: Date; to: Date; limite: number },
     options?: { skipCanonicalHydration?: boolean },
-  ): Promise<ClienteResponseDto[]> {
-    const clientes = await this.repository.findNovedadesPlexBetween(params);
+  ): Promise<NovedadesPlexTanda> {
+    const { clientes, ultimoClienteId, hayMas } =
+      await this.repository.findNovedadesPlexParaEntregar(params);
 
     if (!Array.isArray(clientes) || clientes.length === 0) {
-      return [];
+      return { clientes: [], ultimoClienteId: null, hayMas: false };
     }
 
     const mapped = clientes.map((c) => ({
@@ -47,10 +58,12 @@ export class ClienteFindNovedadesPlex {
       fechaBaja: c.fidelyStatus.fechaBaja.value?.toISOString() ?? null,
     }));
 
-    if (options?.skipCanonicalHydration) {
-      return mapped;
-    }
-
-    return this.canonicalHydrator.enrichMany(mapped);
+    return {
+      clientes: options?.skipCanonicalHydration
+        ? mapped
+        : await this.canonicalHydrator.enrichMany(mapped),
+      ultimoClienteId,
+      hayMas,
+    };
   }
 }
