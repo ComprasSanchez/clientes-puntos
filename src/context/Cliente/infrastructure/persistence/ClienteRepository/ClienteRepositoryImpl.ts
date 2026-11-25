@@ -16,6 +16,9 @@ import { ClienteFechaAlta } from '@cliente/core/value-objects/ClienteFechaAlta';
 import { ClienteFechaBaja } from '@cliente/core/value-objects/ClienteFechaBaja';
 import { CategoriaEntity } from '../../entities/CategoriaEntity';
 
+/** Lock de Postgres para que una sola réplica libere novedades a la vez. */
+const NOVEDADES_PLEX_LOCK_KEY = 7243001;
+
 @Injectable()
 export class TypeOrmClienteRepository implements ClienteRepository {
   private readonly ormRepo: Repository<ClienteEntity>;
@@ -145,14 +148,20 @@ export class TypeOrmClienteRepository implements ClienteRepository {
     const qb = this.ormRepo
       .createQueryBuilder('c')
       .leftJoinAndSelect('c.categoria', 'categoria')
-      .where('c.novedadPlexAt >= :from', { from: params.from })
-      .andWhere('c.novedadPlexAt <= :to', { to: params.to });
+      .where('c.novedadPlexAt <= :to', { to: params.to });
 
     if (marca) {
-      qb.andWhere(
+      // Con marca manda la marca, no la FechaDesde de Plex: así nada que no
+      // se le haya entregado queda afuera aunque Plex ya haya avanzado su
+      // fecha (relojes distintos, respuestas anteriores cortadas, etc.).
+      qb.andWhere('c.novedadPlexAt >= CAST(:marcaHasta AS timestamptz)', {
+        marcaHasta: marca.hasta,
+      }).andWhere(
         '(c.novedadPlexAt, c.id) > (CAST(:marcaHasta AS timestamptz), CAST(:marcaId AS uuid))',
         { marcaHasta: marca.hasta, marcaId: marca.cliente_id },
       );
+    } else {
+      qb.andWhere('c.novedadPlexAt >= :from', { from: params.from });
     }
 
     // Uno de más para saber si quedó algo afuera por el tope.
@@ -195,28 +204,60 @@ export class TypeOrmClienteRepository implements ClienteRepository {
     );
   }
 
-  async liberarNovedadesPlex(limite: number): Promise<number> {
-    // SKIP LOCKED: si corre en más de una réplica, cada una toma filas distintas.
-    const rows = (await this.dataSource.query(
-      `UPDATE cliente
-       SET novedad_plex_at = NOW(),
-           novedad_plex_pendiente_desde = NULL
-       WHERE id IN (
-         SELECT id FROM cliente
-         WHERE novedad_plex_pendiente_desde IS NOT NULL
-         ORDER BY novedad_plex_pendiente_desde ASC, id ASC
-         LIMIT $1
-         FOR UPDATE SKIP LOCKED
-       )
-       RETURNING id`,
-      [limite],
-    )) as unknown;
+  async liberarNovedadesPlex(
+    limite: number,
+    maxSinEntregar: number,
+  ): Promise<{ liberados: number; sinEntregar: number }> {
+    return this.dataSource.transaction(async (m) => {
+      // Una réplica a la vez: si las dos contaran y liberaran juntas, se
+      // pasarían del máximo sin entregar.
+      const lock: Array<{ ok: boolean }> = await m.query(
+        `SELECT pg_try_advisory_xact_lock($1) AS ok`,
+        [NOVEDADES_PLEX_LOCK_KEY],
+      );
+      if (!lock[0]?.ok) return { liberados: 0, sinEntregar: -1 };
 
-    // pg devuelve [filas, cantidad] en UPDATE ... RETURNING vía TypeORM.
-    if (Array.isArray(rows) && Array.isArray(rows[0])) {
-      return (rows[0] as unknown[]).length;
-    }
-    return Array.isArray(rows) ? rows.length : 0;
+      // Publicados que el consumidor más atrasado todavía no recibió.
+      // Sin consumidores registrados no hay a quién esperar.
+      const pendientes: Array<{ sin_entregar: string | null }> = await m.query(
+        `SELECT (
+           SELECT count(*)
+             FROM cliente c
+            WHERE c.novedad_plex_at >= e.entregado_hasta
+              AND (c.novedad_plex_at, c.id) > (e.entregado_hasta, e.entregado_hasta_cliente_id)
+         ) AS sin_entregar
+           FROM novedades_plex_entrega e
+          ORDER BY e.entregado_hasta ASC, e.entregado_hasta_cliente_id ASC
+          LIMIT 1`,
+      );
+      const sinEntregar = Number(pendientes[0]?.sin_entregar ?? 0);
+      const cupo = Math.min(limite, maxSinEntregar - sinEntregar);
+      if (cupo <= 0) return { liberados: 0, sinEntregar };
+
+      const rows = (await m.query(
+        `UPDATE cliente
+         SET novedad_plex_at = NOW(),
+             novedad_plex_pendiente_desde = NULL
+         WHERE id IN (
+           SELECT id FROM cliente
+           WHERE novedad_plex_pendiente_desde IS NOT NULL
+           ORDER BY novedad_plex_pendiente_desde ASC, id ASC
+           LIMIT $1
+           FOR UPDATE SKIP LOCKED
+         )
+         RETURNING id`,
+        [cupo],
+      )) as unknown;
+
+      // pg devuelve [filas, cantidad] en UPDATE ... RETURNING vía TypeORM.
+      const liberados =
+        Array.isArray(rows) && Array.isArray(rows[0])
+          ? (rows[0] as unknown[]).length
+          : Array.isArray(rows)
+            ? rows.length
+            : 0;
+      return { liberados, sinEntregar };
+    });
   }
 
   async touchByDni(dni: string): Promise<void> {
