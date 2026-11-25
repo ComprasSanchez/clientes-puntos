@@ -52,7 +52,13 @@ export interface ClienteRepository {
 
   /**
    * Publica como novedad para Plex hasta `limite` clientes pendientes, los más
-   * viejos primero. Devuelve cuántos publicó.
+   * viejos primero, sin dejar nunca más de `maxSinEntregar` publicados que el
+   * consumidor más atrasado todavía no recibió. Así ninguna respuesta a Plex
+   * necesita cortarse por el tope (Plex avanza su FechaDesde aunque la
+   * respuesta venga cortada, y lo que queda afuera se pierde).
    */
-  liberarNovedadesPlex(limite: number): Promise<number>;
+  liberarNovedadesPlex(
+    limite: number,
+    maxSinEntregar: number,
+  ): Promise<{ liberados: number; sinEntregar: number }>;
 }

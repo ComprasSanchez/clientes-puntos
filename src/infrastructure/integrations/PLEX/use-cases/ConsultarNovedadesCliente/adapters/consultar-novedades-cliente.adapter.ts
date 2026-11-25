@@ -9,12 +9,13 @@ import { XMLBuilder, XMLParser } from 'fast-xml-parser';
 import { PlexConsultarNovedadesClienteRequestMapper } from '../dtos/consultar-novedades-cliente.request.dto';
 import { PlexConsultarNovedadesClienteResponseMapper } from '../dtos/consultar-novedades-cliente.response.dto';
 import { ClienteMarcarNovedadesPlexEntregadas } from '@cliente/application/use-cases/ClienteMarcarNovedadesPlexEntregadas/ClienteMarcarNovedadesPlexEntregadas';
+import { NOVEDADES_PLEX_MAX_CLIENTES } from '@cliente/application/novedades-plex.config';
 
-/** Máximo de clientes por respuesta de novedades (~1 KB de XML por cliente). */
-const MAX_CLIENTES_POR_RESPUESTA = (() => {
-  const n = Number(process.env.NOVEDADES_PLEX_MAX_CLIENTES);
-  return Number.isInteger(n) && n > 0 ? n : 5000;
-})();
+/**
+ * Máximo de clientes por respuesta (el mismo que frena la fila: como la fila
+ * nunca deja más que esto sin entregar, la respuesta no debería cortarse).
+ */
+const MAX_CLIENTES_POR_RESPUESTA = NOVEDADES_PLEX_MAX_CLIENTES;
 
 @Injectable()
 export class ConsultarNovedadesClientePlexAdapter {
