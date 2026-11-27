@@ -49,6 +49,7 @@ import { UUIDGenerator } from '@shared/core/uuid/UuidGenerator';
 import { TransactionalRunner } from '@shared/infrastructure/transaction/TransactionalRunner';
 import { AjusteController } from './controllers/AjusteController';
 import { AjusteUseCase } from '@puntos/application/use-cases/Ajuste/Ajuste';
+import { AcreditarExternoUseCase } from '@puntos/application/use-cases/Ajuste/AcreditarExterno';
 import { OperacionFactory } from '@puntos/core/factories/OperacionFactory';
 import { TransaccionBuilder } from '@puntos/application/services/Transaccionbuilder';
 import { CompraHandler } from '@puntos/application/handlers/CompraHandler';
@@ -121,6 +122,7 @@ import { ClientesFsaClient } from '@infrastructure/integrations/CLIENTES/service
     // Casos de uso
     CompraUseCase,
     AjusteUseCase,
+    AcreditarExternoUseCase,
     DevolucionUseCase,
     AnulacionUseCase,
     FindAllLotesUseCase,

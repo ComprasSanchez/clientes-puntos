@@ -10,5 +10,7 @@ export class Ajuste {
     public readonly cantidad: number,
     public readonly fecha: Date,
     public readonly motivo?: string,
+    /** Clave del sistema externo que lo pidió (evita acreditar dos veces). */
+    public readonly claveExterna?: string,
   ) {}
 }

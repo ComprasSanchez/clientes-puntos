@@ -21,6 +21,9 @@ export class AjusteEntity {
   @Column({ type: 'text', nullable: true })
   motivo: string;
 
+  @Column({ type: 'varchar', length: 160, nullable: true })
+  claveExterna: string | null;
+
   @CreateDateColumn()
   fecha: Date;
 }

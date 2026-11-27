@@ -49,6 +49,7 @@ export class AjusteUseCase {
       input.puntos,
       new Date(),
       input.motivo ?? undefined,
+      input.claveExterna ?? undefined,
     );
 
     // 1️⃣ Validar/conversiones de primitivos a VOs
