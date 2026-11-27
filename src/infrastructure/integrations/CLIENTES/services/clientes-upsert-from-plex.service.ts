@@ -8,6 +8,7 @@ import {
   UpsertClienteFromPlexRequestDto,
   UpsertClienteFromPlexResponseDto,
 } from '../dto/clientes-upsert-from-plex.dto';
+import { FidelizarClienteResponseDto } from '../dto/clientes-fidelizar.dto';
 
 @Injectable()
 export class ClientesUpsertFromPlexService {
@@ -61,6 +62,30 @@ export class ClientesUpsertFromPlexService {
     return {
       clienteId: existing.id.value,
       action: 'updated',
+    };
+  }
+
+  /**
+   * Alta desde el portal/app: fideliza con tarjeta virtual (tarjeta = DNI),
+   * igual que la caja. Si ya existe no toca nada (no pisa la tarjeta de Plex).
+   * El alta queda pendiente para novedades, así Plex se entera.
+   */
+  async fidelizar(dniRaw: string): Promise<FidelizarClienteResponseDto> {
+    const dni = dniRaw.trim();
+    const existing = await this.clienteRepo.findByDni(new ClienteDni(dni));
+    if (existing) {
+      return {
+        clienteId: existing.id.value,
+        tarjetaFidely: String(existing.fidelyStatus.tarjetaFidely.value ?? ''),
+        created: false,
+      };
+    }
+
+    const created = await this.createCliente.run({ dni }, true);
+    return {
+      clienteId: created.id.value,
+      tarjetaFidely: String(created.fidelyStatus.tarjetaFidely.value ?? ''),
+      created: true,
     };
   }
 

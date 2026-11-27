@@ -12,6 +12,10 @@ import {
   UpsertClienteFromPlexRequestDto,
   UpsertClienteFromPlexResponseDto,
 } from '../dto/clientes-upsert-from-plex.dto';
+import {
+  FidelizarClienteRequestDto,
+  FidelizarClienteResponseDto,
+} from '../dto/clientes-fidelizar.dto';
 import { ClientesUpsertFromPlexService } from '../services/clientes-upsert-from-plex.service';
 
 @ApiTags('Integraciones - Clientes')
@@ -39,6 +43,20 @@ export class ClientesUpsertController {
     @Body() dto: UpsertClienteFromPlexRequestDto,
   ): Promise<UpsertClienteFromPlexResponseDto> {
     return this.service.run(dto);
+  }
+
+  @Post('fidelizar')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary:
+      'Fideliza con tarjeta virtual (tarjeta = DNI) a un cliente dado de alta en el portal/app. Si ya existe, no cambia nada.',
+  })
+  @ApiBody({ type: FidelizarClienteRequestDto })
+  @ApiResponse({ status: 200, type: FidelizarClienteResponseDto })
+  async fidelizar(
+    @Body() dto: FidelizarClienteRequestDto,
+  ): Promise<FidelizarClienteResponseDto> {
+    return this.service.fidelizar(dto.dni);
   }
 
   @Patch('touch')
