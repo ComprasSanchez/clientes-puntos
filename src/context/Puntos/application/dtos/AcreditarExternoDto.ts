@@ -1,7 +1,8 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsInt,
   IsNotEmpty,
+  IsOptional,
   IsString,
   IsUUID,
   Matches,
@@ -12,9 +13,21 @@ import {
 
 /** Acreditación pedida por otro sistema, con clave para no repetirla. */
 export class AcreditarExternoDto {
-  @ApiProperty({ format: 'uuid', description: 'Cliente de clientes-puntos' })
+  @ApiPropertyOptional({
+    format: 'uuid',
+    description: 'Cliente de clientes-puntos (si no viene, se busca por dni)',
+  })
+  @IsOptional()
   @IsUUID()
-  clienteId!: string;
+  clienteId?: string;
+
+  @ApiPropertyOptional({
+    example: '30111222',
+    description: 'DNI, si no se conoce el clienteId',
+  })
+  @IsOptional()
+  @Matches(/^\d{6,10}$/, { message: 'dni inválido' })
+  dni?: string;
 
   @ApiProperty({ example: 500 })
   @IsInt()
